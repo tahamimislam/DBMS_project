@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink - A centralized platform connecting charity organizations, food donors, and people in need across Bangladesh.">
+  <title>HumanityLink – Connecting Charity &amp; Community</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css?v=2">
+  <script>
+    (function(){
+      var t = localStorage.getItem('hl_theme') ||
+              (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      if (t === 'dark') document.documentElement.classList.add('dark-theme');
+    })();
+  </script>
+</head>
+<body>
+
+  <nav class="navbar" id="mainNavbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" id="nav-logo">
+        <img src="assets/logo.jpg" alt="HumanityLink Logo">
+        <span>HumanityLink</span>
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html" class="active" id="nav-home">Home</a></li>
+        <li><a href="index.html#activities" id="nav-activities">Activities</a></li>
+        <li><a href="index.html#about" id="nav-about">About</a></li>
+      </ul>
+      <div class="nav-actions" id="nav-actions"></div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+<div class="page-top">
+
+  <!-- Hero -->
+  <section class="hero" id="hero">
+    <div class="container hero-container">
+      <div class="hero-content fade-up">
+        <div class="hero-badge"><i class="fa-solid fa-leaf"></i> Bangladesh&#8217;s Charity Network</div>
+        <h1>Linking <span>Humanity</span><br>One Cause at a Time</h1>
+        <p class="hero-desc">A centralized platform connecting restaurants, community centers, charity organizations, and people in need &mdash; coordinating food, healthcare, education, and financial support.</p>
+        <div class="hero-cta">
+          <a href="auth.html" class="btn btn-primary btn-lg" id="hero-join-btn">Join the Network</a>
+        </div>
+      </div>
+
+      <!-- Polaroid Card Stack Slider -->
+      <div class="hero-slider-wrapper" id="heroSliderWrapper">
+        <div class="hero-slider-deck" id="heroSliderDeck">
+
+          <div class="polaroid-card active" data-index="0">
+            <div class="polaroid-media">
+              <img src="assets/hero-food-aid.jpg" alt="Food Aid Distribution">
+            </div>
+            <div class="polaroid-caption">
+              <span class="polaroid-title">Food Aid</span>
+              <span class="polaroid-badge">Feeding Lives</span>
+            </div>
+          </div>
+
+          <div class="polaroid-card next" data-index="1">
+            <div class="polaroid-media">
+              <img src="assets/hero-medical-relief.jpg" alt="Medical Relief">
+            </div>
+            <div class="polaroid-caption">
+              <span class="polaroid-title">Medical Relief</span>
+              <span class="polaroid-badge">Healthcare</span>
+            </div>
+          </div>
+
+          <div class="polaroid-card prev" data-index="2">
+            <div class="polaroid-media">
+              <img src="assets/hero-education.jpg" alt="Education Support">
+            </div>
+            <div class="polaroid-caption">
+              <span class="polaroid-title">Education</span>
+              <span class="polaroid-badge">Scholarships</span>
+            </div>
+          </div>
+
+          <div class="polaroid-card hidden" data-index="3">
+            <div class="polaroid-media">
+              <img src="assets/hero-street-children.jpg" alt="Street Children Support">
+            </div>
+            <div class="polaroid-caption">
+              <span class="polaroid-title">Children</span>
+              <span class="polaroid-badge">Child Welfare</span>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="hero-slider-controls">
+          <button class="slider-arrow" id="sliderPrev" aria-label="Previous slide">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <div class="hero-slider-dots" id="sliderDots">
+            <button class="slider-dot active" data-dot="0" aria-label="Slide 1"></button>
+            <button class="slider-dot" data-dot="1" aria-label="Slide 2"></button>
+            <button class="slider-dot" data-dot="2" aria-label="Slide 3"></button>
+            <button class="slider-dot" data-dot="3" aria-label="Slide 4"></button>
+          </div>
+          <button class="slider-arrow" id="sliderNext" aria-label="Next slide">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+
+  <!-- Activities / What We Offer -->
+  <section class="section" id="activities">
+    <div class="container">
+      <div class="section-header">
+        <div class="section-tag">Activities</div>
+        <h2>What We Offer</h2>
+        <p>From surplus food to emergency medical help — HumanityLink coordinates all forms of social welfare support.</p>
+      </div>
+      <div class="features-grid">
+        <div class="feature-card fade-up" onclick="handleOfferingClick('food')" id="feat-food" role="button" tabindex="0">
+          <div class="feature-icon"><i class="fa-solid fa-utensils"></i></div>
+          <h3>Food Support</h3>
+          <p>Restaurants and community centers post surplus food. Charity organizations claim and distribute to those in need.</p>
+          <div class="card-action-link">View Process &amp; Impact →</div>
+        </div>
+        <div class="feature-card fade-up fade-up-delay-1" onclick="handleOfferingClick('medical')" id="feat-medical" role="button" tabindex="0">
+          <div class="feature-icon"><i class="fa-solid fa-notes-medical"></i></div>
+          <h3>Medical &amp; Welfare</h3>
+          <p>Report homeless or medically distressed individuals. Charity organizations respond with healthcare campaigns and aid.</p>
+          <div class="card-action-link">View Process &amp; Impact →</div>
+        </div>
+        <div class="feature-card fade-up fade-up-delay-2" onclick="handleOfferingClick('financial')" id="feat-financial" role="button" tabindex="0">
+          <div class="feature-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+          <h3>Financial Support</h3>
+          <p>Transparent fundraising campaigns with donation tracking. Connect donors directly with verified organizations.</p>
+          <div class="card-action-link">View Process &amp; Impact →</div>
+        </div>
+        <div class="feature-card fade-up fade-up-delay-3" onclick="handleOfferingClick('education')" id="feat-education" role="button" tabindex="0">
+          <div class="feature-icon"><i class="fa-solid fa-graduation-cap"></i></div>
+          <h3>Education Support</h3>
+          <p>Deserving students apply for educational financial assistance with proper documentation and verification.</p>
+          <div class="card-action-link">View Process &amp; Impact →</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+  <!-- CTA -->
+  <section class="section" id="about">
+    <div class="container text-center">
+      <div class="section-header section-header-wide">
+        <div class="section-tag">About</div>
+        <h2>Bridging the Gap in Welfare Coordination</h2>
+        <p>HumanityLink is proposed by <strong>SQL Syndicate</strong> at United International University as a comprehensive solution to the scattered and inefficient state of charitable coordination in Bangladesh. We combine food donation, medical welfare reporting, fundraising, and educational assistance into one transparent, trackable platform.</p>
+      </div>
+      <div class="btn-group-center">
+        <a href="auth.html?tab=register" class="btn btn-primary btn-lg" id="cta-register-btn">Register Your Organization</a>
+      </div>
+    </div>
+  </section>
+
+</div>
+
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo-row">
+            <img src="assets/logo.jpg" alt="HumanityLink">
+            <span>HumanityLink</span>
+          </div>
+          <p>A centralized web-based system for coordinating charity, food donation, medical assistance, and educational support across Bangladesh.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="index.html#activities">Activities</a></li>
+            <li><a href="food-support.html">Food Support</a></li>
+            <li><a href="index.html#about">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Get Started</h4>
+          <ul>
+            <li><a href="auth.html">Register</a></li>
+            <li><a href="auth.html">Log In</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:info@humanitylink.org">info@humanitylink.org</a></li>
+            <li><a href="#">+880-1700-000000</a></li>
+            <li><a href="#">Dhaka, Bangladesh</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 HumanityLink. All rights reserved.</span>
+        <span>Built with <i class="fa-solid fa-heart footer-heart"></i> for humanity &mdash; <a href="#">SQL Syndicate, UIU</a></span>
+      </div>
+    </div>
+  </footer>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="app.js?v=2"></script>
+</body>
+</html>

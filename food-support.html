@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink Food Support - Browse and claim food donations from restaurants and community centers.">
+  <title>Food Support – HumanityLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="has-sidebar">
+
+<!-- ── Full Sidebar (shown for logged-in charity users) ────── -->
+<aside class="app-sidebar" id="appSidebar">
+
+  <!-- Logo / Home -->
+  <a href="index.html" class="app-sidebar-logo" id="sidebar-logo-link">
+    <img src="assets/logo.jpg" alt="HumanityLink">
+    <span>HumanityLink</span>
+  </a>
+
+  <!-- Navigation Links -->
+  <nav class="app-sidebar-nav">
+    <div class="app-sidebar-section-label">Navigation</div>
+    <a href="food-support.html" class="app-sidebar-link active" id="sbl-food">
+      <span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span>
+      <span class="asbl-text">Food Support</span>
+    </a>
+  </nav>
+
+  <!-- Spacer pushes account to bottom -->
+  <div class="app-sidebar-spacer"></div>
+
+  <!-- Account Section -->
+  <div class="app-sidebar-account" id="sidebarAccount">
+    <!-- Rendered by JS: renderSidebarAccount() -->
+  </div>
+</aside>
+
+<!-- Account Popup Menu -->
+<div class="sidebar-account-popup hidden" id="sidebarAccountPopup">
+  <button class="sidebar-popup-item" onclick="openSettingsModal()" id="popup-settings-btn" type="button">
+    <i class="fa-solid fa-gear"></i> Settings
+  </button>
+  <div class="sidebar-popup-divider"></div>
+  <button class="sidebar-popup-item sidebar-popup-btn" onclick="doLogout()" id="popup-logout-btn" type="button">
+    <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+  </button>
+</div>
+
+<!-- ── Main Content ─────────────────────────────────────────── -->
+<div class="app-main" id="appMain">
+<div class="container food-support-container">
+
+  <div class="page-header">
+    <div class="page-header-row">
+      <div>
+        <h1><i class="fa-solid fa-bowl-food"></i> Food Support</h1>
+        <p>Surplus food posted by restaurants and community centers — ready for charity organizations to claim.</p>
+      </div>
+      <div id="post-btn-wrapper"></div>
+    </div>
+  </div>
+
+
+  <div class="subheading-label subheading-label-lg"><i class="fa-solid fa-bowl-food"></i> Live Available Donations</div>
+
+
+  <!-- Filter Bar -->
+  <div class="filter-bar" id="filterBar">
+    <label>Filter by:</label>
+    <select class="filter-select" id="filterType" onchange="applyFilter()">
+      <option value="">All Food Types</option>
+      <option value="Cooked Meal">Cooked Meal</option>
+      <option value="Bakery">Bakery</option>
+      <option value="Fruits &amp; Vegetables">Fruits &amp; Vegetables</option>
+      <option value="Beverages">Beverages</option>
+      <option value="Dry Food">Dry Food</option>
+      <option value="Other">Other</option>
+    </select>
+    <select class="filter-select" id="filterStatus" onchange="applyFilter()">
+      <option value="">All Status</option>
+      <option value="available">Available</option>
+      <option value="claimed">Claimed</option>
+    </select>
+    <input type="date" class="filter-input" id="filterDate" onchange="applyFilter()" title="Filter by pickup date">
+    <button class="btn btn-ghost btn-sm" onclick="clearFilters()" id="clear-filter-btn"><i class="fa-solid fa-xmark"></i> Clear</button>
+    <span id="filter-count" class="filter-count"></span>
+  </div>
+
+  <!-- Food Grid -->
+  <div class="food-grid" id="foodGrid"></div>
+  <div id="emptyState" class="empty-state hidden">
+    <div class="empty-icon"><i class="fa-solid fa-utensils"></i></div>
+    <h3>No food donations found</h3>
+    <p>Try adjusting your filters or check back later for new posts.</p>
+    <button class="btn btn-outline" onclick="clearFilters()" id="empty-clear-btn">Clear Filters</button>
+  </div>
+
+</div>
+</div><!-- /.app-main -->
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettingsModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="settings-modal-header">
+        <div class="s-avatar" id="sm-avatar">HL</div>
+        <div>
+          <h3 style="margin:0;font-size:1.2rem">Account Settings</h3>
+          <span class="settings-badge" id="sm-type-badge">Account</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeSettingsModal()" aria-label="Close">&times;</button>
+    </div>
+    <div id="settings-error" class="form-error-msg" style="display:none;color:#c0392b;margin-bottom:14px;font-size:.85rem"></div>
+    <form id="settingsForm" onsubmit="saveSettings(event)">
+      <div class="form-group">
+        <label for="sm-name">Full Name / Organization Name <span class="req">*</span></label>
+        <input type="text" id="sm-name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="sm-email">Email Address</label>
+        <input type="email" id="sm-email" class="form-control form-readonly" readonly title="Email cannot be changed">
+      </div>
+      <div class="form-group">
+        <label for="sm-phone">Phone Number <span class="req">*</span></label>
+        <input type="tel" id="sm-phone" class="form-control" placeholder="017XXXXXXXX" required>
+      </div>
+      <div class="form-group">
+        <label for="sm-address">Physical Address <span class="req">*</span></label>
+        <input type="text" id="sm-address" class="form-control" required>
+      </div>
+      <div class="form-group" id="sm-reg-group">
+        <label for="sm-reg">Registration Number</label>
+        <input type="text" id="sm-reg" class="form-control" placeholder="Trade License / NGO Reg No.">
+      </div>
+      <div class="modal-actions" style="margin-top:20px;display:flex;gap:12px;justify-content:flex-end">
+        <button type="button" class="btn btn-ghost" onclick="closeSettingsModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="save-settings-btn"><i class="fa-solid fa-check"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Claim Confirmation Modal -->
+<div class="modal-overlay" id="claimModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Confirm Claim</h3>
+      <button class="modal-close" onclick="closeModal('claimModal')"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p class="modal-desc">By claiming this donation, you confirm that your organization will pick up the food during the specified time window. The donor&#8217;s contact information will be revealed.</p>
+    <div id="claimPostSummary" class="claim-post-summary"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('claimModal')" id="cancel-claim-btn">Cancel</button>
+      <button class="btn btn-primary" onclick="confirmClaim()" id="confirm-claim-btn"><i class="fa-solid fa-circle-check"></i> Confirm Claim</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="app.js"></script>
+</body>
+</html>

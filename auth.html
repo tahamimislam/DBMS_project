@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink - Login or Register to join the charity network.">
+  <title>Login / Register – HumanityLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <nav class="navbar" id="mainNavbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" id="nav-logo">
+        <img src="assets/logo.jpg" alt="HumanityLink Logo">
+        <span>HumanityLink</span>
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html"  id="nav-home">Home</a></li>
+        <li><a href="index.html#activities" id="nav-activities">Activities</a></li>
+        <li><a href="index.html#about" id="nav-about">About</a></li>
+      </ul>
+      <div class="nav-actions" id="nav-actions"></div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+<div class="auth-wrapper page-top">
+  <div class="auth-card fade-up">
+    <div class="auth-logo">
+      <img src="assets/logo.jpg" alt="HumanityLink Logo">
+      <h2>HumanityLink</h2>
+      <p>Connecting charity, food &amp; community</p>
+    </div>
+
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="switchTab('login')">Log In</button>
+      <button class="auth-tab" id="tab-register" onclick="switchTab('register')">Register</button>
+    </div>
+
+    <!-- Login Form -->
+    <form id="loginForm" onsubmit="doLogin(event)">
+      <div class="form-group">
+        <label for="login-email">Email Address <span class="req">*</span></label>
+        <div class="input-group">
+          <span class="input-icon"><i class="fa-solid fa-envelope"></i></span>
+          <input type="email" id="login-email" class="form-control" placeholder="you@example.com" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="login-password">Password <span class="req">*</span></label>
+        <div class="input-group">
+          <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+          <input type="password" id="login-password" class="form-control" placeholder="Your password" required>
+          <button type="button" class="input-toggle" onclick="togglePw('login-password', this)"><i class="fa-regular fa-eye"></i></button>
+        </div>
+      </div>
+      <div id="login-error" class="form-error-msg"></div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg" id="login-submit-btn">Log In</button>
+      <p class="auth-bottom-text">
+        Demo charity: <strong>hope@demo.com</strong> / <strong>demo123</strong><br>
+        Demo restaurant: <strong>greengarden@demo.com</strong> / <strong>demo123</strong>
+      </p>
+    </form>
+
+    <!-- Register Form -->
+    <form id="registerForm" class="hidden" onsubmit="doRegister(event)">
+      <div class="form-group">
+        <label>Account Type <span class="req">*</span></label>
+        <div class="account-type-grid">
+          <button type="button" class="account-type-btn" id="type-charity" onclick="selectType('charity')">
+            <span class="type-icon"><i class="fa-solid fa-hand-holding-heart"></i></span>Charity Organization
+          </button>
+          <button type="button" class="account-type-btn" id="type-restaurant" onclick="selectType('restaurant')">
+            <span class="type-icon"><i class="fa-solid fa-utensils"></i></span>Restaurant / Community Center
+          </button>
+          <button type="button" class="account-type-btn" id="type-user" onclick="selectType('user')">
+            <span class="type-icon"><i class="fa-solid fa-user"></i></span>General User
+          </button>
+        </div>
+        <div id="type-error" class="form-error-sm">Please select an account type.</div>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-name" id="reg-name-label">Full Name <span class="req">*</span></label>
+        <input type="text" id="reg-name" class="form-control" placeholder="e.g. Hope Foundation Bangladesh" required>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="reg-regnumber">Registration / NID Number <span class="req">*</span></label>
+          <input type="text" id="reg-regnumber" class="form-control" placeholder="e.g. NGO-2024-001" required>
+        </div>
+        <div class="form-group">
+          <label for="reg-phone">Phone Number <span class="req">*</span></label>
+          <input type="tel" id="reg-phone" class="form-control" placeholder="+880-17XX-XXXXXX" required>
+          <span class="form-hint">e.g. 017XXXXXXXX or +880-17XXXXXXXX</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-email">Email Address <span class="req">*</span></label>
+        <div class="input-group">
+          <span class="input-icon"><i class="fa-solid fa-envelope"></i></span>
+          <input type="email" id="reg-email" class="form-control" placeholder="you@example.com" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="reg-address">Address <span class="req">*</span></label>
+        <textarea id="reg-address" class="form-control textarea-address" rows="2" placeholder="Street, Area, City" required></textarea>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="reg-password">Password <span class="req">*</span></label>
+          <div class="input-group">
+            <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" id="reg-password" class="form-control" placeholder="Min 8 characters" required>
+            <button type="button" class="input-toggle" onclick="togglePw('reg-password', this)"><i class="fa-regular fa-eye"></i></button>
+          </div>
+          <span class="form-hint">At least 8 chars: uppercase, lowercase, number & symbol</span>
+        </div>
+        <div class="form-group">
+          <label for="reg-password2">Confirm Password <span class="req">*</span></label>
+          <div class="input-group">
+            <span class="input-icon"><i class="fa-solid fa-lock"></i></span>
+            <input type="password" id="reg-password2" class="form-control" placeholder="Repeat password" required>
+          </div>
+        </div>
+      </div>
+
+      <div id="reg-error" class="form-error-msg"></div>
+      <button type="submit" class="btn btn-primary btn-full btn-lg" id="register-submit-btn">Create Account</button>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="app.js"></script>
+</body>
+</html>

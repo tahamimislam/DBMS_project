@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink - Restaurant/Donor Profile and messaging.">
+  <title>Donor Profile – HumanityLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <nav class="navbar" id="mainNavbar">
+    <div class="nav-inner">
+      <a href="index.html" class="nav-logo" id="nav-logo">
+        <img src="assets/logo.jpg" alt="HumanityLink Logo">
+        <span>HumanityLink</span>
+      </a>
+      <ul class="nav-links" id="navLinks">
+        <li><a href="index.html"  id="nav-home">Home</a></li>
+        <li><a href="index.html#activities" id="nav-activities">Activities</a></li>
+        <li><a href="index.html#about" id="nav-about">About</a></li>
+      </ul>
+      <div class="nav-actions" id="nav-actions"></div>
+      <button class="hamburger" id="hamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+<div class="page-top">
+<div class="container food-support-container">
+
+  <a href="food-support.html" class="btn btn-ghost btn-sm back-btn" id="back-btn"><i class="fa-solid fa-arrow-left"></i> Back to Food Support</a>
+
+  <!-- Profile Header -->
+  <div class="profile-header" id="profileHeader">
+    <div class="profile-avatar" id="profileInitials">–</div>
+    <div class="profile-info">
+      <h2 id="profileName">Loading…</h2>
+      <div class="badge" id="profileBadge"></div>
+      <div class="profile-contact-grid" id="contactGrid"></div>
+    </div>
+  </div>
+
+  <div class="profile-lower-grid" id="lowerGrid">
+
+    <!-- Claimed Post Detail -->
+    <div class="post-card" id="postDetailCard">
+      <h3><i class="fa-solid fa-bowl-food"></i> Claimed Donation Details</h3>
+      <div id="postDetail"></div>
+    </div>
+
+    <!-- Message Box -->
+    <div class="message-box" id="messageBox">
+      <h3><i class="fa-solid fa-comments"></i> Message Donor</h3>
+      <div class="messages-area" id="messagesArea">
+        <div class="msg-empty">Send a message to coordinate pickup.</div>
+      </div>
+      <div class="message-input-row">
+        <input type="text" class="form-control" id="msgInput" placeholder="Type your message…" onkeydown="if(event.key==='Enter')sendMsg()">
+        <button class="btn btn-primary" onclick="sendMsg()" id="send-msg-btn">Send</button>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+</div>
+
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <div class="logo-row">
+            <img src="assets/logo.jpg" alt="HumanityLink">
+            <span>HumanityLink</span>
+          </div>
+          <p>A centralized web-based system for coordinating charity, food donation, medical assistance, and educational support across Bangladesh.</p>
+        </div>
+        <div class="footer-col">
+          <h4>Platform</h4>
+          <ul>
+            <li><a href="food-support.html">Food Support</a></li>
+            <li><a href="index.html#features">Features</a></li>
+            <li><a href="index.html#about">About</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Get Started</h4>
+          <ul>
+            <li><a href="auth.html">Register</a></li>
+            <li><a href="auth.html">Log In</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h4>Contact</h4>
+          <ul>
+            <li><a href="mailto:info@humanitylink.org">info@humanitylink.org</a></li>
+            <li><a href="#">+880-1700-000000</a></li>
+            <li><a href="#">Dhaka, Bangladesh</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&copy; 2026 HumanityLink. All rights reserved.</span>
+        <span>Built with <i class="fa-solid fa-heart footer-heart"></i> for humanity &mdash; <a href="#">SQL Syndicate, UIU</a></span>
+      </div>
+    </div>
+  </footer>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="app.js"></script>
+</body>
+</html>

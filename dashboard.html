@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink Dashboard - Manage your food donations and account.">
+  <title>Dashboard – HumanityLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="has-sidebar">
+
+<!-- ── Full Sidebar ───────────────────────────────────────── -->
+<aside class="app-sidebar" id="appSidebar">
+
+  <!-- Logo / Home -->
+  <a href="index.html" class="app-sidebar-logo" id="sidebar-logo-link">
+    <img src="assets/logo.jpg" alt="HumanityLink">
+    <span>HumanityLink</span>
+  </a>
+
+  <!-- Navigation Links -->
+  <nav class="app-sidebar-nav">
+    <div class="app-sidebar-section-label">Navigation</div>
+    <a href="#overview" class="app-sidebar-link active" id="sbl-overview" onclick="showSection('overview',this,event)">
+      <span class="asbl-icon"><i class="fa-solid fa-chart-pie"></i></span>
+      <span class="asbl-text">Overview</span>
+    </a>
+    <a href="#post-food" class="app-sidebar-link" id="sbl-post" onclick="showSection('post',this,event)">
+      <span class="asbl-icon"><i class="fa-solid fa-circle-plus"></i></span>
+      <span class="asbl-text">Post Donation</span>
+    </a>
+    <a href="#my-posts" class="app-sidebar-link" id="sbl-posts" onclick="showSection('posts',this,event)">
+      <span class="asbl-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+      <span class="asbl-text">My Posts</span>
+    </a>
+    <a href="food-support.html" class="app-sidebar-link" id="sbl-browse">
+      <span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span>
+      <span class="asbl-text">Browse Donations</span>
+    </a>
+  </nav>
+
+  <!-- Spacer pushes account to bottom -->
+  <div class="app-sidebar-spacer"></div>
+
+  <!-- Account Section -->
+  <div class="app-sidebar-account" id="sidebarAccount">
+    <!-- Rendered by JS: renderSidebarAccount() -->
+  </div>
+</aside>
+
+<!-- Account Popup Menu -->
+<div class="sidebar-account-popup hidden" id="sidebarAccountPopup">
+  <button class="sidebar-popup-item" onclick="openSettingsModal()" id="popup-settings-btn" type="button">
+    <i class="fa-solid fa-gear"></i> Settings
+  </button>
+  <div class="sidebar-popup-divider"></div>
+  <button class="sidebar-popup-item sidebar-popup-btn" onclick="doLogout()" id="popup-logout-btn" type="button">
+    <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+  </button>
+</div>
+
+<!-- ── Main Content Area ─────────────────────────────────── -->
+<div class="app-main" id="appMain">
+
+  <!-- Section: Overview -->
+  <div id="section-overview">
+    <h2 class="dash-welcome-heading">Welcome back, <span id="dash-name">–</span></h2>
+    <div class="stats-row" id="statsRow">
+      <div class="stat-card">
+        <div class="s-icon green"><i class="fa-solid fa-utensils"></i></div>
+        <div><div class="s-num" id="stat-total">0</div><div class="s-label">Total Posts</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="s-icon orange"><i class="fa-solid fa-circle-check"></i></div>
+        <div><div class="s-num" id="stat-claimed">0</div><div class="s-label">Posts Claimed</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="s-icon blue"><i class="fa-solid fa-clock"></i></div>
+        <div><div class="s-num" id="stat-active">0</div><div class="s-label">Active Posts</div></div>
+      </div>
+    </div>
+    <h3 class="dash-subheading">Recent Donations</h3>
+    <div class="food-grid" id="recentGrid"></div>
+    <div id="recentEmpty" class="empty-state hidden">
+      <div class="empty-icon"><i class="fa-solid fa-inbox"></i></div>
+      <h3>No posts yet</h3>
+      <p>Start by posting your first food donation.</p>
+      <button class="btn btn-primary" onclick="showSection('post', document.getElementById('sbl-post'))" id="start-post-btn">Post a Donation</button>
+    </div>
+  </div>
+
+  <!-- Section: Post Food -->
+  <div id="section-post" class="hidden">
+    <div class="post-card">
+      <h3><i class="fa-solid fa-circle-plus"></i> Post a Food Donation</h3>
+      <form id="postFoodForm" onsubmit="submitPost(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pf-type">Food Type <span class="req">*</span></label>
+            <select id="pf-type" class="form-control" required>
+              <option value="">Select food type…</option>
+              <option>Cooked Meal</option>
+              <option>Bakery</option>
+              <option>Fruits &amp; Vegetables</option>
+              <option>Beverages</option>
+              <option>Dry Food</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="pf-name">Food Name <span class="req">*</span></label>
+            <input type="text" id="pf-name" class="form-control" placeholder="e.g. Biriyani &amp; Curry" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="pf-qty">Quantity <span class="req">*</span></label>
+          <input type="text" id="pf-qty" class="form-control" placeholder="e.g. 50 plates, 30 servings, 10 kg" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="pf-date">Pickup Date <span class="req">*</span></label>
+            <input type="date" id="pf-date" class="form-control" required>
+          </div>
+          <div class="form-group time-interval-row">
+            <div>
+              <label for="pf-from">From <span class="req">*</span></label>
+              <input type="time" id="pf-from" class="form-control" required>
+            </div>
+            <div>
+              <label for="pf-to">To <span class="req">*</span></label>
+              <input type="time" id="pf-to" class="form-control" required>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="pf-notes">Additional Notes</label>
+          <textarea id="pf-notes" class="form-control" placeholder="e.g. Halal, vegetarian, allergen info…"></textarea>
+        </div>
+        <div class="form-actions-row">
+          <button type="submit" class="btn btn-primary" id="submit-post-btn"><i class="fa-solid fa-paper-plane"></i> Post Donation</button>
+          <button type="reset" class="btn btn-ghost" id="reset-post-btn"><i class="fa-solid fa-xmark"></i> Clear</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Section: My Posts -->
+  <div id="section-posts" class="hidden">
+    <div class="page-header">
+      <div class="page-header-row">
+        <div><h1 class="posts-title"><i class="fa-solid fa-clipboard-list"></i> My Food Posts</h1></div>
+        <button class="btn btn-primary btn-sm" onclick="showSection('post', document.getElementById('sbl-post'))" id="add-post-btn"><i class="fa-solid fa-plus"></i> Add New</button>
+      </div>
+    </div>
+    <div class="food-grid" id="myPostsGrid"></div>
+    <div id="myPostsEmpty" class="empty-state hidden">
+      <div class="empty-icon"><i class="fa-solid fa-inbox"></i></div>
+      <h3>No posts yet</h3>
+      <p>You haven&#8217;t posted any food donations yet.</p>
+      <button class="btn btn-primary" onclick="showSection('post', document.getElementById('sbl-post'))" id="go-post-btn2">Post a Donation</button>
+    </div>
+  </div>
+
+</div><!-- /.app-main -->
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettingsModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="settings-modal-header">
+        <div class="s-avatar" id="sm-avatar">HL</div>
+        <div>
+          <h3 style="margin:0;font-size:1.2rem">Account Settings</h3>
+          <span class="settings-badge" id="sm-type-badge">Account</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeSettingsModal()" aria-label="Close">&times;</button>
+    </div>
+    <div id="settings-error" class="form-error-msg" style="display:none;color:#c0392b;margin-bottom:14px;font-size:.85rem"></div>
+    <form id="settingsForm" onsubmit="saveSettings(event)">
+      <div class="form-group">
+        <label for="sm-name">Full Name / Organization Name <span class="req">*</span></label>
+        <input type="text" id="sm-name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="sm-email">Email Address</label>
+        <input type="email" id="sm-email" class="form-control form-readonly" readonly title="Email cannot be changed">
+      </div>
+      <div class="form-group">
+        <label for="sm-phone">Phone Number <span class="req">*</span></label>
+        <input type="tel" id="sm-phone" class="form-control" placeholder="017XXXXXXXX" required>
+      </div>
+      <div class="form-group">
+        <label for="sm-address">Physical Address <span class="req">*</span></label>
+        <input type="text" id="sm-address" class="form-control" required>
+      </div>
+      <div class="form-group" id="sm-reg-group">
+        <label for="sm-reg">Registration Number</label>
+        <input type="text" id="sm-reg" class="form-control" placeholder="Trade License / NGO Reg No.">
+      </div>
+      <div class="modal-actions" style="margin-top:20px;display:flex;gap:12px;justify-content:flex-end">
+        <button type="button" class="btn btn-ghost" onclick="closeSettingsModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="save-settings-btn"><i class="fa-solid fa-check"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="app.js"></script>
+</body>
+</html>
