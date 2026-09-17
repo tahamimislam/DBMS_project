@@ -21,6 +21,8 @@ $email       = strtolower(trim($data['email'] ?? ''));
 $phone       = trim($data['phone']       ?? '');
 $address     = trim($data['address']     ?? '');
 $password    = $data['password']         ?? '';
+$sectorsArr  = $data['sectors']          ?? [];
+$workingSectors = !empty($sectorsArr) ? implode(',', $sectorsArr) : null;
 
 // Basic validation
 if (!$accountType || !$fullName || !$regNumber || !$email || !$phone || !$password) {
@@ -73,10 +75,10 @@ $checkReg->close();
 // Insert
 $hashed = password_hash($password, PASSWORD_DEFAULT);
 $stmt = $conn->prepare(
-    "INSERT INTO users (account_type, full_name, reg_number, email, phone, address, password)
-     VALUES (?, ?, ?, ?, ?, ?, ?)"
+     "INSERT INTO users (account_type, full_name, reg_number, email, phone, address, password, working_sectors)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param('sssssss', $accountType, $fullName, $regNumber, $email, $phone, $address, $hashed);
+$stmt->bind_param('ssssssss', $accountType, $fullName, $regNumber, $email, $phone, $address, $hashed, $workingSectors);
 $stmt->execute();
 $userId = $conn->insert_id;
 $stmt->close();
@@ -88,7 +90,8 @@ $user = [
     'regNumber'   => $regNumber,
     'email'       => $email,
     'phone'       => $phone,
-    'address'     => $address
+    'address'     => $address,
+    'sectors'     => $workingSectors
 ];
 
 $_SESSION['user'] = $user;

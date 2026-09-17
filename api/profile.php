@@ -112,7 +112,7 @@ if ($targetId !== $currentUserId) {
 
 // Fetch user info (no password returned)
 $stmt = $conn->prepare(
-    "SELECT id, account_type, full_name, reg_number, email, phone, address
+    "SELECT id, account_type, full_name, reg_number, email, phone, address, working_sectors
      FROM users WHERE id = ?"
 );
 $stmt->bind_param('i', $targetId);
@@ -133,5 +133,6 @@ echo json_encode(['ok' => true, 'user' => [
     'regNumber'   => $row['reg_number'],
     'email'       => $row['email'],
     'phone'       => $row['phone'],
-    'address'     => $row['address']
+    'address'     => $row['address'],
+    'sectors'     => $row['working_sectors']
 ]]);

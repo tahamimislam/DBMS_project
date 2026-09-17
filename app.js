@@ -538,6 +538,11 @@ function selectType(type) {
   if (labelEl) labelEl.innerHTML = (labels[type] || 'Full Name') + ' <span class="req">*</span>';
   const typeErr = document.getElementById('type-error');
   if (typeErr) typeErr.style.display = 'none';
+
+  const sectorsGroup = document.getElementById('charity-sectors-group');
+  if (sectorsGroup) {
+    sectorsGroup.style.display = type === 'charity' ? 'block' : 'none';
+  }
 }
 
 function togglePw(id, btn) {
@@ -641,6 +646,20 @@ async function doRegister(e) {
     return;
   }
 
+  let selectedSectors = [];
+  if (selectedAccountType === 'charity') {
+    const checkboxes = document.querySelectorAll('.sector-cb:checked');
+    checkboxes.forEach(cb => selectedSectors.push(cb.value));
+    
+    if (selectedSectors.length === 0) {
+      const secErr = document.getElementById('sectors-error');
+      if (secErr) secErr.style.display = 'block';
+      return;
+    }
+    const secErr = document.getElementById('sectors-error');
+    if (secErr) secErr.style.display = 'none';
+  }
+
   const btn = document.getElementById('register-submit-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Creating account…'; }
 
@@ -651,7 +670,8 @@ async function doRegister(e) {
     email:       email,
     phone:       phone,
     address:     address,
-    password:    pw
+    password:    pw,
+    sectors:     selectedSectors
   });
 
   if (btn) { btn.disabled = false; btn.textContent = 'Create Account'; }
@@ -828,6 +848,24 @@ async function initFoodSupportPage() {
         navEl.insertBefore(dashLink, sectionLabel.nextSibling);
       } else {
         navEl.prepend(dashLink);
+      }
+    }
+  } else if (HL.currentUser && HL.currentUser.accountType === 'charity' && HL.currentUser.sectors) {
+    const navEl = document.querySelector('.app-sidebar-nav');
+    if (navEl) {
+      navEl.innerHTML = '<div class="app-sidebar-section-label">Your Sectors</div>';
+      const sectors = HL.currentUser.sectors.split(',');
+      if (sectors.includes('Food')) {
+        navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link active" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+      }
+      if (sectors.includes('Medical')) {
+        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical Support</span></a>`;
+      }
+      if (sectors.includes('Education')) {
+        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education</span></a>`;
+      }
+      if (sectors.includes('Financial')) {
+        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
       }
     }
   }

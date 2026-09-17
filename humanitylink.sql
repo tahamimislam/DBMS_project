@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS users (
     phone        VARCHAR(30)  DEFAULT NULL,
     address      TEXT         DEFAULT NULL,
     password     VARCHAR(255) NOT NULL,
+    working_sectors VARCHAR(255) DEFAULT NULL,
     created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
