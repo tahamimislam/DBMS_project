@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Doctor Dashboard - HumanityLink</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <style>
+    .campaign-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    .campaign-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
+    .campaign-header { border-bottom: 1px solid var(--border); padding-bottom: 15px; margin-bottom: 15px; }
+    .campaign-title { font-size: 1.25rem; font-weight: 700; color: var(--text-color); margin: 0 0 5px 0; }
+    .campaign-meta { font-size: 0.9rem; color: var(--text-muted); display: flex; align-items: center; gap: 15px; margin-bottom: 5px; }
+    .campaign-desc { font-size: 0.95rem; color: var(--text-color); margin-bottom: 20px; line-height: 1.5; }
+    .participants-list { background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; max-height: 200px; overflow-y: auto; }
+    .participant-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .participant-item:last-child { border-bottom: none; }
+    .participant-name { font-weight: 600; color: var(--text-color); }
+    .participant-contact { color: var(--text-muted); font-size: 0.85rem; }
+    .new-campaign-form { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 25px; margin-bottom: 30px; }
+  </style>
+</head>
+<body class="has-sidebar">
+  <!-- Sidebar -->
+  <aside class="app-sidebar" id="appSidebar">
+    <a href="index.html" class="app-sidebar-logo" id="sidebar-logo-link">
+      <img src="assets/logo.jpg" alt="HumanityLink">
+      <span>HumanityLink</span>
+    </a>
+    <nav class="app-sidebar-nav">
+      <div class="app-sidebar-section-label">Navigation</div>
+      <a href="#" class="app-sidebar-link active" id="sbl-my-campaigns">
+        <span class="asbl-icon"><i class="fa-solid fa-stethoscope"></i></span>
+        <span class="asbl-text">My Campaigns</span>
+      </a>
+    </nav>
+    <div class="app-sidebar-spacer"></div>
+    <div class="app-sidebar-account" id="sidebarAccount"></div>
+  </aside>
+
+  <!-- Account Popup -->
+  <div class="sidebar-account-popup hidden" id="sidebarAccountPopup">
+    <button class="sidebar-popup-item" onclick="openSettingsModal()" id="popup-settings-btn" type="button">
+      <i class="fa-solid fa-gear"></i> Settings
+    </button>
+    <div class="sidebar-popup-divider"></div>
+    <button class="sidebar-popup-item sidebar-popup-btn" onclick="doLogout()" id="popup-logout-btn" type="button">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+    </button>
+  </div>
+
+  <!-- Main Content -->
+  <div class="app-main">
+    <div class="container mw-container">
+      <div class="app-content" style="padding-top: 20px;">
+        
+        <!-- Header -->
+        <div class="page-header" style="margin-bottom:20px">
+          <div class="page-header-row">
+            <div>
+              <h1><i class="fa-solid fa-stethoscope"></i> Doctor Dashboard</h1>
+              <p>Post and manage medical campaigns, view participants, and provide support.</p>
+            </div>
+            <button class="btn btn-primary" onclick="toggleCampaignModal(true)">
+              <i class="fa-solid fa-plus"></i> Add Campaign
+            </button>
+          </div>
+        </div>
+
+        <!-- Main Layout Grid -->
+        <div style="display:grid; grid-template-columns: 1fr; gap:30px; margin-top:20px;">
+          <!-- My Campaigns List -->
+          <div>
+            <h3 style="margin-bottom: 20px; font-size:1.2rem;"><i class="fa-solid fa-clipboard-list"></i> My Hosted Campaigns</h3>
+            <div id="campaigns-grid" class="mw-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px;">
+              <div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">
+                <i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Loading campaigns...
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Campaign Modal -->
+  <div class="modal-overlay" id="campaignModal" onclick="if(event.target===this)toggleCampaignModal(false)">
+    <div class="modal">
+      <div class="modal-header">
+        <h3 style="margin:0; font-size:1.2rem;"><i class="fa-solid fa-square-plus"></i> Post New Campaign</h3>
+        <button class="modal-close" onclick="toggleCampaignModal(false)">&times;</button>
+      </div>
+      <form id="campaignForm" onsubmit="postCampaign(event)" style="padding-top: 15px;">
+        <div class="form-row" style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+          <div class="form-group">
+            <label>Campaign Subject / Topic <span class="req">*</span></label>
+            <input type="text" id="camp-subject" class="form-control" placeholder="e.g. Free Dental Checkup" required>
+          </div>
+          <div class="form-group">
+            <label>Location <span class="req">*</span></label>
+            <input type="text" id="camp-location" class="form-control" placeholder="e.g. Dhaka Medical College, Room 204" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Treatment Details (Description) <span class="req">*</span></label>
+          <textarea id="camp-desc" class="form-control" rows="3" placeholder="Describe what the treatment or checkup covers..." required></textarea>
+        </div>
+        <div class="form-row" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px;">
+          <div class="form-group">
+            <label>Date <span class="req">*</span></label>
+            <input type="date" id="camp-date" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Start Time <span class="req">*</span></label>
+            <input type="time" id="camp-start" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>End Time <span class="req">*</span></label>
+            <input type="time" id="camp-end" class="form-control" required>
+          </div>
+        </div>
+        <div id="camp-error" class="form-error-sm" style="display:none; margin-bottom:15px; color:var(--danger);"></div>
+        <div class="modal-actions" style="margin-top:20px; display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="btn btn-ghost" onclick="toggleCampaignModal(false)">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="camp-submit-btn"><i class="fa-solid fa-paper-plane"></i> Post Campaign</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettingsModal()">
+    <div class="modal">
+      <div class="modal-header">
+        <div class="settings-modal-header">
+          <div class="s-avatar" id="sm-avatar">HL</div>
+          <div>
+            <h3 style="margin:0;font-size:1.2rem">Account Settings</h3>
+            <span class="settings-badge" id="sm-type-badge">Account</span>
+          </div>
+        </div>
+        <button class="modal-close" onclick="closeSettingsModal()" aria-label="Close">&times;</button>
+      </div>
+      <div id="settings-error" class="form-error-msg" style="display:none;color:#c0392b;margin-bottom:14px;font-size:.85rem"></div>
+      <form id="settingsForm" onsubmit="saveSettings(event)">
+        <div class="form-group">
+          <label for="sm-name">Full Name / Organization Name <span class="req">*</span></label>
+          <input type="text" id="sm-name" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="sm-email">Email Address</label>
+          <input type="email" id="sm-email" class="form-control form-readonly" readonly title="Email cannot be changed">
+        </div>
+        <div class="form-group">
+          <label for="sm-phone">Phone Number <span class="req">*</span></label>
+          <input type="tel" id="sm-phone" class="form-control" placeholder="017XXXXXXXX" required>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="sm-street">Street / House <span class="req">*</span></label>
+            <input type="text" id="sm-street" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label for="sm-area">Area <span class="req">*</span></label>
+            <input type="text" id="sm-area" class="form-control" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="sm-city">City <span class="req">*</span></label>
+          <input type="text" id="sm-city" class="form-control" required>
+        </div>
+        <div class="form-group" id="sm-reg-group">
+          <label for="sm-reg">Registration Number</label>
+          <input type="text" id="sm-reg" class="form-control" placeholder="Trade License / NGO Reg No.">
+        </div>
+        <div class="modal-actions" style="margin-top:20px;display:flex;gap:12px;justify-content:flex-end">
+          <button type="button" class="btn btn-ghost" onclick="closeSettingsModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="save-settings-btn"><i class="fa-solid fa-check"></i> Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="toastContainer" class="toast-container"></div>
+  <script src="app.js"></script>
+</body>
+</html>

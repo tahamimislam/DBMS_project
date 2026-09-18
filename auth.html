@@ -70,12 +70,15 @@
     <form id="registerForm" class="hidden" onsubmit="doRegister(event)">
       <div class="form-group">
         <label>Account Type <span class="req">*</span></label>
-        <div class="account-type-grid">
+        <div class="account-type-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
           <button type="button" class="account-type-btn" id="type-charity" onclick="selectType('charity')">
             <span class="type-icon"><i class="fa-solid fa-hand-holding-heart"></i></span>Charity Organization
           </button>
           <button type="button" class="account-type-btn" id="type-restaurant" onclick="selectType('restaurant')">
             <span class="type-icon"><i class="fa-solid fa-utensils"></i></span>Restaurant / Community Center
+          </button>
+          <button type="button" class="account-type-btn" id="type-doctor" onclick="selectType('doctor')">
+            <span class="type-icon"><i class="fa-solid fa-user-doctor"></i></span>Doctor
           </button>
           <button type="button" class="account-type-btn" id="type-user" onclick="selectType('user')">
             <span class="type-icon"><i class="fa-solid fa-user"></i></span>General User
@@ -102,7 +105,7 @@
 
       <div class="form-row">
         <div class="form-group">
-          <label for="reg-regnumber">Registration / NID Number <span class="req">*</span></label>
+          <label for="reg-regnumber" id="reg-regnumber-label">Registration / NID Number <span class="req">*</span></label>
           <input type="text" id="reg-regnumber" class="form-control" placeholder="e.g. NGO-2024-001" required>
         </div>
         <div class="form-group">
@@ -120,19 +123,35 @@
         </div>
       </div>
 
+      <div id="doctor-fields" style="display:none;">
+        <div class="form-row">
+          <div class="form-group">
+            <label for="reg-qualification">Qualification <span class="req">*</span></label>
+            <input type="text" id="reg-qualification" class="form-control" placeholder="e.g. MBBS, FCPS">
+          </div>
+          <div class="form-group">
+            <label for="reg-specialization">Specialization <span class="req">*</span></label>
+            <input type="text" id="reg-specialization" class="form-control" placeholder="e.g. Cardiology">
+          </div>
+        </div>
+      </div>
+
+      <div id="address-fields">
+
       <div class="form-row">
         <div class="form-group">
           <label for="reg-street">Street / House <span class="req">*</span></label>
-          <input type="text" id="reg-street" class="form-control" placeholder="e.g. 123 Main St" required>
+          <input type="text" id="reg-street" class="form-control" placeholder="e.g. 123 Main St">
         </div>
         <div class="form-group">
           <label for="reg-area">Area <span class="req">*</span></label>
-          <input type="text" id="reg-area" class="form-control" placeholder="e.g. Dhanmondi" required>
+          <input type="text" id="reg-area" class="form-control" placeholder="e.g. Dhanmondi">
         </div>
       </div>
       <div class="form-group">
         <label for="reg-city">City <span class="req">*</span></label>
-        <input type="text" id="reg-city" class="form-control" placeholder="e.g. Dhaka" required>
+        <input type="text" id="reg-city" class="form-control" placeholder="e.g. Dhaka">
+      </div>
       </div>
 
       <div class="form-row">

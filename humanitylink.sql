@@ -17,7 +17,7 @@ USE humanitylink;
 -- ── Users Table ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
     id           INT AUTO_INCREMENT PRIMARY KEY,
-    account_type ENUM('charity','restaurant','user') NOT NULL,
+    account_type ENUM('charity','restaurant','user','doctor') NOT NULL,
     full_name    VARCHAR(150) NOT NULL,
     reg_number   VARCHAR(100) NOT NULL UNIQUE,
     email        VARCHAR(150) NOT NULL UNIQUE,
@@ -27,6 +27,8 @@ CREATE TABLE IF NOT EXISTS users (
     city         VARCHAR(100) DEFAULT NULL,
     password     VARCHAR(255) NOT NULL,
     working_sectors VARCHAR(255) DEFAULT NULL,
+    qualification   VARCHAR(255) DEFAULT NULL,
+    specialization  VARCHAR(255) DEFAULT NULL,
     created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
@@ -46,21 +48,6 @@ CREATE TABLE IF NOT EXISTS food_posts (
     created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (posted_by)  REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (claimed_by) REFERENCES users(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
-
--- ── Messages Table ───────────────────────────────────────
-CREATE TABLE IF NOT EXISTS messages (
-    id          INT AUTO_INCREMENT PRIMARY KEY,
-    sender_id       INT  NOT NULL,
-    receiver_id     INT  NOT NULL,
-    post_id         INT  DEFAULT NULL,
-    welfare_case_id INT  DEFAULT NULL,
-    message         TEXT NOT NULL,
-    sent_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sender_id)       REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (receiver_id)     REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (post_id)         REFERENCES food_posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (welfare_case_id) REFERENCES welfare_cases(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ── Welfare Cases Table ──────────────────────────────────
@@ -83,3 +70,44 @@ CREATE TABLE IF NOT EXISTS welfare_cases (
     FOREIGN KEY (reported_by) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (handled_by)  REFERENCES users(id) ON DELETE SET NULL
 ) ENGINE=InnoDB;
+
+-- ── Messages Table ───────────────────────────────────────
+CREATE TABLE IF NOT EXISTS messages (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    sender_id       INT  NOT NULL,
+    receiver_id     INT  NOT NULL,
+    post_id         INT  DEFAULT NULL,
+    welfare_case_id INT  DEFAULT NULL,
+    message         TEXT NOT NULL,
+    sent_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id)       REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id)     REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id)         REFERENCES food_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (welfare_case_id) REFERENCES welfare_cases(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ── Doctor Campaigns Table ─────────────────────────────────
+CREATE TABLE IF NOT EXISTS doctor_campaigns (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    doctor_id     INT NOT NULL,
+    subject       VARCHAR(255) NOT NULL,
+    description   TEXT NOT NULL,
+    location      VARCHAR(255) NOT NULL,
+    start_time    TIME NOT NULL,
+    end_time      TIME NOT NULL,
+    campaign_date DATE NOT NULL,
+    created_at    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ── Campaign Participants Table ────────────────────────────
+CREATE TABLE IF NOT EXISTS campaign_participants (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    campaign_id   INT NOT NULL,
+    user_id       INT NOT NULL,
+    joined_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (campaign_id) REFERENCES doctor_campaigns(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY (campaign_id, user_id)
+) ENGINE=InnoDB;
+

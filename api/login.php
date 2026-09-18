@@ -46,7 +46,9 @@ $user = [
     'street'      => $row['street'],
     'area'        => $row['area'],
     'city'        => $row['city'],
-    'sectors'     => $row['working_sectors']
+    'sectors'     => $row['working_sectors'],
+    'qualification' => $row['qualification'],
+    'specialization' => $row['specialization']
 ];
 
 $_SESSION['user'] = $user;

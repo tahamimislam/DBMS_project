@@ -547,16 +547,24 @@ function selectType(type) {
   document.querySelectorAll('.account-type-btn').forEach(b => b.classList.remove('selected'));
   const btn = document.getElementById('type-' + type);
   if (btn) btn.classList.add('selected');
-  const labels = { charity: 'Charity Organization Full Name', restaurant: 'Restaurant / Community Center Full Name', user: 'Full Name' };
+  const labels = { charity: 'Charity Organization Full Name', restaurant: 'Restaurant / Community Center Full Name', doctor: 'Dr. Full Name', user: 'Full Name' };
   const labelEl = document.getElementById('reg-name-label');
   if (labelEl) labelEl.innerHTML = (labels[type] || 'Full Name') + ' <span class="req">*</span>';
+  
+  const regLabelEl = document.getElementById('reg-regnumber-label');
+  if (regLabelEl) regLabelEl.innerHTML = (type === 'doctor' || type === 'user') ? 'NID Number <span class="req">*</span>' : 'Registration / NID Number <span class="req">*</span>';
+  
   const typeErr = document.getElementById('type-error');
   if (typeErr) typeErr.style.display = 'none';
 
   const sectorsGroup = document.getElementById('charity-sectors-group');
-  if (sectorsGroup) {
-    sectorsGroup.style.display = type === 'charity' ? 'block' : 'none';
-  }
+  if (sectorsGroup) sectorsGroup.style.display = type === 'charity' ? 'block' : 'none';
+
+  const docFields = document.getElementById('doctor-fields');
+  if (docFields) docFields.style.display = type === 'doctor' ? 'block' : 'none';
+
+  const addrFields = document.getElementById('address-fields');
+  if (addrFields) addrFields.style.display = type === 'doctor' ? 'none' : 'block';
 }
 
 function togglePw(id, btn) {
@@ -628,6 +636,8 @@ async function doRegister(e) {
   const street    = document.getElementById('reg-street').value.trim();
   const area      = document.getElementById('reg-area').value.trim();
   const city      = document.getElementById('reg-city').value.trim();
+  const qual      = document.getElementById('reg-qualification') ? document.getElementById('reg-qualification').value.trim() : '';
+  const spec      = document.getElementById('reg-specialization') ? document.getElementById('reg-specialization').value.trim() : '';
   const pw        = document.getElementById('reg-password').value;
   const pw2       = document.getElementById('reg-password2').value;
 
@@ -696,6 +706,8 @@ async function doRegister(e) {
     street:      street,
     area:        area,
     city:        city,
+    qualification: qual,
+    specialization: spec,
     password:    pw,
     sectors:     selectedSectors
   });
@@ -714,6 +726,8 @@ async function doRegister(e) {
   let dest = 'index.html';
   if (selectedAccountType === 'restaurant') {
     dest = 'dashboard.html';
+  } else if (selectedAccountType === 'doctor') {
+    dest = 'doctor-dashboard.html';
   } else if (selectedAccountType === 'charity') {
     const s = selectedSectors.join(',').toLowerCase();
     if (s.includes('medical') && !s.includes('food')) {
@@ -1302,6 +1316,125 @@ window.foodTypeIcon      = foodTypeIcon;
 window.formatDate        = formatDate;
 window.toggleTheme       = toggleTheme;
 
+function toggleCampaignModal(show) {
+  const modal = document.getElementById('campaignModal');
+  if (!modal) return;
+  if (show) {
+    modal.classList.add('show');
+    document.getElementById('campaignForm').reset();
+    document.getElementById('camp-error').style.display = 'none';
+  } else {
+    modal.classList.remove('show');
+  }
+}
+
+window.toggleCampaignModal = toggleCampaignModal;
+
+async function postCampaign(e) {
+  e.preventDefault();
+  const btn = document.getElementById('camp-submit-btn');
+  const err = document.getElementById('camp-error');
+  if (err) err.style.display = 'none';
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...'; }
+
+  const data = {
+    subject: document.getElementById('camp-subject').value.trim(),
+    description: document.getElementById('camp-desc').value.trim(),
+    location: document.getElementById('camp-location').value.trim(),
+    start_time: document.getElementById('camp-start').value,
+    end_time: document.getElementById('camp-end').value,
+    campaign_date: document.getElementById('camp-date').value
+  };
+
+  const res = await apiPost('doctor_campaigns.php', data);
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Post Campaign'; }
+
+  if (!res.ok) {
+    if (err) { err.style.display = 'block'; err.textContent = res.msg; }
+    return;
+  }
+  
+  showToast(res.msg, 'success');
+  toggleCampaignModal(false);
+  await loadDoctorCampaigns();
+}
+
+async function loadDoctorCampaigns() {
+  const res = await apiGet('doctor_campaigns.php');
+  if (res.ok) {
+    renderDoctorCampaigns(res.campaigns || []);
+  }
+}
+
+async function toggleParticipants(campaignId) {
+  const pList = document.getElementById('plist-' + campaignId);
+  if (!pList) return;
+  if (pList.style.display === 'none') {
+    pList.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>';
+    pList.style.display = 'block';
+    
+    const res = await apiGet('campaign_join.php?campaign_id=' + campaignId);
+    if (res.ok) {
+      if (!res.participants || res.participants.length === 0) {
+        pList.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No participants yet.</div>';
+      } else {
+        pList.innerHTML = res.participants.map(p => `
+          <div class="participant-item">
+            <div>
+              <div class="participant-name">${p.full_name} <span class="badge ${p.account_type === 'charity' ? 'badge-primary' : 'badge-outline'}">${p.account_type}</span></div>
+              <div class="participant-contact"><i class="fa-solid fa-phone"></i> ${p.phone} &nbsp;|&nbsp; <i class="fa-solid fa-envelope"></i> ${p.email}</div>
+            </div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">Joined: ${new Date(p.joined_at).toLocaleDateString()}</div>
+          </div>
+        `).join('');
+      }
+    } else {
+      pList.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">${res.msg}</div>`;
+    }
+  } else {
+    pList.style.display = 'none';
+  }
+}
+
+window.postCampaign = postCampaign;
+window.toggleParticipants = toggleParticipants;
+
+function renderDoctorCampaigns(campaigns) {
+  const grid = document.getElementById('campaigns-grid');
+  if (!grid) return;
+  if (campaigns.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">You have not posted any campaigns yet.</div>';
+    return;
+  }
+  
+  grid.innerHTML = campaigns.map(c => `
+    <div class="mw-card" style="display:flex; flex-direction:column;">
+      <div class="mw-header">
+        <h3 style="margin:0; font-size:1.1rem; color:var(--text-color);">${c.subject}</h3>
+        <div class="mw-date"><i class="fa-solid fa-calendar-day"></i> ${new Date(c.campaign_date).toLocaleDateString()}</div>
+      </div>
+      <div class="mw-details" style="flex:1;">
+        <p style="margin:0 0 10px 0; color:var(--text-muted); font-size:0.9rem;"><i class="fa-solid fa-location-dot"></i> ${c.location} &nbsp;|&nbsp; <i class="fa-regular fa-clock"></i> ${c.start_time.substring(0,5)} - ${c.end_time.substring(0,5)}</p>
+        <p style="margin:0; font-size:0.95rem; line-height:1.5;">${c.description}</p>
+      </div>
+      <div class="mw-footer" style="display:flex; justify-content:space-between; align-items:center;">
+        <div style="font-weight:600; color:var(--primary); font-size:0.9rem;"><i class="fa-solid fa-users"></i> ${c.participant_count} Joined</div>
+        <button class="btn btn-outline btn-sm" onclick="toggleParticipants(${c.id})">View Participants</button>
+      </div>
+      <div id="plist-${c.id}" class="participants-list" style="display:none; margin:15px; background:rgba(0,0,0,0.02); border-radius:8px; padding:10px;"></div>
+    </div>
+  `).join('');
+}
+
+async function initDoctorDashboardPage() {
+  const dash = document.getElementById('campaignModal');
+  if (!dash) return;
+  if (!HL.currentUser || HL.currentUser.accountType !== 'doctor') { window.location.href = 'auth.html'; return; }
+  
+  renderSidebarAccount();
+  await loadDoctorCampaigns();
+}
+
 // ── Master Init on Page Load ───────────────────────────────
 async function initApp() {
   initTheme();
@@ -1323,6 +1456,7 @@ async function initApp() {
   await initDashboardPage();
   await initRestaurantProfilePage();
   await initMedicalPage();
+  await initDoctorDashboardPage();
 }
 
 if (document.readyState === 'loading') {
@@ -1841,6 +1975,61 @@ async function sendMwMsg() {
   }
 }
 
+async function loadPublicCampaigns() {
+  const grid = document.getElementById('public-campaigns-grid');
+  if (!grid) return;
+  grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Loading campaigns...</div>';
+  const res = await apiGet('doctor_campaigns.php');
+  if (res.ok) {
+    renderPublicCampaigns(res.campaigns || []);
+  } else {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--danger);">Failed to load campaigns.</div>';
+  }
+}
+
+function renderPublicCampaigns(campaigns) {
+  const grid = document.getElementById('public-campaigns-grid');
+  if (!grid) return;
+  if (campaigns.length === 0) {
+    grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">No active campaigns found.</div>';
+    return;
+  }
+  
+  grid.innerHTML = campaigns.map(c => `
+    <div class="campaign-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:20px;">
+      <h3 style="margin-top:0; color:var(--text-color);">${c.subject}</h3>
+      <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:5px;"><i class="fa-solid fa-user-doctor"></i> Dr. ${c.doctor_name} <br> <small>${c.qualification} | ${c.specialization}</small></div>
+      <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:5px;"><i class="fa-solid fa-calendar-day"></i> ${new Date(c.campaign_date).toLocaleDateString()} &nbsp;|&nbsp; <i class="fa-regular fa-clock"></i> ${c.start_time.substring(0,5)} - ${c.end_time.substring(0,5)}</div>
+      <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;"><i class="fa-solid fa-location-dot"></i> ${c.location}</div>
+      <div style="font-size:0.95rem; margin-bottom:20px; line-height:1.5;">${c.description}</div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--border); padding-top:15px;">
+        <span style="font-size:0.85rem; font-weight:600; color:var(--primary);"><i class="fa-solid fa-users"></i> ${c.participant_count} Joined</span>
+        ${c.joined > 0 
+          ? `<button class="btn btn-outline btn-sm" disabled><i class="fa-solid fa-check"></i> Joined</button>`
+          : `<button class="btn btn-primary btn-sm" onclick="joinCampaign(${c.id}, this)">Join Campaign</button>`
+        }
+      </div>
+    </div>
+  `).join('');
+}
+
+async function joinCampaign(campaignId, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Joining...';
+  const res = await apiPost('campaign_join.php', { campaign_id: campaignId });
+  if (res.ok) {
+    showToast(res.msg, 'success');
+    btn.className = 'btn btn-outline btn-sm';
+    btn.innerHTML = '<i class="fa-solid fa-check"></i> Joined';
+  } else {
+    showToast(res.msg, 'error');
+    btn.disabled = false;
+    btn.innerHTML = 'Join Campaign';
+  }
+}
+window.joinCampaign = joinCampaign;
+
 async function initMedicalPage() {
   // Only run on medical-welfare.html
   if (!document.getElementById('mw-charity-dashboard')) return;
@@ -1905,4 +2094,6 @@ async function initMedicalPage() {
     const myCases = cases.filter(c => Number(c.reportedBy) === Number(HL.currentUser.id));
     renderMwUserGrid(myCases);
   }
+
+  await loadPublicCampaigns();
 }

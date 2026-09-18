@@ -25,6 +25,8 @@ $city        = trim($data['city']        ?? '');
 $password    = $data['password']         ?? '';
 $sectorsArr  = $data['sectors']          ?? [];
 $workingSectors = !empty($sectorsArr) ? implode(',', $sectorsArr) : null;
+$qualification = trim($data['qualification'] ?? '');
+$specialization = trim($data['specialization'] ?? '');
 
 // Basic validation
 if (!$accountType || !$fullName || !$regNumber || !$email || !$phone || !$password) {
@@ -77,10 +79,10 @@ $checkReg->close();
 // Insert
 $hashed = password_hash($password, PASSWORD_DEFAULT);
 $stmt = $conn->prepare(
-     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, qualification, specialization)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param('ssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $workingSectors);
+$stmt->bind_param('ssssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $workingSectors, $qualification, $specialization);
 $stmt->execute();
 $userId = $conn->insert_id;
 $stmt->close();
@@ -95,7 +97,9 @@ $user = [
     'street'      => $street,
     'area'        => $area,
     'city'        => $city,
-    'sectors'     => $workingSectors
+    'sectors'     => $workingSectors,
+    'qualification' => $qualification,
+    'specialization' => $specialization
 ];
 
 $_SESSION['user'] = $user;
