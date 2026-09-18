@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink Medical & Welfare Support - Report and track welfare cases.">
+  <title>Medical & Welfare – HumanityLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="has-sidebar">
+
+<!-- ── Sidebar ───────────────────────────────────────────── -->
+<aside class="app-sidebar" id="appSidebar">
+  <a href="index.html" class="app-sidebar-logo" id="sidebar-logo-link">
+    <img src="assets/logo.jpg" alt="HumanityLink">
+    <span>HumanityLink</span>
+  </a>
+  <nav class="app-sidebar-nav">
+    <div class="app-sidebar-section-label">Navigation</div>
+    <a href="food-support.html" class="app-sidebar-link" id="sbl-food">
+      <span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span>
+      <span class="asbl-text">Food Support</span>
+    </a>
+    <a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-medical">
+      <span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span>
+      <span class="asbl-text">Medical &amp; Welfare</span>
+    </a>
+  </nav>
+  <div class="app-sidebar-spacer"></div>
+  <div class="app-sidebar-account" id="sidebarAccount"></div>
+</aside>
+
+<!-- Account Popup -->
+<div class="sidebar-account-popup hidden" id="sidebarAccountPopup">
+  <button class="sidebar-popup-item" onclick="openSettingsModal()" id="popup-settings-btn" type="button">
+    <i class="fa-solid fa-gear"></i> Settings
+  </button>
+  <div class="sidebar-popup-divider"></div>
+  <button class="sidebar-popup-item sidebar-popup-btn" onclick="doLogout()" id="popup-logout-btn" type="button">
+    <i class="fa-solid fa-arrow-right-from-bracket"></i> Log Out
+  </button>
+</div>
+
+<!-- ── Main Content ──────────────────────────────────────── -->
+<div class="app-main" id="appMain">
+<div class="container mw-container">
+
+  <!-- ═══════════════════════════════════════════════════════
+       CHARITY DASHBOARD VIEW  (shown by JS when charity)
+  ════════════════════════════════════════════════════════ -->
+  <div id="mw-charity-dashboard">
+
+    <!-- Header -->
+    <div class="page-header" style="margin-bottom:8px">
+      <div class="page-header-row">
+        <div>
+          <h1><i class="fa-solid fa-notes-medical"></i> Medical &amp; Welfare Dashboard</h1>
+          <p>Review and manage reported welfare cases. Update status to track progress.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="stats-row" id="mwStatsRow" style="margin-bottom:28px">
+      <div class="stat-card">
+        <div class="s-icon blue"><i class="fa-solid fa-clipboard-list"></i></div>
+        <div><div class="s-num" id="mw-stat-total">0</div><div class="s-label">Total Cases</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="s-icon" style="background:rgba(243,156,18,.15);color:#d68910"><i class="fa-solid fa-clock"></i></div>
+        <div><div class="s-num" id="mw-stat-pending">0</div><div class="s-label">Pending</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="s-icon" style="background:rgba(192,57,43,.15);color:#c0392b"><i class="fa-solid fa-bolt"></i></div>
+        <div><div class="s-num" id="mw-stat-emergency">0</div><div class="s-label">Emergency</div></div>
+      </div>
+      <div class="stat-card">
+        <div class="s-icon green"><i class="fa-solid fa-circle-check"></i></div>
+        <div><div class="s-num" id="mw-stat-completed">0</div><div class="s-label">Completed</div></div>
+      </div>
+    </div>
+
+    <!-- Tab Navigation -->
+    <div class="mw-tabs" id="mwTabs">
+      <button class="mw-tab active" id="tab-all" onclick="switchMwTab('all', this)">
+        <i class="fa-solid fa-list"></i> All Cases
+        <span class="mw-tab-badge" id="badge-all">0</span>
+      </button>
+      <button class="mw-tab emergency-tab" id="tab-emergency" onclick="switchMwTab('emergency', this)">
+        <i class="fa-solid fa-bolt"></i> Emergency
+        <span class="mw-tab-badge emergency-badge" id="badge-emergency">0</span>
+      </button>
+      <button class="mw-tab" id="tab-general" onclick="switchMwTab('general', this)">
+        <i class="fa-solid fa-user-injured"></i> General
+        <span class="mw-tab-badge" id="badge-general">0</span>
+      </button>
+    </div>
+
+    <!-- Cases Grid for charity -->
+    <div class="mw-grid" id="mwGrid"></div>
+    <div id="mwEmptyState" class="empty-state hidden">
+      <div class="empty-icon"><i class="fa-solid fa-notes-medical"></i></div>
+      <h3 id="mwEmptyTitle">No cases in this category</h3>
+      <p id="mwEmptyDesc">No welfare cases have been reported yet.</p>
+    </div>
+
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       USER VIEW  (shown by JS when general user / restaurant)
+  ════════════════════════════════════════════════════════ -->
+  <div id="mw-user-dashboard" class="hidden">
+
+    <!-- Header -->
+    <div class="page-header" style="margin-bottom:8px">
+      <div class="page-header-row">
+        <div>
+          <h1><i class="fa-solid fa-notes-medical"></i> Medical &amp; Welfare Support</h1>
+          <p>Report homeless, medically distressed, or vulnerable individuals.</p>
+        </div>
+        <div id="report-btn-wrapper"></div>
+      </div>
+    </div>
+
+    <!-- Workflow Pipeline -->
+    <div class="mw-pipeline" id="mwPipeline" style="margin-bottom:24px">
+      <div class="mw-pipeline-step active-step">
+        <div class="mw-step-icon"><i class="fa-solid fa-flag"></i></div>
+        <div class="mw-step-label">Reported</div>
+      </div>
+      <div class="mw-pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      <div class="mw-pipeline-step">
+        <div class="mw-step-icon"><i class="fa-solid fa-eye"></i></div>
+        <div class="mw-step-label">Reviewing</div>
+      </div>
+      <div class="mw-pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      <div class="mw-pipeline-step">
+        <div class="mw-step-icon"><i class="fa-solid fa-handshake"></i></div>
+        <div class="mw-step-label">Accepted</div>
+      </div>
+      <div class="mw-pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      <div class="mw-pipeline-step">
+        <div class="mw-step-icon"><i class="fa-solid fa-person-walking-arrow-right"></i></div>
+        <div class="mw-step-label">Action Taken</div>
+      </div>
+      <div class="mw-pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
+      <div class="mw-pipeline-step">
+        <div class="mw-step-icon"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="mw-step-label">Completed</div>
+      </div>
+    </div>
+
+    <!-- Report Case Form -->
+    <div id="reportCaseSection" class="hidden">
+      <div class="post-card mw-form-card">
+        <h3><i class="fa-solid fa-triangle-exclamation"></i> Report a Welfare Case</h3>
+        <form id="reportCaseForm" onsubmit="submitWelfareCase(event)">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wc-type">Case Type <span class="req">*</span></label>
+              <select id="wc-type" class="form-control" required>
+                <option value="">Select type…</option>
+                <option value="Medical">Medical Emergency</option>
+                <option value="Homeless">Homeless / Shelter Needed</option>
+                <option value="Abandoned">Abandoned / Lost Person</option>
+                <option value="Other">Other Welfare Need</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="wc-urgency">Urgency Level <span class="req">*</span></label>
+              <select id="wc-urgency" class="form-control" required>
+                <option value="Low">Low</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="High">High</option>
+                <option value="Critical">Critical — Immediate Help Needed</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="wc-desc">Person Description <span class="req">*</span></label>
+            <textarea id="wc-desc" class="form-control" rows="3" placeholder="Describe the person — appearance, approximate age, condition, etc." required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="wc-image">Upload Picture <span style="font-size:0.8rem;color:var(--muted)">(Optional)</span></label>
+            <input type="file" id="wc-image" class="form-control" accept="image/*" capture="environment">
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="wc-street">Street / Landmark <span class="req">*</span></label>
+              <input type="text" id="wc-street" class="form-control" placeholder="e.g. Near Farmgate Bridge" required>
+            </div>
+            <div class="form-group">
+              <label for="wc-area">Area <span class="req">*</span></label>
+              <input type="text" id="wc-area" class="form-control" placeholder="e.g. Farmgate" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="wc-city">City <span class="req">*</span></label>
+            <input type="text" id="wc-city" class="form-control" placeholder="e.g. Dhaka" required>
+          </div>
+          <div class="form-group">
+            <label for="wc-notes">Additional Notes</label>
+            <textarea id="wc-notes" class="form-control" rows="2" placeholder="Any other relevant details…"></textarea>
+          </div>
+          <div id="report-case-error" class="form-error-msg" style="display:none"></div>
+          <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary" id="submit-case-btn"><i class="fa-solid fa-paper-plane"></i> Submit Report</button>
+            <button type="button" class="btn btn-ghost" onclick="toggleReportForm(false)" id="cancel-report-btn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- User's own reported cases -->
+    <div class="subheading-label subheading-label-lg" style="margin-bottom:12px">
+      <i class="fa-solid fa-clipboard-list"></i> My Reported Cases
+    </div>
+    <div class="mw-grid" id="mwUserGrid"></div>
+    <div id="mwUserEmpty" class="empty-state hidden">
+      <div class="empty-icon"><i class="fa-solid fa-notes-medical"></i></div>
+      <h3>No cases reported yet</h3>
+      <p>Use the "Report a Case" button above to report a person in need.</p>
+    </div>
+
+  </div>
+
+  <!-- NOT LOGGED IN -->
+  <div id="mw-guest-view" class="hidden">
+    <div class="page-header">
+      <h1><i class="fa-solid fa-notes-medical"></i> Medical &amp; Welfare Support</h1>
+    </div>
+    <div class="empty-state" style="margin-top:40px">
+      <div class="empty-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
+      <h3>Login Required</h3>
+      <p>Please log in to view or report welfare cases.</p>
+      <a href="auth.html" class="btn btn-primary" style="margin-top:16px" id="mw-login-btn">Log In / Register</a>
+    </div>
+  </div>
+
+</div>
+</div><!-- /.app-main -->
+
+<!-- Case Detail Modal -->
+<div class="modal-overlay" id="caseDetailModal" onclick="if(event.target===this)closeCaseModal()">
+  <div class="modal modal-lg" id="caseDetailContent"></div>
+</div>
+
+<!-- Settings Modal -->
+<div class="modal-overlay" id="settingsModal" onclick="if(event.target===this)closeSettingsModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="settings-modal-header">
+        <div class="s-avatar" id="sm-avatar">HL</div>
+        <div>
+          <h3 style="margin:0;font-size:1.2rem">Account Settings</h3>
+          <span class="settings-badge" id="sm-type-badge">Account</span>
+        </div>
+      </div>
+      <button class="modal-close" onclick="closeSettingsModal()" aria-label="Close">&times;</button>
+    </div>
+    <div id="settings-error" class="form-error-msg" style="display:none;color:#c0392b;margin-bottom:14px;font-size:.85rem"></div>
+    <form id="settingsForm" onsubmit="saveSettings(event)">
+      <div class="form-group">
+        <label for="sm-name">Full Name / Organization Name <span class="req">*</span></label>
+        <input type="text" id="sm-name" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="sm-email">Email Address</label>
+        <input type="email" id="sm-email" class="form-control form-readonly" readonly title="Email cannot be changed">
+      </div>
+      <div class="form-group">
+        <label for="sm-phone">Phone Number <span class="req">*</span></label>
+        <input type="tel" id="sm-phone" class="form-control" placeholder="017XXXXXXXX" required>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="sm-street">Street / House <span class="req">*</span></label>
+          <input type="text" id="sm-street" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="sm-area">Area <span class="req">*</span></label>
+          <input type="text" id="sm-area" class="form-control" required>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="sm-city">City <span class="req">*</span></label>
+        <input type="text" id="sm-city" class="form-control" required>
+      </div>
+      <div class="form-group" id="sm-reg-group">
+        <label for="sm-reg">Registration Number</label>
+        <input type="text" id="sm-reg" class="form-control" placeholder="Trade License / NGO Reg No.">
+      </div>
+      <div class="modal-actions" style="margin-top:20px;display:flex;gap:12px;justify-content:flex-end">
+        <button type="button" class="btn btn-ghost" onclick="closeSettingsModal()">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="save-settings-btn"><i class="fa-solid fa-check"></i> Save Changes</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+<script src="app.js"></script>
+</body>
+</html>

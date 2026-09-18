@@ -60,3 +60,23 @@ CREATE TABLE IF NOT EXISTS messages (
     FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (post_id)     REFERENCES food_posts(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
+
+-- ── Welfare Cases Table ──────────────────────────────────
+CREATE TABLE IF NOT EXISTS welfare_cases (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    reported_by      INT NOT NULL,
+    case_type        ENUM('Medical','Homeless','Abandoned','Other') NOT NULL,
+    person_desc      TEXT NOT NULL,
+    image_url        VARCHAR(255) DEFAULT NULL,
+    location_street  VARCHAR(150) NOT NULL,
+    location_area    VARCHAR(100) NOT NULL,
+    location_city    VARCHAR(100) NOT NULL,
+    urgency          ENUM('Low','Medium','High','Critical') NOT NULL DEFAULT 'Medium',
+    notes            TEXT DEFAULT NULL,
+    status           ENUM('Pending','Reviewing','Accepted','Action Taken','Completed') NOT NULL DEFAULT 'Pending',
+    handled_by       INT DEFAULT NULL,
+    handled_at       TIMESTAMP NULL DEFAULT NULL,
+    created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (reported_by) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (handled_by)  REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;

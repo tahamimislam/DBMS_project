@@ -35,11 +35,15 @@ async function apiPost(endpoint, data) {
     return { ok: false, msg: 'Cannot run PHP via file://. Please open via http://localhost/HumanityLink/ (with XAMPP running).' };
   }
   try {
-    const res = await fetch(API + endpoint, {
+    const isFormData = data instanceof FormData;
+    const fetchOptions = {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(data)
-    });
+      body:    isFormData ? data : JSON.stringify(data)
+    };
+    if (!isFormData) {
+      fetchOptions.headers = { 'Content-Type': 'application/json' };
+    }
+    const res = await fetch(API + endpoint, fetchOptions);
     if (!res.ok) {
       const errData = await res.json().catch(() => null);
       return errData || { ok: false, msg: `Server error (${res.status}). Check PHP/MySQL.` };
@@ -873,7 +877,7 @@ async function initFoodSupportPage() {
         navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link active" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
       }
       if (sectors.includes('Medical')) {
-        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical Support</span></a>`;
+        navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical &amp; Welfare</span></a>`;
       }
       if (sectors.includes('Education')) {
         navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education</span></a>`;
@@ -1292,6 +1296,7 @@ async function initApp() {
   await initFoodSupportPage();
   await initDashboardPage();
   await initRestaurantProfilePage();
+  await initMedicalPage();
 }
 
 if (document.readyState === 'loading') {
@@ -1339,5 +1344,440 @@ function initTheme() {
         applyTheme(e.matches ? 'dark' : 'light');
       }
     });
+  }
+}
+
+// ── Medical & Welfare Support ─────────────────────────────
+
+HL.welfareCases = [];
+
+async function loadWelfareCases() {
+  const res = await apiGet('welfare_cases.php');
+  if (res.ok) HL.welfareCases = res.cases;
+  return HL.welfareCases;
+}
+
+function caseTypeIcon(type) {
+  const map = {
+    'Medical':   '<i class="fa-solid fa-kit-medical"></i>',
+    'Homeless':  '<i class="fa-solid fa-house-crack"></i>',
+    'Abandoned': '<i class="fa-solid fa-person-circle-question"></i>',
+    'Other':     '<i class="fa-solid fa-circle-exclamation"></i>'
+  };
+  return map[type] || '<i class="fa-solid fa-circle-exclamation"></i>';
+}
+
+function urgencyIcon(urgency) {
+  const map = {
+    'Low':      '<i class="fa-solid fa-arrow-down"></i>',
+    'Medium':   '<i class="fa-solid fa-minus"></i>',
+    'High':     '<i class="fa-solid fa-arrow-up"></i>',
+    'Critical': '<i class="fa-solid fa-bolt"></i>'
+  };
+  return map[urgency] || '';
+}
+
+function formatDateTime(dt) {
+  if (!dt) return '';
+  return new Date(dt).toLocaleDateString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function caseCardHTML(c) {
+  const isCharity  = HL.currentUser && HL.currentUser.accountType === 'charity';
+  const isReporter = HL.currentUser && Number(HL.currentUser.id) === Number(c.reportedBy);
+  const statusClass = c.status.replace(' ', '-');
+  const location = [c.locationStreet, c.locationArea, c.locationCity].filter(Boolean).join(', ');
+  const reported = formatDateTime(c.createdAt);
+
+  let footerRight = '';
+  if (isCharity) {
+    const opts = ['Reviewing','Accepted','Action Taken','Completed']
+      .map(s => `<option value="${s}" ${c.status === s ? 'selected' : ''}>${s}</option>`)
+      .join('');
+    footerRight = `
+      <div class="status-update-wrap">
+        <select class="status-select-sm" id="status-sel-${c.id}" onchange="updateCaseStatus(${c.id}, this.value)" title="Update status">
+          <option value="" ${!['Reviewing','Accepted','Action Taken','Completed'].includes(c.status) ? 'selected' : ''} disabled>Update status…</option>
+          ${opts}
+        </select>
+      </div>`;
+  } else if (isReporter) {
+    footerRight = `<span style="font-size:.75rem;color:var(--muted)"><i class="fa-solid fa-user"></i> My Report</span>`;
+  } else if (!HL.currentUser) {
+    footerRight = `<a href="auth.html" class="btn btn-outline btn-sm">Log in to Help</a>`;
+  }
+
+  return `
+  <div class="case-card" id="case-card-${c.id}">
+    <div class="case-card-top">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <span class="case-type-badge ${c.caseType}">${caseTypeIcon(c.caseType)} ${c.caseType}</span>
+        <span style="font-size:.75rem;color:var(--muted)">Reported by ${c.reportedByName || 'Anonymous'}</span>
+      </div>
+      <span class="urgency-badge ${c.urgency}">${urgencyIcon(c.urgency)} ${c.urgency}</span>
+    </div>
+    <div class="case-card-body">
+      ${c.imageUrl ? `<div style="margin-bottom:12px;border-radius:6px;overflow:hidden;max-height:180px;"><img src="${c.imageUrl}" alt="Case Image" style="width:100%;height:100%;object-fit:cover;"></div>` : ''}
+      <div class="case-desc">${c.personDesc}</div>
+      <div class="case-detail-row">
+        <span class="icon"><i class="fa-solid fa-location-dot"></i></span>
+        <div><div class="key">Location</div><div class="val">${location}</div></div>
+      </div>
+      ${c.handledByName ? `<div class="case-detail-row">
+        <span class="icon"><i class="fa-solid fa-building-ngo"></i></span>
+        <div><div class="key">Handled By</div><div class="val">${c.handledByName}</div></div>
+      </div>` : ''}
+      <div class="case-detail-row">
+        <span class="icon"><i class="fa-regular fa-clock"></i></span>
+        <div><div class="key">Reported</div><div class="val">${reported}</div></div>
+      </div>
+    </div>
+    <div class="case-card-footer">
+      <span class="case-status-pill ${statusClass}">
+        <span class="status-dot-mw"></span>${c.status}
+      </span>
+      <div style="display:flex;gap:8px;align-items:center">
+        <button class="btn btn-ghost btn-sm" onclick="openCaseDetailModal(${c.id})" id="view-case-${c.id}">
+          <i class="fa-solid fa-eye"></i> Details
+        </button>
+        ${footerRight}
+      </div>
+    </div>
+  </div>`;
+}
+
+function renderMwGrid(cases) {
+  const grid  = document.getElementById('mwGrid');
+  const empty = document.getElementById('mwEmptyState');
+  const count = document.getElementById('mw-filter-count');
+  if (!grid) return;
+  if (count) count.textContent = cases.length + ' case' + (cases.length !== 1 ? 's' : '') + ' found';
+  if (!cases.length) {
+    grid.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  grid.innerHTML = cases.map(c => caseCardHTML(c)).join('');
+}
+
+function applyMwFilter() {
+  const type    = document.getElementById('mwFilterType')?.value    || '';
+  const status  = document.getElementById('mwFilterStatus')?.value  || '';
+  const urgency = document.getElementById('mwFilterUrgency')?.value || '';
+  let cases = HL.welfareCases;
+  if (type)    cases = cases.filter(c => c.caseType === type);
+  if (status)  cases = cases.filter(c => c.status   === status);
+  if (urgency) cases = cases.filter(c => c.urgency  === urgency);
+  renderMwGrid(cases);
+}
+
+function clearMwFilters() {
+  ['mwFilterType','mwFilterStatus','mwFilterUrgency'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  renderMwGrid(HL.welfareCases);
+}
+
+function toggleReportForm(show) {
+  const section = document.getElementById('reportCaseSection');
+  if (section) section.classList.toggle('hidden', !show);
+  const btnWrap = document.getElementById('report-btn-wrapper');
+  if (btnWrap) {
+    btnWrap.innerHTML = show
+      ? ''
+      : `<button class="btn btn-primary" onclick="toggleReportForm(true)" id="open-report-btn">
+           <i class="fa-solid fa-triangle-exclamation"></i> Report a Case
+         </button>`;
+  }
+}
+
+async function submitWelfareCase(e) {
+  if (e) e.preventDefault();
+  const errEl = document.getElementById('report-case-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+  const caseType       = document.getElementById('wc-type')?.value    || '';
+  const urgency        = document.getElementById('wc-urgency')?.value  || 'Medium';
+  const personDesc     = document.getElementById('wc-desc')?.value.trim()   || '';
+  const locationStreet = document.getElementById('wc-street')?.value.trim() || '';
+  const locationArea   = document.getElementById('wc-area')?.value.trim()   || '';
+  const locationCity   = document.getElementById('wc-city')?.value.trim()   || '';
+  const notes          = document.getElementById('wc-notes')?.value.trim()  || '';
+
+  const btn = document.getElementById('submit-case-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting…'; }
+
+  const fileInput = document.getElementById('wc-image');
+  const fd = new FormData();
+  fd.append('action', 'report');
+  fd.append('caseType', caseType);
+  fd.append('urgency', urgency);
+  fd.append('personDesc', personDesc);
+  fd.append('locationStreet', locationStreet);
+  fd.append('locationArea', locationArea);
+  fd.append('locationCity', locationCity);
+  fd.append('notes', notes);
+  if (fileInput && fileInput.files[0]) {
+    fd.append('image', fileInput.files[0]);
+  }
+
+  const res = await apiPost('welfare_cases.php', fd);
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Report'; }
+
+  if (!res.ok) {
+    if (errEl) { errEl.style.display = 'block'; errEl.textContent = res.msg || 'Failed to submit report.'; }
+    return;
+  }
+
+  // Add to local store & re-render
+  HL.welfareCases.unshift(res.case);
+  const isCharity = HL.currentUser && HL.currentUser.accountType === 'charity';
+  if (isCharity) {
+    renderMwDashboard(HL.welfareCases);
+  } else {
+    const myCases = HL.welfareCases.filter(c => Number(c.reportedBy) === Number(HL.currentUser.id));
+    renderMwUserGrid(myCases);
+  }
+  document.getElementById('reportCaseForm')?.reset();
+  toggleReportForm(false);
+  showToast('Case reported successfully! A charity organization will review it.', 'success');
+}
+
+async function updateCaseStatus(caseId, newStatus) {
+  if (!newStatus) return;
+  const res = await apiPost('welfare_cases.php', {
+    action: 'update_status', caseId, status: newStatus
+  });
+  if (!res.ok) {
+    showToast(res.msg || 'Failed to update status.', 'error');
+    return;
+  }
+  // Update local state
+  const c = HL.welfareCases.find(x => x.id === caseId);
+  if (c) {
+    c.status      = newStatus;
+    c.handledBy   = HL.currentUser.id;
+    c.handledByName = HL.currentUser.fullName;
+  }
+  renderMwGrid(HL.welfareCases);
+  showToast('Case status updated to "' + newStatus + '"!', 'success');
+}
+
+function openCaseDetailModal(caseId) {
+  const c = HL.welfareCases.find(x => x.id === caseId);
+  if (!c) return;
+  const modal   = document.getElementById('caseDetailModal');
+  const content = document.getElementById('caseDetailContent');
+  if (!modal || !content) return;
+  const location = [c.locationStreet, c.locationArea, c.locationCity].filter(Boolean).join(', ');
+  const statusClass = c.status.replace(' ', '-');
+  content.innerHTML = `
+    <div class="modal-header">
+      <div>
+        <span class="case-type-badge ${c.caseType}" style="margin-bottom:6px;display:inline-flex">${caseTypeIcon(c.caseType)} ${c.caseType}</span>
+        <h3 style="margin:0">Welfare Case #${c.id}</h3>
+      </div>
+      <button class="modal-close" onclick="closeCaseModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div style="padding:8px 0 4px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:20px">
+      <span class="case-status-pill ${statusClass}"><span class="status-dot-mw"></span>${c.status}</span>
+      <span class="urgency-badge ${c.urgency}">${urgencyIcon(c.urgency)} ${c.urgency} Urgency</span>
+    </div>
+    <div class="case-detail-section">
+      <h4>Person Description</h4>
+      ${c.imageUrl ? `<div style="margin-bottom:12px;border-radius:8px;overflow:hidden;max-height:300px;text-align:center;background:#000;"><img src="${c.imageUrl}" alt="Case Image" style="max-width:100%;max-height:300px;object-fit:contain;"></div>` : ''}
+      <p style="font-size:.9rem;color:var(--text);line-height:1.65">${c.personDesc}</p>
+    </div>
+    <div class="case-detail-section">
+      <h4>Location</h4>
+      <div class="case-detail-grid">
+        <div class="case-detail-item"><div class="label">Street / Landmark</div><div class="value">${c.locationStreet}</div></div>
+        <div class="case-detail-item"><div class="label">Area</div><div class="value">${c.locationArea}</div></div>
+        <div class="case-detail-item"><div class="label">City</div><div class="value">${c.locationCity}</div></div>
+      </div>
+    </div>
+    ${c.notes ? `<div class="case-detail-section"><h4>Additional Notes</h4><p style="font-size:.9rem;color:var(--text)">${c.notes}</p></div>` : ''}
+    <div class="case-detail-section">
+      <h4>Report Details</h4>
+      <div class="case-detail-grid">
+        <div class="case-detail-item"><div class="label">Reported By</div><div class="value">${c.reportedByName || '—'}</div></div>
+        <div class="case-detail-item"><div class="label">Reported At</div><div class="value">${formatDateTime(c.createdAt)}</div></div>
+        <div class="case-detail-item"><div class="label">Handled By</div><div class="value">${c.handledByName || 'Not yet assigned'}</div></div>
+        <div class="case-detail-item"><div class="label">Last Updated</div><div class="value">${c.handledAt ? formatDateTime(c.handledAt) : '—'}</div></div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeCaseModal()">Close</button>
+    </div>`;
+  modal.classList.add('show');
+}
+
+function closeCaseModal() {
+  const modal = document.getElementById('caseDetailModal');
+  if (modal) modal.classList.remove('show');
+}
+
+// Current active tab for charity dashboard
+let mwActiveTab = 'all';
+
+function switchMwTab(tab, btnEl) {
+  mwActiveTab = tab;
+  document.querySelectorAll('.mw-tab').forEach(b => b.classList.remove('active'));
+  if (btnEl) btnEl.classList.add('active');
+  renderMwDashboard(HL.welfareCases);
+}
+
+function renderMwDashboard(cases) {
+  // Stats
+  const total     = cases.length;
+  const pending   = cases.filter(c => c.status === 'Pending').length;
+  const emergency = cases.filter(c => c.urgency === 'Critical' || c.urgency === 'High').length;
+  const completed = cases.filter(c => c.status === 'Completed').length;
+
+  const setEl = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setEl('mw-stat-total',     total);
+  setEl('mw-stat-pending',   pending);
+  setEl('mw-stat-emergency', emergency);
+  setEl('mw-stat-completed', completed);
+
+  // Badge counts
+  const emergencyCases = cases.filter(c => c.urgency === 'Critical' || c.urgency === 'High');
+  const generalCases   = cases.filter(c => c.urgency === 'Medium'   || c.urgency === 'Low');
+  setEl('badge-all',       total);
+  setEl('badge-emergency', emergencyCases.length);
+  setEl('badge-general',   generalCases.length);
+
+  // Filter by active tab
+  let visible = cases;
+  if (mwActiveTab === 'emergency') visible = emergencyCases;
+  if (mwActiveTab === 'general')   visible = generalCases;
+
+  // Render grid
+  const grid  = document.getElementById('mwGrid');
+  const empty = document.getElementById('mwEmptyState');
+  if (!grid) return;
+  if (!visible.length) {
+    grid.innerHTML = '';
+    if (empty) {
+      empty.classList.remove('hidden');
+      const titleEl = document.getElementById('mwEmptyTitle');
+      const descEl  = document.getElementById('mwEmptyDesc');
+      if (titleEl) titleEl.textContent = mwActiveTab === 'emergency' ? 'No emergency cases' : mwActiveTab === 'general' ? 'No general cases' : 'No cases reported yet';
+      if (descEl)  descEl.textContent  = 'No welfare cases found in this category.';
+    }
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  grid.innerHTML = visible.map(c => caseCardHTML(c)).join('');
+}
+
+function renderMwUserGrid(cases) {
+  const grid  = document.getElementById('mwUserGrid');
+  const empty = document.getElementById('mwUserEmpty');
+  if (!grid) return;
+  if (!cases.length) {
+    grid.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+  grid.innerHTML = cases.map(c => caseCardHTML(c)).join('');
+}
+
+async function updateCaseStatus(caseId, newStatus) {
+  if (!newStatus) return;
+  const res = await apiPost('welfare_cases.php', {
+    action: 'update_status', caseId, status: newStatus
+  });
+  if (!res.ok) {
+    showToast(res.msg || 'Failed to update status.', 'error');
+    return;
+  }
+  const c = HL.welfareCases.find(x => x.id === caseId);
+  if (c) {
+    c.status        = newStatus;
+    c.handledBy     = HL.currentUser.id;
+    c.handledByName = HL.currentUser.fullName;
+  }
+  // Re-render based on role
+  const isCharity = HL.currentUser && HL.currentUser.accountType === 'charity';
+  if (isCharity) {
+    renderMwDashboard(HL.welfareCases);
+  } else {
+    const myCases = HL.welfareCases.filter(x => Number(x.reportedBy) === Number(HL.currentUser.id));
+    renderMwUserGrid(myCases);
+  }
+  showToast('Case status updated to "' + newStatus + '"!', 'success');
+}
+
+async function initMedicalPage() {
+  // Only run on medical-welfare.html
+  if (!document.getElementById('mw-charity-dashboard')) return;
+
+  const charityView = document.getElementById('mw-charity-dashboard');
+  const userView    = document.getElementById('mw-user-dashboard');
+  const guestView   = document.getElementById('mw-guest-view');
+
+  // Hide all by default
+  charityView.classList.add('hidden');
+  userView.classList.add('hidden');
+  guestView.classList.add('hidden');
+
+  // Guest
+  if (!HL.currentUser) {
+    guestView.classList.remove('hidden');
+    return;
+  }
+
+  renderSidebarAccount();
+
+  // If charity user is browsing, show their specific sector nav
+  if (HL.currentUser.accountType === 'charity' && HL.currentUser.sectors) {
+    const navEl = document.querySelector('.app-sidebar-nav');
+    if (navEl) {
+      navEl.innerHTML = '<div class="app-sidebar-section-label">Your Sectors</div>';
+      const sectors = HL.currentUser.sectors.split(',');
+      if (sectors.includes('Food')) {
+        navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+      }
+      if (sectors.includes('Medical')) {
+        navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical &amp; Welfare</span></a>`;
+      }
+      if (sectors.includes('Education')) {
+        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education</span></a>`;
+      }
+      if (sectors.includes('Financial')) {
+        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
+      }
+    }
+  }
+
+  const isCharity = HL.currentUser.accountType === 'charity';
+  const cases = await loadWelfareCases();
+
+  if (isCharity) {
+    // ── Charity Dashboard ──
+    charityView.classList.remove('hidden');
+    mwActiveTab = 'all';
+    renderMwDashboard(cases);
+  } else {
+    // ── User View ──
+    userView.classList.remove('hidden');
+    // Show "Report a Case" button
+    const btnWrap = document.getElementById('report-btn-wrapper');
+    if (btnWrap) {
+      btnWrap.innerHTML = `<button class="btn btn-primary" onclick="toggleReportForm(true)" id="open-report-btn">
+        <i class="fa-solid fa-triangle-exclamation"></i> Report a Case
+      </button>`;
+    }
+    // Only show own cases
+    const myCases = cases.filter(c => Number(c.reportedBy) === Number(HL.currentUser.id));
+    renderMwUserGrid(myCases);
   }
 }

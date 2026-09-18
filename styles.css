@@ -506,3 +506,83 @@ html.dark-theme .theme-toggle-btn:hover{border-color:#52B788;color:#FFE082;box-s
 .app-theme-toggle i{font-size:.95rem;color:var(--secondary);transition:transform .3s ease}
 html.dark-theme .app-theme-toggle{background:#0E1612;border-color:#1B2B21;box-shadow:0 4px 16px rgba(0,0,0,0.6)}
 html.dark-theme .app-theme-toggle i{color:#F6D365}
+
+/* ── Medical & Welfare Module ───────────────────────────── */
+.mw-container{padding:32px 24px 60px}
+.mw-form-card{margin-bottom:32px}
+
+/* Pipeline */
+.mw-pipeline{display:flex;align-items:center;justify-content:center;gap:0;margin:24px 0 32px;flex-wrap:wrap;gap:6px}
+.mw-pipeline-step{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:80px}
+.mw-step-icon{width:42px;height:42px;border-radius:50%;background:var(--bg2);border:2px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:.9rem;color:var(--muted);transition:all .3s}
+.mw-step-label{font-size:.7rem;font-weight:600;color:var(--muted);text-align:center;white-space:nowrap}
+.mw-pipeline-step.active-step .mw-step-icon{background:var(--primary);border-color:var(--primary);color:#fff}
+.mw-pipeline-step.active-step .mw-step-label{color:var(--primary)}
+.mw-pipeline-arrow{color:var(--border);font-size:.8rem;margin:0 2px;padding-bottom:22px}
+
+/* Cases Grid */
+.mw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:20px;margin-top:12px}
+
+/* Case Card */
+.case-card{background:var(--card);border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:all var(--transition);position:relative;display:flex;flex-direction:column}
+.case-card:hover{transform:translateY(-3px);box-shadow:0 12px 32px rgba(0,0,0,0.08);border-color:var(--secondary)}
+.case-card-top{padding:16px 18px 12px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.case-type-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;border-radius:50px;font-size:.72rem;font-weight:700;letter-spacing:.3px;text-transform:uppercase}
+.case-type-badge.Medical{background:rgba(231,76,60,.12);color:#c0392b}
+.case-type-badge.Homeless{background:rgba(230,126,34,.12);color:#d35400}
+.case-type-badge.Abandoned{background:rgba(142,68,173,.12);color:#8e44ad}
+.case-type-badge.Other{background:var(--accent-l);color:var(--primary)}
+.urgency-badge{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:50px;font-size:.68rem;font-weight:700;text-transform:uppercase}
+.urgency-badge.Low{background:rgba(39,174,96,.12);color:#27ae60}
+.urgency-badge.Medium{background:rgba(243,156,18,.12);color:#d68910}
+.urgency-badge.High{background:rgba(230,126,34,.15);color:#ca6f1e}
+.urgency-badge.Critical{background:rgba(192,57,43,.15);color:#c0392b;animation:pulse-critical 1.5s infinite}
+@keyframes pulse-critical{0%,100%{opacity:1}50%{opacity:.65}}
+.case-card-body{padding:14px 18px;flex:1;display:flex;flex-direction:column;gap:10px}
+.case-desc{font-size:.88rem;color:var(--text);line-height:1.55;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.case-detail-row{display:flex;align-items:flex-start;gap:10px;font-size:.82rem}
+.case-detail-row .icon{color:var(--secondary);width:16px;flex-shrink:0;margin-top:2px}
+.case-detail-row .key{color:var(--muted);font-size:.75rem;font-weight:500}
+.case-detail-row .val{color:var(--text);font-weight:500}
+.case-card-footer{padding:12px 18px;border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.case-status-pill{display:inline-flex;align-items:center;gap:6px;font-size:.76rem;font-weight:600;padding:4px 12px;border-radius:50px}
+.case-status-pill.Pending{background:rgba(149,149,149,.12);color:#666}
+.case-status-pill.Reviewing{background:rgba(52,152,219,.12);color:#2471a3}
+.case-status-pill.Accepted{background:rgba(39,174,96,.12);color:#1e8449}
+.case-status-pill.Action-Taken{background:rgba(230,126,34,.12);color:#d35400}
+.case-status-pill.Completed{background:rgba(39,174,96,.18);color:#1e8449}
+.status-dot-mw{width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block}
+
+/* Status Select dropdown on card */
+.status-update-wrap{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.status-select-sm{font-size:.78rem;padding:5px 10px;border-radius:8px;border:1.5px solid var(--border);background:var(--card);color:var(--text);font-family:'Outfit',sans-serif;cursor:pointer;transition:border-color .2s}
+.status-select-sm:hover{border-color:var(--secondary)}
+
+/* Case Detail Modal */
+.case-detail-section{margin-bottom:20px}
+.case-detail-section h4{font-size:.8rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid var(--border)}
+.case-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.case-detail-item .label{font-size:.75rem;color:var(--muted);font-weight:500}
+.case-detail-item .value{font-size:.9rem;color:var(--text);font-weight:500;margin-top:2px}
+
+@media(max-width:640px){
+  .mw-grid{grid-template-columns:1fr}
+  .mw-pipeline{gap:3px}
+  .mw-step-icon{width:34px;height:34px;font-size:.78rem}
+  .mw-step-label{font-size:.62rem}
+  .case-detail-grid{grid-template-columns:1fr}
+}
+
+/* ── MW Tab Navigation ──────────────────────────────────── */
+.mw-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap}
+.mw-tab{display:inline-flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;border:2px solid var(--border);background:var(--card);color:var(--muted);font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:all var(--transition);position:relative}
+.mw-tab:hover{border-color:var(--secondary);color:var(--primary);background:var(--accent-l)}
+.mw-tab.active{background:var(--primary);border-color:var(--primary);color:#fff}
+.mw-tab.emergency-tab{border-color:rgba(192,57,43,.3);color:#c0392b}
+.mw-tab.emergency-tab:hover{background:rgba(192,57,43,.08)}
+.mw-tab.emergency-tab.active{background:#c0392b;border-color:#c0392b;color:#fff}
+.mw-tab-badge{display:inline-flex;align-items:center;justify-content:center;min-width:22px;height:22px;border-radius:50px;background:rgba(255,255,255,.25);color:inherit;font-size:.72rem;font-weight:700;padding:0 6px}
+.mw-tab.active .mw-tab-badge{background:rgba(255,255,255,.3);color:#fff}
+.emergency-badge{background:rgba(192,57,43,.15);color:#c0392b}
+.mw-tab.emergency-tab.active .emergency-badge{background:rgba(255,255,255,.25);color:#fff}
+
