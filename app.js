@@ -594,9 +594,17 @@ async function doLogin(e) {
     HL.currentUser.id = Number(HL.currentUser.id);
   }
   showToast('Welcome back, ' + res.user.fullName.split(' ')[0] + '!', 'success');
-  const dest = res.user.accountType === 'restaurant' ? 'dashboard.html'
-             : res.user.accountType === 'charity'    ? 'food-support.html'
-             : 'index.html';
+  let dest = 'index.html';
+  if (res.user.accountType === 'restaurant') {
+    dest = 'dashboard.html';
+  } else if (res.user.accountType === 'charity') {
+    const s = (res.user.sectors || '').toLowerCase();
+    if (s.includes('medical') && !s.includes('food')) {
+      dest = 'medical-welfare.html';
+    } else {
+      dest = 'food-support.html';
+    }
+  }
   setTimeout(() => window.location.href = dest, 900);
 }
 
@@ -703,7 +711,17 @@ async function doRegister(e) {
     HL.currentUser.id = Number(HL.currentUser.id);
   }
   showToast('Account created! Welcome to HumanityLink!', 'success');
-  const dest = selectedAccountType === 'restaurant' ? 'dashboard.html' : 'food-support.html';
+  let dest = 'index.html';
+  if (selectedAccountType === 'restaurant') {
+    dest = 'dashboard.html';
+  } else if (selectedAccountType === 'charity') {
+    const s = selectedSectors.join(',').toLowerCase();
+    if (s.includes('medical') && !s.includes('food')) {
+      dest = 'medical-welfare.html';
+    } else {
+      dest = 'food-support.html';
+    }
+  }
   setTimeout(() => window.location.href = dest, 900);
 }
 
@@ -1018,7 +1036,15 @@ async function initDashboardPage() {
   const dash = document.getElementById('dashboardLayout') || document.getElementById('section-overview');
   if (!dash) return;
   if (!HL.currentUser) { window.location.href = 'auth.html'; return; }
-  if (HL.currentUser.accountType !== 'restaurant') { window.location.href = 'food-support.html'; return; }
+  if (HL.currentUser.accountType !== 'restaurant') { 
+    let dest = 'index.html';
+    if (HL.currentUser.accountType === 'charity') {
+      const s = (HL.currentUser.sectors || '').toLowerCase();
+      dest = (s.includes('medical') && !s.includes('food')) ? 'medical-welfare.html' : 'food-support.html';
+    }
+    window.location.href = dest; 
+    return; 
+  }
 
   renderSidebarAccount();
 
@@ -1394,17 +1420,36 @@ function caseCardHTML(c) {
 
   let footerRight = '';
   if (isCharity) {
-    const opts = ['Reviewing','Accepted','Action Taken','Completed']
-      .map(s => `<option value="${s}" ${c.status === s ? 'selected' : ''}>${s}</option>`)
-      .join('');
-    footerRight = `
-      <div class="status-update-wrap" style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-outline btn-sm" onclick="openMwChat(${c.id}, ${c.reportedBy})" style="padding:0.25rem 0.5rem;font-size:0.8rem;"><i class="fa-solid fa-comments"></i> Chat</button>
-        <select class="status-select-sm" id="status-sel-${c.id}" onchange="updateCaseStatus(${c.id}, this.value)" title="Update status">
-          <option value="" ${!['Reviewing','Accepted','Action Taken','Completed'].includes(c.status) ? 'selected' : ''} disabled>Update status…</option>
-          ${opts}
-        </select>
-      </div>`;
+    if (c.status === 'Pending') {
+      footerRight = `
+        <div class="status-update-wrap" style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-primary btn-sm" onclick="updateCaseStatus(${c.id}, 'Reviewing')"><i class="fa-solid fa-hand-paper"></i> Claim for Reviewing</button>
+        </div>`;
+    } else if (c.handledBy === Number(HL.currentUser.id)) {
+      if (c.status === 'Reviewing') {
+        footerRight = `
+          <div class="status-update-wrap" style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-outline btn-sm" onclick="openMwChat(${c.id}, ${c.reportedBy}, '${(c.reportedByName||'Anonymous').replace(/'/g,"\\'")}')" style="padding:0.25rem 0.5rem;font-size:0.8rem;"><i class="fa-solid fa-comments"></i> Chat</button>
+            <button class="btn btn-success btn-sm" onclick="updateCaseStatus(${c.id}, 'Accepted')"><i class="fa-solid fa-check"></i> Accept</button>
+            <button class="btn btn-danger btn-sm" onclick="updateCaseStatus(${c.id}, 'Pending')"><i class="fa-solid fa-xmark"></i> Reject</button>
+          </div>`;
+      } else {
+        let actionBtn = '';
+        if (c.status === 'Accepted') {
+          actionBtn = `<button class="btn btn-primary btn-sm" onclick="updateCaseStatus(${c.id}, 'Action Taken')" style="padding:0.25rem 0.5rem;font-size:0.8rem;"><i class="fa-solid fa-person-walking-arrow-right"></i> Mark Action Taken</button>`;
+        } else if (c.status === 'Action Taken') {
+          actionBtn = `<button class="btn btn-success btn-sm" onclick="updateCaseStatus(${c.id}, 'Completed')" style="padding:0.25rem 0.5rem;font-size:0.8rem;"><i class="fa-solid fa-circle-check"></i> Mark Completed</button>`;
+        }
+        
+        footerRight = `
+          <div class="status-update-wrap" style="display:flex;gap:8px;align-items:center;">
+            <button class="btn btn-outline btn-sm" onclick="openMwChat(${c.id}, ${c.reportedBy}, '${(c.reportedByName||'Anonymous').replace(/'/g,"\\'")}')" style="padding:0.25rem 0.5rem;font-size:0.8rem;"><i class="fa-solid fa-comments"></i> Chat</button>
+            ${actionBtn}
+          </div>`;
+      }
+    } else {
+      footerRight = `<span style="font-size:.75rem;color:var(--muted)"><i class="fa-solid fa-building-ngo"></i> Handled by ${c.handledByName}</span>`;
+    }
   } else if (isReporter) {
     if (c.handledBy) {
       footerRight = `
@@ -1562,26 +1607,6 @@ async function submitWelfareCase(e) {
   showToast('Case reported successfully! A charity organization will review it.', 'success');
 }
 
-async function updateCaseStatus(caseId, newStatus) {
-  if (!newStatus) return;
-  const res = await apiPost('welfare_cases.php', {
-    action: 'update_status', caseId, status: newStatus
-  });
-  if (!res.ok) {
-    showToast(res.msg || 'Failed to update status.', 'error');
-    return;
-  }
-  // Update local state
-  const c = HL.welfareCases.find(x => x.id === caseId);
-  if (c) {
-    c.status      = newStatus;
-    c.handledBy   = HL.currentUser.id;
-    c.handledByName = HL.currentUser.fullName;
-  }
-  renderMwGrid(HL.welfareCases);
-  showToast('Case status updated to "' + newStatus + '"!', 'success');
-}
-
 function openCaseDetailModal(caseId) {
   const c = HL.welfareCases.find(x => x.id === caseId);
   if (!c) return;
@@ -1646,7 +1671,15 @@ function switchMwTab(tab, btnEl) {
   renderMwDashboard(HL.welfareCases);
 }
 
-function renderMwDashboard(cases) {
+function renderMwDashboard(allCases) {
+  // Filter out cases rejected by this charity
+  const currentUserIdStr = String(HL.currentUser.id);
+  const cases = allCases.filter(c => {
+    if (!c.rejectedBy) return true;
+    const rejArr = c.rejectedBy.split(',');
+    return !rejArr.includes(currentUserIdStr);
+  });
+
   // Stats
   const total     = cases.length;
   const pending   = cases.filter(c => c.status === 'Pending').length;
@@ -1714,9 +1747,18 @@ async function updateCaseStatus(caseId, newStatus) {
   }
   const c = HL.welfareCases.find(x => x.id === caseId);
   if (c) {
-    c.status        = newStatus;
-    c.handledBy     = HL.currentUser.id;
-    c.handledByName = HL.currentUser.fullName;
+    c.status = newStatus;
+    if (newStatus === 'Pending') {
+      c.handledBy = null;
+      c.handledByName = null;
+      const currentUserIdStr = String(HL.currentUser.id);
+      const rejArr = c.rejectedBy ? c.rejectedBy.split(',') : [];
+      if (!rejArr.includes(currentUserIdStr)) rejArr.push(currentUserIdStr);
+      c.rejectedBy = rejArr.join(',');
+    } else {
+      c.handledBy = HL.currentUser.id;
+      c.handledByName = HL.currentUser.fullName;
+    }
   }
   // Re-render based on role
   const isCharity = HL.currentUser && HL.currentUser.accountType === 'charity';

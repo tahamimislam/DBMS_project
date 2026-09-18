@@ -75,6 +75,7 @@ CREATE TABLE IF NOT EXISTS welfare_cases (
     location_city    VARCHAR(100) NOT NULL,
     urgency          ENUM('Low','Medium','High','Critical') NOT NULL DEFAULT 'Medium',
     notes            TEXT DEFAULT NULL,
+    rejected_by      TEXT DEFAULT NULL,
     status           ENUM('Pending','Reviewing','Accepted','Action Taken','Completed') NOT NULL DEFAULT 'Pending',
     handled_by       INT DEFAULT NULL,
     handled_at       TIMESTAMP NULL DEFAULT NULL,

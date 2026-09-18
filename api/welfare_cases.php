@@ -23,6 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             wc.location_city,
             wc.urgency,
             wc.notes,
+            wc.rejected_by,
             wc.status,
             wc.handled_by,
             u2.full_name      AS handled_by_name,
@@ -51,6 +52,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             "locationCity"    => $row["location_city"],
             "urgency"         => $row["urgency"],
             "notes"           => $row["notes"],
+            "rejectedBy"      => $row["rejected_by"],
             "status"          => $row["status"],
             "handledBy"       => $row["handled_by"] ? (int)$row["handled_by"] : null,
             "handledByName"   => $row["handled_by_name"],
@@ -162,7 +164,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         $caseId    = (int)($data["caseId"] ?? 0);
         $newStatus = trim($data["status"] ?? "");
-        $allowed_statuses = ["Reviewing","Accepted","Action Taken","Completed"];
+        $allowed_statuses = ["Pending","Reviewing","Accepted","Action Taken","Completed"];
 
         if (!$caseId) {
             echo json_encode(["ok" => false, "msg" => "Case ID required."]);
@@ -176,10 +178,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $handledBy = (int)$_SESSION["user"]["id"];
         $now       = date("Y-m-d H:i:s");
 
-        $stmt = $conn->prepare(
-            "UPDATE welfare_cases SET status = ?, handled_by = ?, handled_at = ? WHERE id = ?"
-        );
-        $stmt->bind_param("sisi", $newStatus, $handledBy, $now, $caseId);
+        if ($newStatus === "Pending") {
+            $stmt = $conn->prepare("UPDATE welfare_cases SET status = ?, handled_by = NULL, handled_at = NULL, rejected_by = CONCAT_WS(',', rejected_by, ?) WHERE id = ?");
+            $strHandledBy = (string)$handledBy;
+            $stmt->bind_param("ssi", $newStatus, $strHandledBy, $caseId);
+        } else {
+            $stmt = $conn->prepare("UPDATE welfare_cases SET status = ?, handled_by = ?, handled_at = ? WHERE id = ?");
+            $stmt->bind_param("sisi", $newStatus, $handledBy, $now, $caseId);
+        }
         $stmt->execute();
         $stmt->close();
 
