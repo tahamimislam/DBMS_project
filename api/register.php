@@ -19,7 +19,9 @@ $fullName    = trim($data['fullName']    ?? '');
 $regNumber   = trim($data['regNumber']   ?? '');
 $email       = strtolower(trim($data['email'] ?? ''));
 $phone       = trim($data['phone']       ?? '');
-$address     = trim($data['address']     ?? '');
+$street      = trim($data['street']      ?? '');
+$area        = trim($data['area']        ?? '');
+$city        = trim($data['city']        ?? '');
 $password    = $data['password']         ?? '';
 $sectorsArr  = $data['sectors']          ?? [];
 $workingSectors = !empty($sectorsArr) ? implode(',', $sectorsArr) : null;
@@ -75,10 +77,10 @@ $checkReg->close();
 // Insert
 $hashed = password_hash($password, PASSWORD_DEFAULT);
 $stmt = $conn->prepare(
-     "INSERT INTO users (account_type, full_name, reg_number, email, phone, address, password, working_sectors)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param('ssssssss', $accountType, $fullName, $regNumber, $email, $phone, $address, $hashed, $workingSectors);
+$stmt->bind_param('ssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $workingSectors);
 $stmt->execute();
 $userId = $conn->insert_id;
 $stmt->close();
@@ -90,7 +92,9 @@ $user = [
     'regNumber'   => $regNumber,
     'email'       => $email,
     'phone'       => $phone,
-    'address'     => $address,
+    'street'      => $street,
+    'area'        => $area,
+    'city'        => $city,
     'sectors'     => $workingSectors
 ];
 

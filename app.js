@@ -223,7 +223,9 @@ function openSettingsModal() {
   const nameInp  = document.getElementById('sm-name');
   const emailInp = document.getElementById('sm-email');
   const phoneInp = document.getElementById('sm-phone');
-  const addrInp  = document.getElementById('sm-address');
+  const streetInp = document.getElementById('sm-street');
+  const areaInp   = document.getElementById('sm-area');
+  const cityInp   = document.getElementById('sm-city');
   const regInp   = document.getElementById('sm-reg');
   const regRow   = document.getElementById('sm-reg-group');
 
@@ -232,7 +234,9 @@ function openSettingsModal() {
   if (nameInp)  nameInp.value        = HL.currentUser.fullName || '';
   if (emailInp) emailInp.value       = HL.currentUser.email || '';
   if (phoneInp) phoneInp.value       = HL.currentUser.phone || '';
-  if (addrInp)  addrInp.value        = HL.currentUser.address || '';
+  if (streetInp) streetInp.value     = HL.currentUser.street || '';
+  if (areaInp)  areaInp.value        = HL.currentUser.area || '';
+  if (cityInp)  cityInp.value        = HL.currentUser.city || '';
   if (regInp)   regInp.value         = HL.currentUser.regNumber || '';
   if (regRow) {
     regRow.style.display = 'block';
@@ -260,12 +264,16 @@ async function saveSettings(e) {
 
   const smNameEl = document.getElementById('sm-name');
   const smPhoneEl = document.getElementById('sm-phone');
-  const smAddrEl = document.getElementById('sm-address');
+  const smStreetEl = document.getElementById('sm-street');
+  const smAreaEl  = document.getElementById('sm-area');
+  const smCityEl  = document.getElementById('sm-city');
   const smRegEl = document.getElementById('sm-reg');
   
   const fullName = smNameEl ? smNameEl.value.trim() : '';
   const phone    = smPhoneEl ? smPhoneEl.value.trim() : '';
-  const address  = smAddrEl ? smAddrEl.value.trim() : '';
+  const street   = smStreetEl ? smStreetEl.value.trim() : '';
+  const area     = smAreaEl ? smAreaEl.value.trim() : '';
+  const city     = smCityEl ? smCityEl.value.trim() : '';
   const regNumber= (smRegEl ? smRegEl.value.trim() : '') || '';
 
   if (!fullName) {
@@ -291,7 +299,9 @@ async function saveSettings(e) {
   const res = await apiPost('profile.php', {
     fullName,
     phone,
-    address,
+    street,
+    area,
+    city,
     regNumber
   });
 
@@ -603,7 +613,9 @@ async function doRegister(e) {
   const regNumber = document.getElementById('reg-regnumber').value.trim();
   const email     = document.getElementById('reg-email').value.trim();
   const phone     = document.getElementById('reg-phone').value.trim();
-  const address   = document.getElementById('reg-address').value.trim();
+  const street    = document.getElementById('reg-street').value.trim();
+  const area      = document.getElementById('reg-area').value.trim();
+  const city      = document.getElementById('reg-city').value.trim();
   const pw        = document.getElementById('reg-password').value;
   const pw2       = document.getElementById('reg-password2').value;
 
@@ -669,7 +681,9 @@ async function doRegister(e) {
     regNumber:   regNumber,
     email:       email,
     phone:       phone,
-    address:     address,
+    street:      street,
+    area:        area,
+    city:        city,
     password:    pw,
     sectors:     selectedSectors
   });

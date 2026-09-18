@@ -9,7 +9,7 @@ require 'db.php';
 $log = [];
 
 // ── Helper ────────────────────────────────────────────────
-function insertUser($conn, $type, $name, $reg, $email, $phone, $addr, $pw) {
+function insertUser($conn, $type, $name, $reg, $email, $phone, $street, $area, $city, $pw) {
     $check = $conn->prepare("SELECT id FROM users WHERE email = ?");
     $check->bind_param('s', $email);
     $check->execute();
@@ -22,10 +22,10 @@ function insertUser($conn, $type, $name, $reg, $email, $phone, $addr, $pw) {
 
     $hash = password_hash($pw, PASSWORD_DEFAULT);
     $stmt = $conn->prepare(
-        "INSERT INTO users (account_type,full_name,reg_number,email,phone,address,password)
-         VALUES (?,?,?,?,?,?,?)"
+        "INSERT INTO users (account_type,full_name,reg_number,email,phone,street,area,city,password)
+         VALUES (?,?,?,?,?,?,?,?,?)"
     );
-    $stmt->bind_param('sssssss', $type, $name, $reg, $email, $phone, $addr, $hash);
+    $stmt->bind_param('sssssssss', $type, $name, $reg, $email, $phone, $street, $area, $city, $hash);
     $stmt->execute();
     $id = $conn->insert_id;
     $stmt->close();
@@ -34,12 +34,12 @@ function insertUser($conn, $type, $name, $reg, $email, $phone, $addr, $pw) {
 
 // ── Insert Demo Users ─────────────────────────────────────
 $r1 = insertUser($conn, 'restaurant', 'Green Garden Restaurant', 'REST-2024-001',
-      'greengarden@demo.com', '+880-1711-111111', '45 Mirpur Road, Dhaka 1216', 'demo123');
+      'greengarden@demo.com', '+880-1711-111111', '45 Mirpur Road', 'Mirpur', 'Dhaka 1216', 'demo123');
 $log[] = $r1['msg'];
 $restId = $r1['id'];
 
 $r2 = insertUser($conn, 'charity', 'Hope Foundation Bangladesh', 'NGO-2024-077',
-      'hope@demo.com', '+880-1812-222222', '12 Gulshan Avenue, Dhaka 1212', 'demo123');
+      'hope@demo.com', '+880-1812-222222', '12 Gulshan Avenue', 'Gulshan', 'Dhaka 1212', 'demo123');
 $log[] = $r2['msg'];
 $charityId = $r2['id'];
 

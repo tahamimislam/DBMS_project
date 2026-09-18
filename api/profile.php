@@ -19,7 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $data = json_decode(file_get_contents('php://input'), true) ?? [];
     $fullName = trim($data['fullName'] ?? '');
     $phone    = trim($data['phone'] ?? '');
-    $address  = trim($data['address'] ?? '');
+    $street   = trim($data['street'] ?? '');
+    $area     = trim($data['area'] ?? '');
+    $city     = trim($data['city'] ?? '');
     $regNumber= trim($data['regNumber'] ?? '');
 
     if (!$fullName) {
@@ -51,15 +53,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $stmt = $conn->prepare("UPDATE users SET full_name = ?, phone = ?, address = ?, reg_number = ? WHERE id = ?");
-    $stmt->bind_param('ssssi', $fullName, $phone, $address, $regNumber, $currentUserId);
+    $stmt = $conn->prepare("UPDATE users SET full_name = ?, phone = ?, street = ?, area = ?, city = ?, reg_number = ? WHERE id = ?");
+    $stmt->bind_param('ssssssi', $fullName, $phone, $street, $area, $city, $regNumber, $currentUserId);
     $stmt->execute();
     $stmt->close();
 
     // Update session
     $_SESSION['user']['fullName']   = $fullName;
     $_SESSION['user']['phone']      = $phone;
-    $_SESSION['user']['address']    = $address;
+    $_SESSION['user']['street']     = $street;
+    $_SESSION['user']['area']       = $area;
+    $_SESSION['user']['city']       = $city;
     $_SESSION['user']['regNumber']  = $regNumber;
     $_SESSION['user']['full_name']  = $fullName;
     $_SESSION['user']['reg_number'] = $regNumber;
@@ -76,7 +80,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'regNumber'   => $regNumber,
             'email'       => $_SESSION['user']['email'],
             'phone'       => $phone,
-            'address'     => $address
+            'street'      => $street,
+            'area'        => $area,
+            'city'        => $city
         ]
     ]);
     exit;
@@ -112,7 +118,7 @@ if ($targetId !== $currentUserId) {
 
 // Fetch user info (no password returned)
 $stmt = $conn->prepare(
-    "SELECT id, account_type, full_name, reg_number, email, phone, address, working_sectors
+    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, working_sectors
      FROM users WHERE id = ?"
 );
 $stmt->bind_param('i', $targetId);
@@ -133,6 +139,8 @@ echo json_encode(['ok' => true, 'user' => [
     'regNumber'   => $row['reg_number'],
     'email'       => $row['email'],
     'phone'       => $row['phone'],
-    'address'     => $row['address'],
+    'street'      => $row['street'],
+    'area'        => $row['area'],
+    'city'        => $row['city'],
     'sectors'     => $row['working_sectors']
 ]]);

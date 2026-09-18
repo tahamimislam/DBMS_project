@@ -22,7 +22,9 @@ CREATE TABLE IF NOT EXISTS users (
     reg_number   VARCHAR(100) NOT NULL UNIQUE,
     email        VARCHAR(150) NOT NULL UNIQUE,
     phone        VARCHAR(30)  DEFAULT NULL,
-    address      TEXT         DEFAULT NULL,
+    street       VARCHAR(150) DEFAULT NULL,
+    area         VARCHAR(100) DEFAULT NULL,
+    city         VARCHAR(100) DEFAULT NULL,
     password     VARCHAR(255) NOT NULL,
     working_sectors VARCHAR(255) DEFAULT NULL,
     created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
