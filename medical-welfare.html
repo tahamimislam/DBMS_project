@@ -123,33 +123,7 @@
       </div>
     </div>
 
-    <!-- Workflow Pipeline -->
-    <div class="mw-pipeline" id="mwPipeline" style="margin-bottom:24px">
-      <div class="mw-pipeline-step active-step">
-        <div class="mw-step-icon"><i class="fa-solid fa-flag"></i></div>
-        <div class="mw-step-label">Reported</div>
-      </div>
-      <div class="mw-pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-      <div class="mw-pipeline-step">
-        <div class="mw-step-icon"><i class="fa-solid fa-eye"></i></div>
-        <div class="mw-step-label">Reviewing</div>
-      </div>
-      <div class="mw-pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-      <div class="mw-pipeline-step">
-        <div class="mw-step-icon"><i class="fa-solid fa-handshake"></i></div>
-        <div class="mw-step-label">Accepted</div>
-      </div>
-      <div class="mw-pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-      <div class="mw-pipeline-step">
-        <div class="mw-step-icon"><i class="fa-solid fa-person-walking-arrow-right"></i></div>
-        <div class="mw-step-label">Action Taken</div>
-      </div>
-      <div class="mw-pipeline-arrow"><i class="fa-solid fa-chevron-right"></i></div>
-      <div class="mw-pipeline-step">
-        <div class="mw-step-icon"><i class="fa-solid fa-circle-check"></i></div>
-        <div class="mw-step-label">Completed</div>
-      </div>
-    </div>
+
 
     <!-- Report Case Form -->
     <div id="reportCaseSection" class="hidden">
@@ -244,6 +218,23 @@
 <!-- Case Detail Modal -->
 <div class="modal-overlay" id="caseDetailModal" onclick="if(event.target===this)closeCaseModal()">
   <div class="modal modal-lg" id="caseDetailContent"></div>
+</div>
+
+<!-- Chat Modal -->
+<div class="modal-overlay" id="chatModal" onclick="if(event.target===this)closeChatModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 style="margin:0"><i class="fa-solid fa-comments"></i> Chat with Reporter</h3>
+      <button class="modal-close" onclick="closeChatModal()">&times;</button>
+    </div>
+    <div class="messages-area" id="mwMessagesArea" style="height:300px;overflow-y:auto;background:var(--bg);padding:12px;border-radius:8px;margin-bottom:12px;display:flex;flex-direction:column;gap:10px;">
+      <div class="msg-empty">Loading messages...</div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <input type="text" class="form-control" id="mwMsgInput" placeholder="Type a message..." onkeydown="if(event.key==='Enter')sendMwMsg()">
+      <button class="btn btn-primary" onclick="sendMwMsg()"><i class="fa-solid fa-paper-plane"></i></button>
+    </div>
+  </div>
 </div>
 
 <!-- Settings Modal -->

@@ -51,14 +51,16 @@ CREATE TABLE IF NOT EXISTS food_posts (
 -- ── Messages Table ───────────────────────────────────────
 CREATE TABLE IF NOT EXISTS messages (
     id          INT AUTO_INCREMENT PRIMARY KEY,
-    sender_id   INT  NOT NULL,
-    receiver_id INT  NOT NULL,
-    post_id     INT  NOT NULL,
-    message     TEXT NOT NULL,
-    sent_at     TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (sender_id)   REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (receiver_id) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (post_id)     REFERENCES food_posts(id) ON DELETE CASCADE
+    sender_id       INT  NOT NULL,
+    receiver_id     INT  NOT NULL,
+    post_id         INT  DEFAULT NULL,
+    welfare_case_id INT  DEFAULT NULL,
+    message         TEXT NOT NULL,
+    sent_at         TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (sender_id)       REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id)     REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (post_id)         REFERENCES food_posts(id) ON DELETE CASCADE,
+    FOREIGN KEY (welfare_case_id) REFERENCES welfare_cases(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ── Welfare Cases Table ──────────────────────────────────

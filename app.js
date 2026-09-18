@@ -1398,14 +1398,23 @@ function caseCardHTML(c) {
       .map(s => `<option value="${s}" ${c.status === s ? 'selected' : ''}>${s}</option>`)
       .join('');
     footerRight = `
-      <div class="status-update-wrap">
+      <div class="status-update-wrap" style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-outline btn-sm" onclick="openMwChat(${c.id}, ${c.reportedBy})" style="padding:0.25rem 0.5rem;font-size:0.8rem;"><i class="fa-solid fa-comments"></i> Chat</button>
         <select class="status-select-sm" id="status-sel-${c.id}" onchange="updateCaseStatus(${c.id}, this.value)" title="Update status">
           <option value="" ${!['Reviewing','Accepted','Action Taken','Completed'].includes(c.status) ? 'selected' : ''} disabled>Update status…</option>
           ${opts}
         </select>
       </div>`;
   } else if (isReporter) {
-    footerRight = `<span style="font-size:.75rem;color:var(--muted)"><i class="fa-solid fa-user"></i> My Report</span>`;
+    if (c.handledBy) {
+      footerRight = `
+        <div style="display:flex;gap:8px;align-items:center;">
+          <span style="font-size:.75rem;color:var(--muted)"><i class="fa-solid fa-user"></i> My Report</span>
+          <button class="btn btn-outline btn-sm" onclick="openMwChat(${c.id}, ${c.handledBy}, '${(c.handledByName||'Charity').replace(/'/g,"\\'")}')" style="padding:0.25rem 0.5rem;font-size:0.8rem;"><i class="fa-solid fa-comments"></i> Chat</button>
+        </div>`;
+    } else {
+      footerRight = `<span style="font-size:.75rem;color:var(--muted)"><i class="fa-solid fa-user"></i> My Report</span>`;
+    }
   } else if (!HL.currentUser) {
     footerRight = `<a href="auth.html" class="btn btn-outline btn-sm">Log in to Help</a>`;
   }
@@ -1425,6 +1434,10 @@ function caseCardHTML(c) {
       <div class="case-detail-row">
         <span class="icon"><i class="fa-solid fa-location-dot"></i></span>
         <div><div class="key">Location</div><div class="val">${location}</div></div>
+      </div>
+      <div class="case-detail-row">
+        <span class="icon"><i class="fa-solid fa-phone"></i></span>
+        <div><div class="key">Contact Number</div><div class="val">${c.reportedByPhone || 'N/A'}</div></div>
       </div>
       ${c.handledByName ? `<div class="case-detail-row">
         <span class="icon"><i class="fa-solid fa-building-ngo"></i></span>
@@ -1714,6 +1727,76 @@ async function updateCaseStatus(caseId, newStatus) {
     renderMwUserGrid(myCases);
   }
   showToast('Case status updated to "' + newStatus + '"!', 'success');
+}
+
+let mwChatCaseId = null;
+let mwChatReceiverId = null;
+
+function openMwChat(caseId, receiverId, reporterName) {
+  mwChatCaseId = caseId;
+  mwChatReceiverId = receiverId;
+  const modal = document.getElementById('chatModal');
+  if (modal) {
+    const titleEl = modal.querySelector('.modal-header h3');
+    if (titleEl) {
+      titleEl.innerHTML = `<i class="fa-solid fa-comments"></i> Chat with ${reporterName || 'Reporter'}`;
+    }
+    modal.classList.add('show');
+    loadMwMessages();
+  }
+}
+
+function closeChatModal() {
+  const modal = document.getElementById('chatModal');
+  if (modal) modal.classList.remove('show');
+  mwChatCaseId = null;
+  mwChatReceiverId = null;
+}
+
+async function loadMwMessages() {
+  if (!mwChatCaseId) return;
+  const area = document.getElementById('mwMessagesArea');
+  if (!area) return;
+  const res = await apiGet(`messages.php?case_id=${mwChatCaseId}`);
+  if (!res.ok) {
+    area.innerHTML = `<div class="msg-empty">${res.msg || 'Error loading chat'}</div>`;
+    return;
+  }
+  if (!res.messages || res.messages.length === 0) {
+    area.innerHTML = `<div class="msg-empty">No messages yet. Start the conversation!</div>`;
+    return;
+  }
+  let html = '';
+  res.messages.forEach(m => {
+    const isMe = m.from === Number(HL.currentUser.id);
+    html += `
+      <div class="msg-bubble ${isMe ? 'sent' : 'received'}">
+        <div class="msg-text">${m.text}</div>
+        <div class="msg-time">${m.fromName} &bull; ${m.time}</div>
+      </div>
+    `;
+  });
+  area.innerHTML = html;
+  area.scrollTop = area.scrollHeight;
+}
+
+async function sendMwMsg() {
+  const inp = document.getElementById('mwMsgInput');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text || !mwChatCaseId || !mwChatReceiverId) return;
+  
+  const res = await apiPost('messages.php', {
+    receiverId: mwChatReceiverId,
+    caseId: mwChatCaseId,
+    message: text
+  });
+  if (res.ok) {
+    inp.value = '';
+    await loadMwMessages();
+  } else {
+    showToast(res.msg || 'Failed to send message.', 'error');
+  }
 }
 
 async function initMedicalPage() {
