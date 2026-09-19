@@ -765,20 +765,29 @@ async function doRegister(e) {
   const btn = document.getElementById('register-submit-btn');
   if (btn) { btn.disabled = true; btn.textContent = 'Creating account…'; }
 
-  const res = await apiPost('register.php', {
-    accountType: selectedAccountType,
-    fullName:    name,
-    regNumber:   regNumber,
-    email:       email,
-    phone:       phone,
-    street:      street,
-    area:        area,
-    city:        city,
-    qualification: qual,
-    specialization: spec,
-    password:    pw,
-    sectors:     selectedSectors
-  });
+  const fd = new FormData();
+  fd.append('accountType', selectedAccountType);
+  fd.append('fullName', name);
+  fd.append('regNumber', regNumber);
+  fd.append('email', email);
+  fd.append('phone', phone);
+  fd.append('street', street);
+  fd.append('area', area);
+  fd.append('city', city);
+  fd.append('qualification', qual);
+  fd.append('specialization', spec);
+  fd.append('password', pw);
+  
+  if (selectedSectors && selectedSectors.length > 0) {
+    fd.append('sectors', selectedSectors.join(','));
+  }
+  
+  const picInp = document.getElementById('reg-profile-pic');
+  if (picInp && picInp.files[0]) {
+    fd.append('profilePicture', picInp.files[0]);
+  }
+
+  const res = await apiPost('register.php', fd);
 
   if (btn) { btn.disabled = false; btn.textContent = 'Create Account'; }
 
@@ -2145,7 +2154,15 @@ function renderPublicCampaigns(campaigns) {
   grid.innerHTML = campaigns.map(c => `
     <div class="campaign-card" style="background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:20px;">
       <h3 style="margin-top:0; color:var(--text-color);">${c.subject}</h3>
-      <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:5px;"><i class="fa-solid fa-user-doctor"></i> Dr. ${c.doctor_name} <br> <small>${c.qualification} | ${c.specialization}</small></div>
+      <div style="display:flex; align-items:center; margin-bottom:15px; gap:15px;">
+        <div style="width:50px; height:50px; border-radius:50%; background:#eee; overflow:hidden; flex-shrink:0; display:flex; align-items:center; justify-content:center; color:#aaa; font-weight:bold; font-size: 1.2rem;">
+          ${c.doctor_profile_picture ? `<img src="${c.doctor_profile_picture}" style="width:100%; height:100%; object-fit:cover;">` : (c.doctor_name.split(' ').map(w=>w[0]).join('').substring(0,2).toUpperCase())}
+        </div>
+        <div style="font-size:0.9rem; color:var(--text-muted);">
+          <strong style="color:var(--text-color); font-size:1rem;">Dr. ${c.doctor_name}</strong><br>
+          <small>${c.qualification} | ${c.specialization}</small>
+        </div>
+      </div>
       <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:5px;"><i class="fa-solid fa-calendar-day"></i> ${new Date(c.campaign_date).toLocaleDateString()} &nbsp;|&nbsp; <i class="fa-regular fa-clock"></i> ${c.start_time.substring(0,5)} - ${c.end_time.substring(0,5)}</div>
       <div style="font-size:0.9rem; color:var(--text-muted); margin-bottom:15px;"><i class="fa-solid fa-location-dot"></i> ${c.location}</div>
       <div style="font-size:0.95rem; margin-bottom:20px; line-height:1.5;">${c.description}</div>

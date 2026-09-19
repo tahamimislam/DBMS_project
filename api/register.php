@@ -12,7 +12,11 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-$data = json_decode(file_get_contents('php://input'), true);
+    if (isset($_SERVER["CONTENT_TYPE"]) && strpos($_SERVER["CONTENT_TYPE"], "application/json") !== false) {
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    } else {
+        $data = $_POST;
+    }
 
 $accountType = trim($data['accountType'] ?? '');
 $fullName    = trim($data['fullName']    ?? '');
@@ -23,7 +27,7 @@ $street      = trim($data['street']      ?? '');
 $area        = trim($data['area']        ?? '');
 $city        = trim($data['city']        ?? '');
 $password    = $data['password']         ?? '';
-$sectorsArr  = $data['sectors']          ?? [];
+$sectorsArr  = isset($data['sectors']) && is_string($data['sectors']) ? explode(',', $data['sectors']) : ($data['sectors'] ?? []);
 $workingSectors = !empty($sectorsArr) ? implode(',', $sectorsArr) : null;
 $qualification = trim($data['qualification'] ?? '');
 $specialization = trim($data['specialization'] ?? '');
@@ -77,12 +81,33 @@ if ($checkReg->num_rows > 0) {
 $checkReg->close();
 
 // Insert
+$profilePicUrl = null;
+if (isset($_FILES['profilePicture']) && $_FILES['profilePicture']['error'] === UPLOAD_ERR_OK) {
+    $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+    $finfo = finfo_open(FILEINFO_MIME_TYPE);
+    $mimeType = finfo_file($finfo, $_FILES['profilePicture']['tmp_name']);
+    finfo_close($finfo);
+
+    if (in_array($mimeType, $allowedTypes)) {
+        $uploadDir = '../uploads/';
+        if (!is_dir($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+        $ext = pathinfo($_FILES['profilePicture']['name'], PATHINFO_EXTENSION);
+        $fileName = 'profile_reg_' . time() . '_' . rand(1000, 9999) . '.' . strtolower($ext);
+        $targetFile = $uploadDir . $fileName;
+        if (move_uploaded_file($_FILES['profilePicture']['tmp_name'], $targetFile)) {
+            $profilePicUrl = 'uploads/' . $fileName;
+        }
+    }
+}
+
 $hashed = password_hash($password, PASSWORD_DEFAULT);
 $stmt = $conn->prepare(
-     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, qualification, specialization)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, qualification, specialization, profile_picture)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param('ssssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $workingSectors, $qualification, $specialization);
+$stmt->bind_param('sssssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $workingSectors, $qualification, $specialization, $profilePicUrl);
 $stmt->execute();
 $userId = $conn->insert_id;
 $stmt->close();
@@ -100,7 +125,7 @@ $user = [
     'sectors'     => $workingSectors,
     'qualification' => $qualification,
     'specialization' => $specialization,
-    'profilePicture' => null
+    'profilePicture' => $profilePicUrl
 ];
 
 $_SESSION['user'] = $user;

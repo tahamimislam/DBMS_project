@@ -173,6 +173,14 @@
         </div>
       </div>
 
+      <div class="form-group" style="text-align: center; margin-top: 20px;">
+        <label for="reg-profile-pic">Profile Picture (Optional)</label>
+        <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+          <img id="reg-profile-preview" src="" alt="Profile Preview" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none; background: #eee;">
+          <input type="file" id="reg-profile-pic" accept="image/*" class="form-control" style="font-size: 0.9rem;" onchange="if(this.files[0]) { document.getElementById('reg-profile-preview').src = URL.createObjectURL(this.files[0]); document.getElementById('reg-profile-preview').style.display='block'; }">
+        </div>
+      </div>
+
       <div id="reg-error" class="form-error-msg"></div>
       <button type="submit" class="btn btn-primary btn-full btn-lg" id="register-submit-btn">Create Account</button>
     </form>
