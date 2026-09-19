@@ -130,6 +130,7 @@ function renderNavAuth() {
 
   if (HL.currentUser) {
     const initials  = HL.currentUser.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+    const avatarHtml = HL.currentUser.profilePicture ? `<img src="${HL.currentUser.profilePicture}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : initials;
     let dashLink = 'index.html';
     if (HL.currentUser.accountType === 'restaurant') dashLink = 'dashboard.html';
     else if (HL.currentUser.accountType === 'doctor') dashLink = 'doctor-dashboard.html';
@@ -153,7 +154,7 @@ function renderNavAuth() {
       ${themeBtn}
       <div class="nav-user-menu" id="navUserMenu">
         <button class="nav-user-btn" id="navUserBtn">
-          <div class="avatar">${initials}</div>
+          <div class="avatar">${avatarHtml}</div>
           <span>${HL.currentUser.fullName.split(' ')[0]}</span>
           <i class="fa-solid fa-chevron-down"></i>
         </button>
@@ -202,11 +203,12 @@ function renderSidebarAccount() {
   }
 
   const initials  = HL.currentUser.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+  const avatarHtml = HL.currentUser.profilePicture ? `<img src="${HL.currentUser.profilePicture}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">` : initials;
   const typeLabel = { restaurant: 'Restaurant', charity: 'Charity Org', user: 'General User' }[HL.currentUser.accountType] || HL.currentUser.accountType;
 
   accountEl.innerHTML = `
     <button class="app-sidebar-account-btn" id="sidebarAccountBtn" type="button" title="Account profile & options">
-      <div class="app-sidebar-account-avatar">${initials}</div>
+      <div class="app-sidebar-account-avatar">${avatarHtml}</div>
       <div class="app-sidebar-account-info">
         <div class="app-sidebar-account-name">${HL.currentUser.fullName}</div>
         <div class="app-sidebar-account-type">${typeLabel}</div>
@@ -264,8 +266,27 @@ function openSettingsModal() {
   const qualInp   = document.getElementById('sm-qualification');
   const specInp   = document.getElementById('sm-specialization');
 
-  if (avatarEl) avatarEl.textContent = initials;
+  if (avatarEl) {
+    if (HL.currentUser.profilePicture) {
+      avatarEl.innerHTML = `<img src="${HL.currentUser.profilePicture}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    } else {
+      avatarEl.textContent = initials;
+    }
+  }
   if (typeEl)   typeEl.textContent   = typeLabel;
+
+  const picInp = document.getElementById('sm-profile-pic');
+  if (picInp) picInp.value = '';
+  const previewImg = document.getElementById('sm-profile-preview');
+  if (previewImg) {
+    if (HL.currentUser.profilePicture) {
+      previewImg.src = HL.currentUser.profilePicture;
+      previewImg.style.display = 'block';
+    } else {
+      previewImg.src = '';
+      previewImg.style.display = 'none';
+    }
+  }
   if (nameInp)  nameInp.value        = HL.currentUser.fullName || '';
   if (emailInp) emailInp.value       = HL.currentUser.email || '';
   if (phoneInp) phoneInp.value       = HL.currentUser.phone || '';
@@ -337,16 +358,22 @@ async function saveSettings(e) {
   const btn = document.getElementById('save-settings-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Saving…'; }
 
-  const res = await apiPost('profile.php', {
-    fullName,
-    phone,
-    street,
-    area,
-    city,
-    regNumber,
-    qualification,
-    specialization
-  });
+  const fd = new FormData();
+  fd.append('fullName', fullName);
+  fd.append('phone', phone);
+  fd.append('street', street);
+  fd.append('area', area);
+  fd.append('city', city);
+  fd.append('regNumber', regNumber);
+  fd.append('qualification', qualification);
+  fd.append('specialization', specialization);
+
+  const picInp = document.getElementById('sm-profile-pic');
+  if (picInp && picInp.files[0]) {
+    fd.append('profilePicture', picInp.files[0]);
+  }
+
+  const res = await apiPost('profile.php', fd);
 
   if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes'; }
 
@@ -1181,7 +1208,13 @@ async function initRestaurantProfilePage() {
   const initials   = profileTargetUser.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
   const initialsEl = document.getElementById('profileInitials');
   const nameEl     = document.getElementById('profileName');
-  if (initialsEl) initialsEl.textContent = initials;
+  if (initialsEl) {
+    if (profileTargetUser.profilePicture) {
+      initialsEl.innerHTML = `<img src="${profileTargetUser.profilePicture}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;">`;
+    } else {
+      initialsEl.textContent = initials;
+    }
+  }
   if (nameEl)     nameEl.textContent     = profileTargetUser.fullName;
   document.title = profileTargetUser.fullName + ' – HumanityLink';
 

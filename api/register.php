@@ -99,7 +99,8 @@ $user = [
     'city'        => $city,
     'sectors'     => $workingSectors,
     'qualification' => $qualification,
-    'specialization' => $specialization
+    'specialization' => $specialization,
+    'profilePicture' => null
 ];
 
 $_SESSION['user'] = $user;

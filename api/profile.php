@@ -16,7 +16,11 @@ $currentUserId = (int)$_SESSION['user']['id'];
 
 // Handle profile update via POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    if (isset($_SERVER["CONTENT_TYPE"]) && strpos($_SERVER["CONTENT_TYPE"], "application/json") !== false) {
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    } else {
+        $data = $_POST;
+    }
     $fullName = trim($data['fullName'] ?? '');
     $phone    = trim($data['phone'] ?? '');
     $street   = trim($data['street'] ?? '');
@@ -60,6 +64,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->execute();
     $stmt->close();
 
+    $profilePicUrl = $_SESSION['user']['profilePicture'] ?? $_SESSION['user']['profile_picture'] ?? null;
+    
+    if (isset($_FILES['profilePicture']) && $_FILES['profilePicture']['error'] === UPLOAD_ERR_OK) {
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $_FILES['profilePicture']['tmp_name']);
+        finfo_close($finfo);
+
+        if (in_array($mimeType, $allowedTypes)) {
+            $uploadDir = '../uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $ext = pathinfo($_FILES['profilePicture']['name'], PATHINFO_EXTENSION);
+            $fileName = 'avatar_' . $currentUserId . '_' . time() . '.' . strtolower($ext);
+            $targetFile = $uploadDir . $fileName;
+            if (move_uploaded_file($_FILES['profilePicture']['tmp_name'], $targetFile)) {
+                $profilePicUrl = 'uploads/' . $fileName;
+                $stmt = $conn->prepare("UPDATE users SET profile_picture = ? WHERE id = ?");
+                $stmt->bind_param('si', $profilePicUrl, $currentUserId);
+                $stmt->execute();
+                $stmt->close();
+            }
+        }
+    }
+
     // Update session
     $_SESSION['user']['fullName']   = $fullName;
     $_SESSION['user']['phone']      = $phone;
@@ -71,6 +101,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['user']['reg_number'] = $regNumber;
     $_SESSION['user']['qualification'] = $qualification;
     $_SESSION['user']['specialization'] = $specialization;
+    $_SESSION['user']['profile_picture'] = $profilePicUrl;
+    $_SESSION['user']['profilePicture'] = $profilePicUrl;
 
     $accountType = $_SESSION['user']['accountType'] ?? $_SESSION['user']['account_type'] ?? '';
 
@@ -88,7 +120,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'area'        => $area,
             'city'        => $city,
             'qualification' => $qualification,
-            'specialization' => $specialization
+            'specialization' => $specialization,
+            'profilePicture' => $profilePicUrl
         ]
     ]);
     exit;
@@ -124,7 +157,7 @@ if ($targetId !== $currentUserId) {
 
 // Fetch user info (no password returned)
 $stmt = $conn->prepare(
-    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, working_sectors, qualification, specialization
+    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, working_sectors, qualification, specialization, profile_picture
      FROM users WHERE id = ?"
 );
 $stmt->bind_param('i', $targetId);
@@ -150,5 +183,6 @@ echo json_encode(['ok' => true, 'user' => [
     'city'        => $row['city'],
     'sectors'     => $row['working_sectors'],
     'qualification' => $row['qualification'],
-    'specialization' => $row['specialization']
+    'specialization' => $row['specialization'],
+    'profilePicture' => $row['profile_picture']
 ]]);

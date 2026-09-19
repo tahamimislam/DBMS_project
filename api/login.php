@@ -22,7 +22,7 @@ if (!$email || !$password) {
 }
 
 $stmt = $conn->prepare(
-    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, qualification, specialization
+    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, qualification, specialization, profile_picture
      FROM users WHERE email = ?"
 );
 $stmt->bind_param('s', $email);
@@ -48,7 +48,8 @@ $user = [
     'city'        => $row['city'],
     'sectors'     => $row['working_sectors'],
     'qualification' => $row['qualification'],
-    'specialization' => $row['specialization']
+    'specialization' => $row['specialization'],
+    'profilePicture' => $row['profile_picture']
 ];
 
 $_SESSION['user'] = $user;

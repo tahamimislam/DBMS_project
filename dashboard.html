@@ -180,7 +180,13 @@
     </div>
     <div id="settings-error" class="form-error-msg" style="display:none;color:#c0392b;margin-bottom:14px;font-size:.85rem"></div>
     <form id="settingsForm" onsubmit="saveSettings(event)">
-      <div class="form-group">
+    <div class="form-group" style="text-align: center;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 10px;">
+        <img id="sm-profile-preview" src="" alt="Profile Preview" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover; display: none; background: #eee;">
+        <input type="file" id="sm-profile-pic" accept="image/*" style="font-size: 0.9rem;" onchange="if(this.files[0]) { document.getElementById('sm-profile-preview').src = URL.createObjectURL(this.files[0]); document.getElementById('sm-profile-preview').style.display='block'; }">
+      </div>
+    </div>
+    <div class="form-group">
         <label for="sm-name">Full Name / Organization Name <span class="req">*</span></label>
         <input type="text" id="sm-name" class="form-control" required>
       </div>

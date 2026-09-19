@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS users (
     working_sectors VARCHAR(255) DEFAULT NULL,
     qualification   VARCHAR(255) DEFAULT NULL,
     specialization  VARCHAR(255) DEFAULT NULL,
+    profile_picture VARCHAR(255) DEFAULT NULL,
     created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
 
