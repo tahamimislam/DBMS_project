@@ -138,6 +138,17 @@ function renderNavAuth() {
       dashLink = (s.includes('medical') && !s.includes('food')) ? 'medical-welfare.html' : 'food-support.html';
     } else dashLink = 'food-support.html';
     
+    const heroBtn = document.getElementById('hero-join-btn');
+    if (heroBtn) {
+      heroBtn.href = dashLink;
+      heroBtn.innerHTML = '<i class="fa-solid fa-table-columns"></i> Go to Dashboard';
+    }
+    
+    const ctaBtn = document.getElementById('cta-register-btn');
+    if (ctaBtn) {
+      ctaBtn.style.display = 'none';
+    }
+
     actionsEl.innerHTML = `
       ${themeBtn}
       <div class="nav-user-menu" id="navUserMenu">
@@ -158,6 +169,17 @@ function renderNavAuth() {
     if (btn) btn.addEventListener('click', e => { e.stopPropagation(); menu.classList.toggle('open'); });
     document.addEventListener('click', () => { if (menu) menu.classList.remove('open'); });
   } else {
+    const heroBtn = document.getElementById('hero-join-btn');
+    if (heroBtn) {
+      heroBtn.href = 'auth.html';
+      heroBtn.innerHTML = 'Join the Network';
+    }
+
+    const ctaBtn = document.getElementById('cta-register-btn');
+    if (ctaBtn) {
+      ctaBtn.style.display = 'inline-block';
+    }
+
     actionsEl.innerHTML = `
       ${themeBtn}
       <a href="auth.html" class="btn btn-outline btn-sm" id="nav-login-btn">Log In</a>
