@@ -22,7 +22,7 @@ if (!$email || !$password) {
 }
 
 $stmt = $conn->prepare(
-    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors
+    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, qualification, specialization
      FROM users WHERE email = ?"
 );
 $stmt->bind_param('s', $email);

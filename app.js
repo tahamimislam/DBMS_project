@@ -130,7 +130,14 @@ function renderNavAuth() {
 
   if (HL.currentUser) {
     const initials  = HL.currentUser.fullName.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
-    const dashLink  = HL.currentUser.accountType === 'restaurant' ? 'dashboard.html' : 'food-support.html';
+    let dashLink = 'index.html';
+    if (HL.currentUser.accountType === 'restaurant') dashLink = 'dashboard.html';
+    else if (HL.currentUser.accountType === 'doctor') dashLink = 'doctor-dashboard.html';
+    else if (HL.currentUser.accountType === 'charity') {
+      const s = (HL.currentUser.sectors || '').toLowerCase();
+      dashLink = (s.includes('medical') && !s.includes('food')) ? 'medical-welfare.html' : 'food-support.html';
+    } else dashLink = 'food-support.html';
+    
     actionsEl.innerHTML = `
       ${themeBtn}
       <div class="nav-user-menu" id="navUserMenu">
@@ -605,6 +612,8 @@ async function doLogin(e) {
   let dest = 'index.html';
   if (res.user.accountType === 'restaurant') {
     dest = 'dashboard.html';
+  } else if (res.user.accountType === 'doctor') {
+    dest = 'doctor-dashboard.html';
   } else if (res.user.accountType === 'charity') {
     const s = (res.user.sectors || '').toLowerCase();
     if (s.includes('medical') && !s.includes('food')) {
@@ -742,7 +751,19 @@ async function doRegister(e) {
 function initAuthPage() {
   const loginForm = document.getElementById('loginForm');
   if (!loginForm) return;
-  if (HL.currentUser) { window.location.href = 'index.html'; return; }
+  if (HL.currentUser) {
+    // Redirect based on account type
+    const type = HL.currentUser.accountType;
+    if (type === 'doctor') { window.location.href = 'doctor-dashboard.html'; return; }
+    if (type === 'restaurant') { window.location.href = 'dashboard.html'; return; }
+    if (type === 'charity') {
+      const s = (HL.currentUser.sectors || '').toLowerCase();
+      window.location.href = (s.includes('medical') && !s.includes('food')) ? 'medical-welfare.html' : 'food-support.html';
+      return;
+    }
+    window.location.href = 'index.html';
+    return;
+  }
   const params = new URLSearchParams(window.location.search);
   if (params.get('tab') === 'register') switchTab('register');
 }
@@ -1337,16 +1358,20 @@ async function postCampaign(e) {
   if (err) err.style.display = 'none';
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting...'; }
 
-  const data = {
-    subject: document.getElementById('camp-subject').value.trim(),
-    description: document.getElementById('camp-desc').value.trim(),
-    location: document.getElementById('camp-location').value.trim(),
-    start_time: document.getElementById('camp-start').value,
-    end_time: document.getElementById('camp-end').value,
-    campaign_date: document.getElementById('camp-date').value
-  };
+  const formData = new FormData();
+  formData.append('subject', document.getElementById('camp-subject').value.trim());
+  formData.append('description', document.getElementById('camp-desc').value.trim());
+  formData.append('location', document.getElementById('camp-location').value.trim());
+  formData.append('start_time', document.getElementById('camp-start').value);
+  formData.append('end_time', document.getElementById('camp-end').value);
+  formData.append('campaign_date', document.getElementById('camp-date').value);
 
-  const res = await apiPost('doctor_campaigns.php', data);
+  const imageInput = document.getElementById('camp-image');
+  if (imageInput && imageInput.files[0]) {
+    formData.append('image', imageInput.files[0]);
+  }
+
+  const res = await apiPost('doctor_campaigns.php', formData);
   if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Post Campaign'; }
 
   if (!res.ok) {
@@ -1366,38 +1391,42 @@ async function loadDoctorCampaigns() {
   }
 }
 
-async function toggleParticipants(campaignId) {
-  const pList = document.getElementById('plist-' + campaignId);
-  if (!pList) return;
-  if (pList.style.display === 'none') {
-    pList.innerHTML = '<div style="text-align:center;padding:10px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>';
-    pList.style.display = 'block';
-    
-    const res = await apiGet('campaign_join.php?campaign_id=' + campaignId);
-    if (res.ok) {
-      if (!res.participants || res.participants.length === 0) {
-        pList.innerHTML = '<div style="text-align:center;padding:10px;color:var(--text-muted);">No participants yet.</div>';
-      } else {
-        pList.innerHTML = res.participants.map(p => `
-          <div class="participant-item">
-            <div>
-              <div class="participant-name">${p.full_name} <span class="badge ${p.account_type === 'charity' ? 'badge-primary' : 'badge-outline'}">${p.account_type}</span></div>
-              <div class="participant-contact"><i class="fa-solid fa-phone"></i> ${p.phone} &nbsp;|&nbsp; <i class="fa-solid fa-envelope"></i> ${p.email}</div>
-            </div>
-            <div style="font-size:0.8rem; color:var(--text-muted);">Joined: ${new Date(p.joined_at).toLocaleDateString()}</div>
-          </div>
-        `).join('');
-      }
+window.openParticipantsModal = async function(campaignId, subject) {
+  const modal = document.getElementById('participantsModal');
+  const tbody = document.getElementById('participants-table-body');
+  const title = document.getElementById('participants-camp-title');
+  if (!modal || !tbody) return;
+  
+  if (title) title.textContent = subject;
+  tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px;"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</td></tr>';
+  modal.classList.add('show');
+
+  const res = await apiGet('campaign_join.php?campaign_id=' + campaignId);
+  if (res.ok) {
+    if (!res.participants || res.participants.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--text-muted);">No participants yet.</td></tr>';
     } else {
-      pList.innerHTML = `<div style="text-align:center;padding:10px;color:var(--danger);">${res.msg}</div>`;
+      tbody.innerHTML = res.participants.map((p, idx) => `
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px;">${idx + 1}</td>
+          <td style="padding: 10px; font-weight:600;">${p.full_name}</td>
+          <td style="padding: 10px;"><span class="badge ${p.account_type === 'charity' ? 'badge-primary' : 'badge-outline'}">${p.account_type}</span></td>
+          <td style="padding: 10px;"><i class="fa-solid fa-phone"></i> ${p.phone}<br><i class="fa-solid fa-envelope"></i> ${p.email}</td>
+          <td style="padding: 10px;">${new Date(p.joined_at).toLocaleDateString()}</td>
+        </tr>
+      `).join('');
     }
   } else {
-    pList.style.display = 'none';
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center; padding:20px; color:var(--danger);">${res.msg}</td></tr>`;
   }
 }
 
+window.closeParticipantsModal = function() {
+  const modal = document.getElementById('participantsModal');
+  if (modal) modal.classList.remove('show');
+}
+
 window.postCampaign = postCampaign;
-window.toggleParticipants = toggleParticipants;
 
 function renderDoctorCampaigns(campaigns) {
   const grid = document.getElementById('campaigns-grid');
@@ -1408,28 +1437,30 @@ function renderDoctorCampaigns(campaigns) {
   }
   
   grid.innerHTML = campaigns.map(c => `
-    <div class="mw-card" style="display:flex; flex-direction:column;">
-      <div class="mw-header">
-        <h3 style="margin:0; font-size:1.1rem; color:var(--text-color);">${c.subject}</h3>
-        <div class="mw-date"><i class="fa-solid fa-calendar-day"></i> ${new Date(c.campaign_date).toLocaleDateString()}</div>
+    <div class="campaign-card" style="display:flex; flex-direction:column;">
+      ${c.image_url ? `<div style="width:100%; height:200px; border-radius:8px; overflow:hidden; margin-bottom:15px;"><img src="${c.image_url}" style="width:100%; height:100%; object-fit:cover;" alt="Campaign Image"></div>` : ''}
+      <div class="campaign-header" style="border-bottom:none; padding-bottom:0; margin-bottom:10px;">
+        <h3 class="campaign-title">${c.subject}</h3>
+        <div class="campaign-meta"><i class="fa-solid fa-calendar-day"></i> ${new Date(c.campaign_date).toLocaleDateString()}</div>
       </div>
-      <div class="mw-details" style="flex:1;">
+      <div class="campaign-desc" style="flex:1;">
         <p style="margin:0 0 10px 0; color:var(--text-muted); font-size:0.9rem;"><i class="fa-solid fa-location-dot"></i> ${c.location} &nbsp;|&nbsp; <i class="fa-regular fa-clock"></i> ${c.start_time.substring(0,5)} - ${c.end_time.substring(0,5)}</p>
         <p style="margin:0; font-size:0.95rem; line-height:1.5;">${c.description}</p>
       </div>
-      <div class="mw-footer" style="display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; justify-content:space-between; align-items:center; border-top: 1px solid var(--border); padding-top: 15px; margin-top: auto;">
         <div style="font-weight:600; color:var(--primary); font-size:0.9rem;"><i class="fa-solid fa-users"></i> ${c.participant_count} Joined</div>
-        <button class="btn btn-outline btn-sm" onclick="toggleParticipants(${c.id})">View Participants</button>
+        <button class="btn btn-outline btn-sm" onclick="openParticipantsModal(${c.id}, '${c.subject.replace(/'/g, "\\'")}')">View List</button>
       </div>
-      <div id="plist-${c.id}" class="participants-list" style="display:none; margin:15px; background:rgba(0,0,0,0.02); border-radius:8px; padding:10px;"></div>
     </div>
   `).join('');
 }
 
 async function initDoctorDashboardPage() {
-  const dash = document.getElementById('campaignModal');
-  if (!dash) return;
-  if (!HL.currentUser || HL.currentUser.accountType !== 'doctor') { window.location.href = 'auth.html'; return; }
+  // Only run on doctor-dashboard.html
+  if (!document.getElementById('campaigns-grid')) return;
+  
+  if (!HL.currentUser) { window.location.href = 'auth.html'; return; }
+  if (HL.currentUser.accountType !== 'doctor') { window.location.href = 'auth.html'; return; }
   
   renderSidebarAccount();
   await loadDoctorCampaigns();

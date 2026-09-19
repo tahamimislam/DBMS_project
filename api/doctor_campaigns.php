@@ -19,7 +19,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $data = json_decode(file_get_contents('php://input'), true);
+    if (isset($_SERVER["CONTENT_TYPE"]) && strpos($_SERVER["CONTENT_TYPE"], "application/json") !== false) {
+        $data = json_decode(file_get_contents('php://input'), true);
+    } else {
+        $data = $_POST;
+    }
+
     $subject     = trim($data['subject'] ?? '');
     $description = trim($data['description'] ?? '');
     $location    = trim($data['location'] ?? '');
@@ -32,8 +37,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $stmt = $conn->prepare("INSERT INTO doctor_campaigns (doctor_id, subject, description, location, start_time, end_time, campaign_date) VALUES (?, ?, ?, ?, ?, ?, ?)");
-    $stmt->bind_param('issssss', $user['id'], $subject, $description, $location, $startTime, $endTime, $date);
+    $imageUrl = null;
+    if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $_FILES['image']['tmp_name']);
+        finfo_close($finfo);
+
+        if (in_array($mimeType, $allowedTypes)) {
+            $uploadDir = '../uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $ext = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+            $fileName = 'camp_' . time() . '_' . uniqid() . '.' . strtolower($ext);
+            $targetFile = $uploadDir . $fileName;
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+                $imageUrl = 'uploads/' . $fileName;
+            }
+        }
+    }
+
+    $stmt = $conn->prepare("INSERT INTO doctor_campaigns (doctor_id, subject, description, image_url, location, start_time, end_time, campaign_date) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param('isssssss', $user['id'], $subject, $description, $imageUrl, $location, $startTime, $endTime, $date);
     $stmt->execute();
     
     if ($stmt->insert_id) {

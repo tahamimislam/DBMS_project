@@ -92,6 +92,7 @@ CREATE TABLE IF NOT EXISTS doctor_campaigns (
     doctor_id     INT NOT NULL,
     subject       VARCHAR(255) NOT NULL,
     description   TEXT NOT NULL,
+    image_url     VARCHAR(255) DEFAULT NULL,
     location      VARCHAR(255) NOT NULL,
     start_time    TIME NOT NULL,
     end_time      TIME NOT NULL,
