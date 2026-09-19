@@ -103,6 +103,52 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     $stmt->close();
     
     echo json_encode(['ok' => true, 'campaigns' => $campaigns]);
+} else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    if ($user['accountType'] !== 'doctor') {
+        echo json_encode(['ok' => false, 'msg' => 'Only doctors can delete campaigns.']);
+        exit;
+    }
+
+    $data = json_decode(file_get_contents('php://input'), true);
+    $campaignId = intval($data['id'] ?? 0);
+
+    if (!$campaignId) {
+        echo json_encode(['ok' => false, 'msg' => 'Campaign ID required.']);
+        exit;
+    }
+
+    // Make sure doctor owns this campaign, also get image_url to delete the file
+    $stmt = $conn->prepare("SELECT image_url FROM doctor_campaigns WHERE id = ? AND doctor_id = ?");
+    $stmt->bind_param('ii', $campaignId, $user['id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $campaign = $result->fetch_assoc();
+    $stmt->close();
+
+    if (!$campaign) {
+        echo json_encode(['ok' => false, 'msg' => 'Campaign not found or access denied.']);
+        exit;
+    }
+
+    // Delete the campaign (participants cascade via FK)
+    $stmt = $conn->prepare("DELETE FROM doctor_campaigns WHERE id = ? AND doctor_id = ?");
+    $stmt->bind_param('ii', $campaignId, $user['id']);
+    $stmt->execute();
+    $affected = $stmt->affected_rows;
+    $stmt->close();
+
+    if ($affected > 0) {
+        // Delete the image file if exists
+        if ($campaign['image_url']) {
+            $filePath = '../' . $campaign['image_url'];
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+        echo json_encode(['ok' => true, 'msg' => 'Campaign deleted successfully.']);
+    } else {
+        echo json_encode(['ok' => false, 'msg' => 'Failed to delete campaign.']);
+    }
 } else {
     echo json_encode(['ok' => false, 'msg' => 'Method not allowed.']);
 }

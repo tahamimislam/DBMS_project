@@ -1428,6 +1428,36 @@ window.closeParticipantsModal = function() {
 
 window.postCampaign = postCampaign;
 
+window.deleteCampaign = async function(id, subject) {
+  if (!confirm(`"${subject}" campaign টি permanently delete করতে চান?\nParticipants list-ও মুছে যাবে।`)) return;
+
+  const res = await fetch('api/doctor_campaigns.php', {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ id })
+  }).then(r => r.json()).catch(() => ({ ok: false, msg: 'Network error.' }));
+
+  if (res.ok) {
+    showToast(res.msg, 'success');
+    const card = document.getElementById('camp-card-' + id);
+    if (card) {
+      card.style.transition = 'opacity 0.3s, transform 0.3s';
+      card.style.opacity = '0';
+      card.style.transform = 'scale(0.95)';
+      setTimeout(() => card.remove(), 300);
+    }
+    // If grid is now empty, show empty state
+    setTimeout(() => {
+      const grid = document.getElementById('campaigns-grid');
+      if (grid && grid.children.length === 0) {
+        grid.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">You have not posted any campaigns yet.</div>';
+      }
+    }, 350);
+  } else {
+    showToast(res.msg || 'Delete failed.', 'error');
+  }
+};
+
 function renderDoctorCampaigns(campaigns) {
   const grid = document.getElementById('campaigns-grid');
   if (!grid) return;
@@ -1437,10 +1467,17 @@ function renderDoctorCampaigns(campaigns) {
   }
   
   grid.innerHTML = campaigns.map(c => `
-    <div class="campaign-card" style="display:flex; flex-direction:column;">
+    <div class="campaign-card" style="display:flex; flex-direction:column;" id="camp-card-${c.id}">
       ${c.image_url ? `<div style="width:100%; height:200px; border-radius:8px; overflow:hidden; margin-bottom:15px;"><img src="${c.image_url}" style="width:100%; height:100%; object-fit:cover;" alt="Campaign Image"></div>` : ''}
       <div class="campaign-header" style="border-bottom:none; padding-bottom:0; margin-bottom:10px;">
-        <h3 class="campaign-title">${c.subject}</h3>
+        <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+          <h3 class="campaign-title" style="margin:0; flex:1;">${c.subject}</h3>
+          <button class="btn btn-sm" onclick="deleteCampaign(${c.id}, '${c.subject.replace(/'/g, "\\'")}')"
+            style="background:rgba(220,53,69,0.1); color:var(--danger); border:1px solid rgba(220,53,69,0.3); margin-left:10px; flex-shrink:0;"
+            title="Delete Campaign">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </div>
         <div class="campaign-meta"><i class="fa-solid fa-calendar-day"></i> ${new Date(c.campaign_date).toLocaleDateString()}</div>
       </div>
       <div class="campaign-desc" style="flex:1;">
