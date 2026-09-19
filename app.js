@@ -137,6 +137,8 @@ function renderNavAuth() {
     else if (HL.currentUser.accountType === 'charity') {
       const s = (HL.currentUser.sectors || '').toLowerCase();
       dashLink = (s.includes('medical') && !s.includes('food')) ? 'medical-welfare.html' : 'food-support.html';
+    } else if (HL.currentUser.accountType === 'user') {
+      dashLink = 'medical-welfare.html';
     } else dashLink = 'food-support.html';
     
     const heroBtn = document.getElementById('hero-join-btn');
@@ -974,6 +976,11 @@ async function initFoodSupportPage() {
   if (!grid) return;
 
   renderSidebarAccount();
+
+  if (HL.currentUser && HL.currentUser.accountType === 'user') {
+    window.location.href = 'medical-welfare.html';
+    return;
+  }
 
   // If restaurant user is browsing, ensure they have a link to Dashboard in the sidebar
   if (HL.currentUser && HL.currentUser.accountType === 'restaurant') {
@@ -2214,6 +2221,11 @@ async function initMedicalPage() {
   }
 
   renderSidebarAccount();
+
+  if (HL.currentUser && HL.currentUser.accountType === 'user') {
+    const sblFood = document.getElementById('sbl-food');
+    if (sblFood) sblFood.remove();
+  }
 
   // If charity user is browsing, show their specific sector nav
   if (HL.currentUser.accountType === 'charity' && HL.currentUser.sectors) {
