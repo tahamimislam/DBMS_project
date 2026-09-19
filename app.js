@@ -239,6 +239,8 @@ function openSettingsModal() {
   const cityInp   = document.getElementById('sm-city');
   const regInp   = document.getElementById('sm-reg');
   const regRow   = document.getElementById('sm-reg-group');
+  const qualInp   = document.getElementById('sm-qualification');
+  const specInp   = document.getElementById('sm-specialization');
 
   if (avatarEl) avatarEl.textContent = initials;
   if (typeEl)   typeEl.textContent   = typeLabel;
@@ -248,6 +250,8 @@ function openSettingsModal() {
   if (streetInp) streetInp.value     = HL.currentUser.street || '';
   if (areaInp)  areaInp.value        = HL.currentUser.area || '';
   if (cityInp)  cityInp.value        = HL.currentUser.city || '';
+  if (qualInp)  qualInp.value        = HL.currentUser.qualification || '';
+  if (specInp)  specInp.value        = HL.currentUser.specialization || '';
   if (regInp)   regInp.value         = HL.currentUser.regNumber || '';
   if (regRow) {
     regRow.style.display = 'block';
@@ -279,6 +283,8 @@ async function saveSettings(e) {
   const smAreaEl  = document.getElementById('sm-area');
   const smCityEl  = document.getElementById('sm-city');
   const smRegEl = document.getElementById('sm-reg');
+  const smQualEl = document.getElementById('sm-qualification');
+  const smSpecEl = document.getElementById('sm-specialization');
   
   const fullName = smNameEl ? smNameEl.value.trim() : '';
   const phone    = smPhoneEl ? smPhoneEl.value.trim() : '';
@@ -286,6 +292,8 @@ async function saveSettings(e) {
   const area     = smAreaEl ? smAreaEl.value.trim() : '';
   const city     = smCityEl ? smCityEl.value.trim() : '';
   const regNumber= (smRegEl ? smRegEl.value.trim() : '') || '';
+  const qualification = smQualEl ? smQualEl.value.trim() : '';
+  const specialization = smSpecEl ? smSpecEl.value.trim() : '';
 
   if (!fullName) {
     if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Name is required.'; }
@@ -313,7 +321,9 @@ async function saveSettings(e) {
     street,
     area,
     city,
-    regNumber
+    regNumber,
+    qualification,
+    specialization
   });
 
   if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-check"></i> Save Changes'; }
