@@ -899,6 +899,7 @@ function foodCardHTML(p) {
         <div class="restaurant-name"><i class="fa-solid fa-store"></i> ${p.postedByName}</div>
       </div>
     </div>
+    ${p.foodImage ? `<div style="width: 100%; height: 200px; background: #eee;"><img src="${p.foodImage}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${p.foodName}"></div>` : ''}
     <div class="food-card-body">
       <div class="food-detail-row"><span class="icon"><i class="fa-solid fa-tag"></i></span><div><div class="key">Food Type</div><div class="val">${p.foodType}</div></div></div>
       <div class="food-detail-row"><span class="icon"><i class="fa-solid fa-box-open"></i></span><div><div class="key">Quantity</div><div class="val">${p.quantity}</div></div></div>
@@ -923,6 +924,7 @@ function openClaimModal(postId) {
   const summary = document.getElementById('claimPostSummary');
   if (summary) {
     summary.innerHTML = `
+      ${p.foodImage ? `<div style="width: 100%; height: 150px; background: #eee; margin-bottom: 10px; border-radius: 8px; overflow: hidden;"><img src="${p.foodImage}" style="width: 100%; height: 100%; object-fit: cover;"></div>` : ''}
       <strong>${p.foodName}</strong> (${p.foodType})<br>
       Quantity: ${p.quantity}<br>
       Pickup: ${formatDate(p.pickupDate)} &bull; ${p.pickupFrom} – ${p.pickupTo}<br>
@@ -1082,6 +1084,7 @@ function miniCard(p) {
       <div class="food-type-icon">${foodTypeIcon(p.foodType)}</div>
       <div><h4>${p.foodName}</h4><div class="restaurant-name">${p.foodType}</div></div>
     </div>
+    ${p.foodImage ? `<div style="width: 100%; height: 150px; background: #eee;"><img src="${p.foodImage}" style="width: 100%; height: 100%; object-fit: cover; display: block;" alt="${p.foodName}"></div>` : ''}
     <div class="food-card-body">
       <div class="food-detail-row"><span class="icon"><i class="fa-solid fa-box-open"></i></span><div><div class="key">Quantity</div><div class="val">${p.quantity}</div></div></div>
       <div class="food-detail-row"><span class="icon"><i class="fa-regular fa-calendar-days"></i></span><div><div class="key">Pickup</div><div class="val">${formatDate(p.pickupDate)} &bull; ${p.pickupFrom}–${p.pickupTo}</div></div></div>
@@ -1104,15 +1107,21 @@ async function submitPost(e) {
   const btn = document.getElementById('submit-post-btn');
   if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Posting…'; }
 
-  const res = await apiPost('food_posts.php', {
-    foodType:   document.getElementById('pf-type').value,
-    foodName:   document.getElementById('pf-name').value.trim(),
-    quantity:   document.getElementById('pf-qty').value.trim(),
-    pickupDate: document.getElementById('pf-date').value,
-    pickupFrom: from,
-    pickupTo:   to,
-    notes:      document.getElementById('pf-notes').value.trim()
-  });
+  const fd = new FormData();
+  fd.append('foodType', document.getElementById('pf-type').value);
+  fd.append('foodName', document.getElementById('pf-name').value.trim());
+  fd.append('quantity', document.getElementById('pf-qty').value.trim());
+  fd.append('pickupDate', document.getElementById('pf-date').value);
+  fd.append('pickupFrom', from);
+  fd.append('pickupTo', to);
+  fd.append('notes', document.getElementById('pf-notes').value.trim());
+
+  const picInp = document.getElementById('pf-image');
+  if (picInp && picInp.files[0]) {
+    fd.append('foodImage', picInp.files[0]);
+  }
+
+  const res = await apiPost('food_posts.php', fd);
 
   if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Post Donation'; }
 

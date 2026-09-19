@@ -44,6 +44,7 @@ CREATE TABLE IF NOT EXISTS food_posts (
     pickup_from TIME         NOT NULL,
     pickup_to   TIME         NOT NULL,
     notes       TEXT         DEFAULT NULL,
+    food_image  VARCHAR(255) DEFAULT NULL,
     claimed_by  INT          DEFAULT NULL,
     claimed_at  TIMESTAMP    NULL DEFAULT NULL,
     created_at  TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,

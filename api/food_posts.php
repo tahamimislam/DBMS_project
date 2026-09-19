@@ -25,6 +25,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             fp.pickup_from,
             fp.pickup_to,
             fp.notes,
+            fp.food_image,
             fp.claimed_by,
             u2.full_name    AS claimed_by_name,
             fp.claimed_at,
@@ -54,6 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             'pickupFrom'    => substr($row['pickup_from'], 0, 5),   // HH:MM
             'pickupTo'      => substr($row['pickup_to'],   0, 5),
             'notes'         => $row['notes'],
+            'foodImage'     => $row['food_image'],
             'claimedBy'     => $row['claimed_by'] ? (int)$row['claimed_by'] : null,
             'claimedByName' => $row['claimed_by_name'],
             'claimedAt'     => $row['claimed_at'],
@@ -76,7 +78,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $data = json_decode(file_get_contents('php://input'), true);
+    if (isset($_SERVER["CONTENT_TYPE"]) && strpos($_SERVER["CONTENT_TYPE"], "application/json") !== false) {
+        $data = json_decode(file_get_contents('php://input'), true) ?? [];
+    } else {
+        $data = $_POST;
+    }
 
     $postedBy   = (int)$_SESSION['user']['id'];
     $foodType   = trim($data['foodType']   ?? '');
@@ -92,11 +98,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
+    $foodImageUrl = null;
+    if (isset($_FILES['foodImage']) && $_FILES['foodImage']['error'] === UPLOAD_ERR_OK) {
+        $allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mimeType = finfo_file($finfo, $_FILES['foodImage']['tmp_name']);
+        finfo_close($finfo);
+
+        if (in_array($mimeType, $allowedTypes)) {
+            $uploadDir = '../uploads/';
+            if (!is_dir($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            $ext = pathinfo($_FILES['foodImage']['name'], PATHINFO_EXTENSION);
+            $fileName = 'food_' . $postedBy . '_' . time() . '.' . strtolower($ext);
+            $targetFile = $uploadDir . $fileName;
+            if (move_uploaded_file($_FILES['foodImage']['tmp_name'], $targetFile)) {
+                $foodImageUrl = 'uploads/' . $fileName;
+            }
+        }
+    }
+
     $stmt = $conn->prepare(
-        "INSERT INTO food_posts (posted_by, food_type, food_name, quantity, pickup_date, pickup_from, pickup_to, notes)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        "INSERT INTO food_posts (posted_by, food_type, food_name, quantity, pickup_date, pickup_from, pickup_to, notes, food_image)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
     );
-    $stmt->bind_param('isssssss', $postedBy, $foodType, $foodName, $quantity, $pickupDate, $pickupFrom, $pickupTo, $notes);
+    $stmt->bind_param('issssssss', $postedBy, $foodType, $foodName, $quantity, $pickupDate, $pickupFrom, $pickupTo, $notes, $foodImageUrl);
     $stmt->execute();
     $postId = $conn->insert_id;
     $stmt->close();
@@ -117,6 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'pickupFrom'    => substr($pickupFrom, 0, 5),
         'pickupTo'      => substr($pickupTo, 0, 5),
         'notes'         => $notes,
+        'foodImage'     => $foodImageUrl,
         'claimedBy'     => null,
         'claimedByName' => null,
         'claimedAt'     => null,
