@@ -1205,7 +1205,7 @@ async function initRestaurantProfilePage() {
     contactGrid.innerHTML = `
       <div class="contact-item"><span class="ci-icon"><i class="fa-solid fa-phone"></i></span><div><div class="ci-label">Phone</div><div class="ci-val"><a href="tel:${profileTargetUser.phone}" class="contact-link">${profileTargetUser.phone}</a></div></div></div>
       <div class="contact-item"><span class="ci-icon"><i class="fa-solid fa-envelope"></i></span><div><div class="ci-label">Email</div><div class="ci-val"><a href="mailto:${profileTargetUser.email}" class="contact-link">${profileTargetUser.email}</a></div></div></div>
-      <div class="contact-item"><span class="ci-icon"><i class="fa-solid fa-location-dot"></i></span><div><div class="ci-label">Address</div><div class="ci-val">${profileTargetUser.address}</div></div></div>
+      <div class="contact-item"><span class="ci-icon"><i class="fa-solid fa-location-dot"></i></span><div><div class="ci-label">Address</div><div class="ci-val">${[profileTargetUser.street, profileTargetUser.area, profileTargetUser.city].filter(Boolean).join(', ')}</div></div></div>
       ${profileTargetUser.regNumber ? `<div class="contact-item"><span class="ci-icon"><i class="fa-solid fa-id-card"></i></span><div><div class="ci-label">Reg. Number</div><div class="ci-val">${profileTargetUser.regNumber}</div></div></div>` : ''}`;
   }
 
@@ -1240,11 +1240,14 @@ async function loadMessages() {
     return;
   }
   const currentId = Number(HL.currentUser.id);
-  area.innerHTML = res.messages.map(m => `
-    <div>
-      <div class="msg-bubble ${Number(m.from) === currentId ? 'sent' : 'received'}">${escapeHtml(m.text)}</div>
-      <div class="msg-time ${Number(m.from) === currentId ? 'msg-time-sent' : 'msg-time-received'}">${m.time}</div>
-    </div>`).join('');
+  area.innerHTML = res.messages.map(m => {
+    const isSent = Number(m.from) === currentId;
+    return `
+    <div style="display: flex; flex-direction: column; width: fit-content; max-width: 75%; align-self: ${isSent ? 'flex-end' : 'flex-start'};">
+      <div class="msg-bubble ${isSent ? 'sent' : 'received'}" style="max-width: 100%; align-self: ${isSent ? 'flex-end' : 'flex-start'};">${escapeHtml(m.text)}</div>
+      <div class="msg-time ${isSent ? 'msg-time-sent' : 'msg-time-received'}">${m.time}</div>
+    </div>`;
+  }).join('');
   area.scrollTop = area.scrollHeight;
 }
 
@@ -2046,9 +2049,11 @@ async function loadMwMessages() {
   res.messages.forEach(m => {
     const isMe = m.from === Number(HL.currentUser.id);
     html += `
-      <div class="msg-bubble ${isMe ? 'sent' : 'received'}">
-        <div class="msg-text">${m.text}</div>
-        <div class="msg-time">${m.fromName} &bull; ${m.time}</div>
+      <div style="display: flex; flex-direction: column; width: fit-content; max-width: 75%; align-self: ${isMe ? 'flex-end' : 'flex-start'};">
+        <div class="msg-bubble ${isMe ? 'sent' : 'received'}" style="max-width: 100%; align-self: ${isMe ? 'flex-end' : 'flex-start'};">
+          <div class="msg-text">${escapeHtml(m.text)}</div>
+        </div>
+        <div class="msg-time ${isMe ? 'msg-time-sent' : 'msg-time-received'}" style="opacity: 0.8;">${escapeHtml(m.fromName)} &bull; ${m.time}</div>
       </div>
     `;
   });
