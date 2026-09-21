@@ -23,7 +23,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             wc.location_city,
             wc.urgency,
             wc.notes,
-            wc.rejected_by,
+            GROUP_CONCAT(wcr.charity_id) AS rejected_by,
             wc.status,
             wc.handled_by,
             u2.full_name      AS handled_by_name,
@@ -32,6 +32,8 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         FROM welfare_cases wc
         LEFT JOIN users u1 ON wc.reported_by = u1.id
         LEFT JOIN users u2 ON wc.handled_by  = u2.id
+        LEFT JOIN welfare_case_rejections wcr ON wc.id = wcr.case_id
+        GROUP BY wc.id
         ORDER BY wc.created_at DESC
     ";
 
@@ -179,9 +181,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $now       = date("Y-m-d H:i:s");
 
         if ($newStatus === "Pending") {
-            $stmt = $conn->prepare("UPDATE welfare_cases SET status = ?, handled_by = NULL, handled_at = NULL, rejected_by = CONCAT_WS(',', rejected_by, ?) WHERE id = ?");
-            $strHandledBy = (string)$handledBy;
-            $stmt->bind_param("ssi", $newStatus, $strHandledBy, $caseId);
+            $stmt = $conn->prepare("UPDATE welfare_cases SET status = ?, handled_by = NULL, handled_at = NULL WHERE id = ?");
+            $stmt->bind_param("si", $newStatus, $caseId);
+            $stmt->execute();
+            $stmt->close();
+
+            // Insert the rejection into the welfare_case_rejections table
+            $stmt = $conn->prepare("INSERT IGNORE INTO welfare_case_rejections (case_id, charity_id) VALUES (?, ?)");
+            $stmt->bind_param("ii", $caseId, $handledBy);
         } else {
             $stmt = $conn->prepare("UPDATE welfare_cases SET status = ?, handled_by = ?, handled_at = ? WHERE id = ?");
             $stmt->bind_param("sisi", $newStatus, $handledBy, $now, $caseId);

@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS users (
     area         VARCHAR(100) DEFAULT NULL,
     city         VARCHAR(100) DEFAULT NULL,
     password     VARCHAR(255) NOT NULL,
-    working_sectors VARCHAR(255) DEFAULT NULL,
+    working_sectors ENUM('Food','Medical','Education','Financial') DEFAULT NULL,
     qualification   VARCHAR(255) DEFAULT NULL,
     specialization  VARCHAR(255) DEFAULT NULL,
     profile_picture VARCHAR(255) DEFAULT NULL,
@@ -64,13 +64,23 @@ CREATE TABLE IF NOT EXISTS welfare_cases (
     location_city    VARCHAR(100) NOT NULL,
     urgency          ENUM('Low','Medium','High','Critical') NOT NULL DEFAULT 'Medium',
     notes            TEXT DEFAULT NULL,
-    rejected_by      TEXT DEFAULT NULL,
     status           ENUM('Pending','Reviewing','Accepted','Action Taken','Completed') NOT NULL DEFAULT 'Pending',
     handled_by       INT DEFAULT NULL,
     handled_at       TIMESTAMP NULL DEFAULT NULL,
     created_at       TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (reported_by) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (handled_by)  REFERENCES users(id) ON DELETE SET NULL
+) ENGINE=InnoDB;
+
+-- ── Welfare Case Rejections Table ─────────────────────────
+CREATE TABLE IF NOT EXISTS welfare_case_rejections (
+    id               INT AUTO_INCREMENT PRIMARY KEY,
+    case_id          INT NOT NULL,
+    charity_id       INT NOT NULL,
+    rejected_at      TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (case_id) REFERENCES welfare_cases(id) ON DELETE CASCADE,
+    FOREIGN KEY (charity_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY (case_id, charity_id)
 ) ENGINE=InnoDB;
 
 -- ── Messages Table ───────────────────────────────────────

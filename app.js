@@ -752,14 +752,14 @@ async function doRegister(e) {
 
   let selectedSectors = [];
   if (selectedAccountType === 'charity') {
-    const checkboxes = document.querySelectorAll('.sector-cb:checked');
-    checkboxes.forEach(cb => selectedSectors.push(cb.value));
+    const sectorVal = document.getElementById('working-sector').value;
     
-    if (selectedSectors.length === 0) {
+    if (!sectorVal) {
       const secErr = document.getElementById('sectors-error');
       if (secErr) secErr.style.display = 'block';
       return;
     }
+    selectedSectors.push(sectorVal);
     const secErr = document.getElementById('sectors-error');
     if (secErr) secErr.style.display = 'none';
   }

@@ -88,14 +88,15 @@
       </div>
 
       <div class="form-group" id="charity-sectors-group" style="display: none; background: rgba(0,0,0,0.02); padding: 15px; border-radius: 8px; border: 1px solid var(--border);">
-        <label>Working Sectors (Select at least one) <span class="req">*</span></label>
-        <div class="checkbox-group" style="display:flex; gap:15px; flex-wrap:wrap; margin-top:8px;">
-          <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="sector-cb" value="Food"> <i class="fa-solid fa-bowl-food" style="color:var(--primary)"></i> Food</label>
-          <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="sector-cb" value="Medical"> <i class="fa-solid fa-notes-medical" style="color:var(--danger)"></i> Medical</label>
-          <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="sector-cb" value="Education"> <i class="fa-solid fa-graduation-cap" style="color:var(--info)"></i> Education</label>
-          <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="sector-cb" value="Financial"> <i class="fa-solid fa-hand-holding-dollar" style="color:var(--success)"></i> Financial</label>
-        </div>
-        <div id="sectors-error" class="form-error-sm" style="display:none; color:#c0392b; margin-top:8px;">Please select at least one sector.</div>
+        <label for="working-sector">Working Sector <span class="req">*</span></label>
+        <select id="working-sector" class="form-control">
+          <option value="">-- Select a Sector --</option>
+          <option value="Food">Food</option>
+          <option value="Medical">Medical</option>
+          <option value="Education">Education</option>
+          <option value="Financial">Financial</option>
+        </select>
+        <div id="sectors-error" class="form-error-sm" style="display:none; color:#c0392b; margin-top:8px;">Please select a sector.</div>
       </div>
 
       <div class="form-group">
