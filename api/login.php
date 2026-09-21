@@ -22,10 +22,13 @@ if (!$email || !$password) {
 }
 
 $stmt = $conn->prepare(
-    "SELECT u.id, u.account_type, u.full_name, u.reg_number, u.email, u.phone, u.street, u.area, u.city, u.password, u.working_sectors, u.specialization, u.profile_picture,
-            GROUP_CONCAT(dq.qualification) AS qualification
+    "SELECT u.id, u.account_type, u.full_name, u.reg_number, u.email, u.phone, u.street, u.area, u.city, u.password, u.specialization, u.profile_picture,
+            GROUP_CONCAT(DISTINCT dq.qualification) AS qualification,
+            GROUP_CONCAT(DISTINCT s.name) AS sectors
      FROM users u
      LEFT JOIN doctor_qualifications dq ON u.id = dq.user_id
+     LEFT JOIN charity_sectors cs ON u.id = cs.charity_id
+     LEFT JOIN sectors s ON cs.sector_id = s.id
      WHERE u.email = ?
      GROUP BY u.id"
 );
@@ -50,7 +53,7 @@ $user = [
     'street'      => $row['street'],
     'area'        => $row['area'],
     'city'        => $row['city'],
-    'sectors'     => $row['working_sectors'],
+    'sectors'     => $row['sectors'],
     'qualification' => $row['qualification'],
     'specialization' => $row['specialization'],
     'profilePicture' => $row['profile_picture']

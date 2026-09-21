@@ -104,13 +104,25 @@ if (isset($_FILES['profilePicture']) && $_FILES['profilePicture']['error'] === U
 
 $hashed = password_hash($password, PASSWORD_DEFAULT);
 $stmt = $conn->prepare(
-     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, specialization, profile_picture)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, specialization, profile_picture)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param('ssssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $workingSectors, $specialization, $profilePicUrl);
+$stmt->bind_param('sssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $specialization, $profilePicUrl);
 $stmt->execute();
 $userId = $conn->insert_id;
 $stmt->close();
+
+if ($accountType === 'charity' && !empty($sectorsArr)) {
+    $stmtC = $conn->prepare("INSERT IGNORE INTO charity_sectors (charity_id, sector_id) SELECT ?, id FROM sectors WHERE name = ?");
+    foreach ($sectorsArr as $s) {
+        $s = trim($s);
+        if ($s) {
+            $stmtC->bind_param('is', $userId, $s);
+            $stmtC->execute();
+        }
+    }
+    $stmtC->close();
+}
 
 if ($accountType === 'doctor' && !empty($qualification)) {
     $quals = explode(',', $qualification);

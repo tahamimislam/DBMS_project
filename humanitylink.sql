@@ -26,10 +26,27 @@ CREATE TABLE IF NOT EXISTS users (
     area         VARCHAR(100) DEFAULT NULL,
     city         VARCHAR(100) DEFAULT NULL,
     password     VARCHAR(255) NOT NULL,
-    working_sectors ENUM('Food','Medical','Education','Financial') DEFAULT NULL,
     specialization  ENUM('Cardiology','Neurology','Pediatrics','General Medicine','Orthopedics','Gynaecology','Dermatology','Psychiatry','Ophthalmology','Dental') DEFAULT NULL,
     profile_picture VARCHAR(255) DEFAULT NULL,
     created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ── Sectors Table (3NF for Charity Sectors) ───────────────
+CREATE TABLE IF NOT EXISTS sectors (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL UNIQUE
+) ENGINE=InnoDB;
+
+-- Insert Predefined Sectors
+INSERT IGNORE INTO sectors (name) VALUES ('Food'), ('Medical'), ('Education'), ('Financial'), ('Other');
+
+-- ── Charity Sectors Mapping Table ─────────────────────────
+CREATE TABLE IF NOT EXISTS charity_sectors (
+    charity_id INT NOT NULL,
+    sector_id INT NOT NULL,
+    PRIMARY KEY (charity_id, sector_id),
+    FOREIGN KEY (charity_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (sector_id) REFERENCES sectors(id) ON DELETE CASCADE
 ) ENGINE=InnoDB;
 
 -- ── Doctor Qualifications Table ─────────────────────────
