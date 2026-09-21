@@ -371,6 +371,20 @@ function openSettingsModal() {
   }
   if (specInp) specInp.value = HL.currentUser.specialization || "";
   if (regInp) regInp.value = HL.currentUser.regNumber || "";
+
+  const charitySectorsGroup = document.getElementById("sm-charity-sectors-group");
+  if (charitySectorsGroup) {
+    if (HL.currentUser.accountType === "charity") {
+      charitySectorsGroup.style.display = "block";
+      const sectorCbList = document.querySelectorAll(".sm-sector-cb");
+      const userSectors = HL.currentUser.sectors ? HL.currentUser.sectors.split(",") : [];
+      sectorCbList.forEach((cb) => {
+        cb.checked = userSectors.includes(cb.value);
+      });
+    } else {
+      charitySectorsGroup.style.display = "none";
+    }
+  }
   if (regRow) {
     regRow.style.display = "block";
     const regLabel = regRow.querySelector("label");
@@ -430,6 +444,19 @@ async function saveSettings(e) {
   const regNumber = (smRegEl ? smRegEl.value.trim() : "") || "";
   const specialization = smSpecEl ? smSpecEl.value.trim() : "";
 
+  let selectedSectors = [];
+  if (HL.currentUser && HL.currentUser.accountType === "charity") {
+    const sectorCheckboxes = document.querySelectorAll(".sm-sector-cb:checked");
+    sectorCheckboxes.forEach((cb) => selectedSectors.push(cb.value));
+    if (selectedSectors.length === 0) {
+      const smSErr = document.getElementById("sm-sectors-error");
+      if (smSErr) smSErr.style.display = "block";
+      return;
+    }
+    const smSErr = document.getElementById("sm-sectors-error");
+    if (smSErr) smSErr.style.display = "none";
+  }
+
   if (!fullName) {
     if (errEl) {
       errEl.style.display = "block";
@@ -472,6 +499,9 @@ async function saveSettings(e) {
   fd.append("regNumber", regNumber);
   if (selectedQuals.length > 0) {
     fd.append("qualification", selectedQuals.join(","));
+  }
+  if (selectedSectors && selectedSectors.length > 0) {
+    fd.append("sectors", selectedSectors.join(","));
   }
   fd.append("specialization", specialization);
 
@@ -967,6 +997,9 @@ async function doRegister(e) {
   fd.append("city", city);
   if (selectedQuals && selectedQuals.length > 0) {
     fd.append("qualification", selectedQuals.join(","));
+  }
+  if (selectedSectors && selectedSectors.length > 0) {
+    fd.append("sectors", selectedSectors.join(","));
   }
   fd.append("specialization", spec);
   fd.append("password", pw);

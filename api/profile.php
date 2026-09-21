@@ -29,6 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $regNumber= trim($data['regNumber'] ?? '');
     $qualification = trim($data['qualification'] ?? '');
     $specialization = trim($data['specialization'] ?? '');
+    $sectorsArr  = isset($data['sectors']) && is_string($data['sectors']) ? explode(',', $data['sectors']) : ($data['sectors'] ?? []);
+    $sectorsString = !empty($sectorsArr) ? implode(',', $sectorsArr) : null;
 
     if (!$fullName) {
         echo json_encode(['ok' => false, 'msg' => 'Name cannot be empty.']);
@@ -79,6 +81,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             $stmtQ->close();
         }
+    } else if ($accountType === 'charity') {
+        $conn->query("DELETE FROM charity_sectors WHERE charity_id = $currentUserId");
+        if (!empty($sectorsArr)) {
+            $stmtC = $conn->prepare("INSERT IGNORE INTO charity_sectors (charity_id, sector_id) SELECT ?, id FROM sectors WHERE name = ?");
+            foreach ($sectorsArr as $s) {
+                $s = trim($s);
+                if ($s) {
+                    $stmtC->bind_param('is', $currentUserId, $s);
+                    $stmtC->execute();
+                }
+            }
+            $stmtC->close();
+        }
     }
 
     $profilePicUrl = $_SESSION['user']['profilePicture'] ?? $_SESSION['user']['profile_picture'] ?? null;
@@ -118,6 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $_SESSION['user']['reg_number'] = $regNumber;
     $_SESSION['user']['qualification'] = $qualification;
     $_SESSION['user']['specialization'] = $specialization;
+    $_SESSION['user']['sectors'] = $sectorsString;
     $_SESSION['user']['profile_picture'] = $profilePicUrl;
     $_SESSION['user']['profilePicture'] = $profilePicUrl;
 
@@ -138,6 +154,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'city'        => $city,
             'qualification' => $qualification,
             'specialization' => $specialization,
+            'sectors'       => $sectorsString,
             'profilePicture' => $profilePicUrl
         ]
     ]);
