@@ -127,12 +127,29 @@
       <div id="doctor-fields" style="display:none;">
         <div class="form-row">
           <div class="form-group">
-            <label for="reg-qualification">Qualification <span class="req">*</span></label>
-            <input type="text" id="reg-qualification" class="form-control" placeholder="Qualifications">
+            <label>Qualification (Select one or more) <span class="req">*</span></label>
+            <div class="checkbox-group" style="display:flex; gap:15px; flex-wrap:wrap; margin-top:8px;">
+              <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="qual-cb" value="MBBS"> MBBS</label>
+              <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="qual-cb" value="FCPS"> FCPS</label>
+              <label style="display:flex; align-items:center; gap:5px; cursor:pointer;"><input type="checkbox" class="qual-cb" value="BCS Health"> BCS Health</label>
+            </div>
+            <div id="qual-error" class="form-error-sm" style="display:none; color:#c0392b; margin-top:8px;">Please select at least one qualification.</div>
           </div>
           <div class="form-group">
             <label for="reg-specialization">Specialization <span class="req">*</span></label>
-            <input type="text" id="reg-specialization" class="form-control" placeholder="e.g. Cardiology">
+            <select id="reg-specialization" class="form-control">
+              <option value="">-- Select Specialization --</option>
+              <option value="Cardiology">Cardiology</option>
+              <option value="Neurology">Neurology</option>
+              <option value="Pediatrics">Pediatrics</option>
+              <option value="General Medicine">General Medicine</option>
+              <option value="Orthopedics">Orthopedics</option>
+              <option value="Gynaecology">Gynaecology</option>
+              <option value="Dermatology">Dermatology</option>
+              <option value="Psychiatry">Psychiatry</option>
+              <option value="Ophthalmology">Ophthalmology</option>
+              <option value="Dental">Dental</option>
+            </select>
           </div>
         </div>
       </div>

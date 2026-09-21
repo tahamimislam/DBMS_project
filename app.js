@@ -295,7 +295,13 @@ function openSettingsModal() {
   if (streetInp) streetInp.value     = HL.currentUser.street || '';
   if (areaInp)  areaInp.value        = HL.currentUser.area || '';
   if (cityInp)  cityInp.value        = HL.currentUser.city || '';
-  if (qualInp)  qualInp.value        = HL.currentUser.qualification || '';
+  const qualCbList = document.querySelectorAll('.sm-qual-cb');
+  if (qualCbList.length > 0) {
+    const userQuals = HL.currentUser.qualification ? HL.currentUser.qualification.split(',') : [];
+    qualCbList.forEach(cb => {
+      cb.checked = userQuals.includes(cb.value);
+    });
+  }
   if (specInp)  specInp.value        = HL.currentUser.specialization || '';
   if (regInp)   regInp.value         = HL.currentUser.regNumber || '';
   if (regRow) {
@@ -328,7 +334,18 @@ async function saveSettings(e) {
   const smAreaEl  = document.getElementById('sm-area');
   const smCityEl  = document.getElementById('sm-city');
   const smRegEl = document.getElementById('sm-reg');
-  const smQualEl = document.getElementById('sm-qualification');
+  let selectedQuals = [];
+  if (HL.currentUser && HL.currentUser.accountType === 'doctor') {
+    const qualCheckboxes = document.querySelectorAll('.sm-qual-cb:checked');
+    qualCheckboxes.forEach(cb => selectedQuals.push(cb.value));
+    if (selectedQuals.length === 0) {
+       const smQErr = document.getElementById('sm-qual-error');
+       if (smQErr) smQErr.style.display = 'block';
+       return;
+    }
+    const smQErr = document.getElementById('sm-qual-error');
+    if (smQErr) smQErr.style.display = 'none';
+  }
   const smSpecEl = document.getElementById('sm-specialization');
   
   const fullName = smNameEl ? smNameEl.value.trim() : '';
@@ -337,7 +354,6 @@ async function saveSettings(e) {
   const area     = smAreaEl ? smAreaEl.value.trim() : '';
   const city     = smCityEl ? smCityEl.value.trim() : '';
   const regNumber= (smRegEl ? smRegEl.value.trim() : '') || '';
-  const qualification = smQualEl ? smQualEl.value.trim() : '';
   const specialization = smSpecEl ? smSpecEl.value.trim() : '';
 
   if (!fullName) {
@@ -367,7 +383,9 @@ async function saveSettings(e) {
   fd.append('area', area);
   fd.append('city', city);
   fd.append('regNumber', regNumber);
-  fd.append('qualification', qualification);
+  if (selectedQuals.length > 0) {
+    fd.append('qualification', selectedQuals.join(','));
+  }
   fd.append('specialization', specialization);
 
   const picInp = document.getElementById('sm-profile-pic');
@@ -706,7 +724,19 @@ async function doRegister(e) {
   const street    = document.getElementById('reg-street').value.trim();
   const area      = document.getElementById('reg-area').value.trim();
   const city      = document.getElementById('reg-city').value.trim();
-  const qual      = document.getElementById('reg-qualification') ? document.getElementById('reg-qualification').value.trim() : '';
+  let selectedQuals = [];
+  if (selectedAccountType === 'doctor') {
+    const checkboxes = document.querySelectorAll('.qual-cb:checked');
+    checkboxes.forEach(cb => selectedQuals.push(cb.value));
+    if (selectedQuals.length === 0) {
+      const qErr = document.getElementById('qual-error');
+      if (qErr) qErr.style.display = 'block';
+      return;
+    }
+    const qErr = document.getElementById('qual-error');
+    if (qErr) qErr.style.display = 'none';
+  }
+
   const spec      = document.getElementById('reg-specialization') ? document.getElementById('reg-specialization').value.trim() : '';
   const pw        = document.getElementById('reg-password').value;
   const pw2       = document.getElementById('reg-password2').value;
@@ -776,7 +806,9 @@ async function doRegister(e) {
   fd.append('street', street);
   fd.append('area', area);
   fd.append('city', city);
-  fd.append('qualification', qual);
+  if (selectedQuals && selectedQuals.length > 0) {
+    fd.append('qualification', selectedQuals.join(','));
+  }
   fd.append('specialization', spec);
   fd.append('password', pw);
   

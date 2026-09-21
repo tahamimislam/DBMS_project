@@ -22,8 +22,12 @@ if (!$email || !$password) {
 }
 
 $stmt = $conn->prepare(
-    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, qualification, specialization, profile_picture
-     FROM users WHERE email = ?"
+    "SELECT u.id, u.account_type, u.full_name, u.reg_number, u.email, u.phone, u.street, u.area, u.city, u.password, u.working_sectors, u.specialization, u.profile_picture,
+            GROUP_CONCAT(dq.qualification) AS qualification
+     FROM users u
+     LEFT JOIN doctor_qualifications dq ON u.id = dq.user_id
+     WHERE u.email = ?
+     GROUP BY u.id"
 );
 $stmt->bind_param('s', $email);
 $stmt->execute();

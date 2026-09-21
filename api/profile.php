@@ -59,10 +59,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $stmt = $conn->prepare("UPDATE users SET full_name = ?, phone = ?, street = ?, area = ?, city = ?, reg_number = ?, qualification = ?, specialization = ? WHERE id = ?");
-    $stmt->bind_param('ssssssssi', $fullName, $phone, $street, $area, $city, $regNumber, $qualification, $specialization, $currentUserId);
+    $stmt = $conn->prepare("UPDATE users SET full_name = ?, phone = ?, street = ?, area = ?, city = ?, reg_number = ?, specialization = ? WHERE id = ?");
+    $stmt->bind_param('sssssssi', $fullName, $phone, $street, $area, $city, $regNumber, $specialization, $currentUserId);
     $stmt->execute();
     $stmt->close();
+
+    $accountType = $_SESSION['user']['accountType'] ?? $_SESSION['user']['account_type'] ?? '';
+    if ($accountType === 'doctor') {
+        $conn->query("DELETE FROM doctor_qualifications WHERE user_id = $currentUserId");
+        if (!empty($qualification)) {
+            $quals = explode(',', $qualification);
+            $stmtQ = $conn->prepare("INSERT IGNORE INTO doctor_qualifications (user_id, qualification) VALUES (?, ?)");
+            foreach ($quals as $q) {
+                $q = trim($q);
+                if ($q) {
+                    $stmtQ->bind_param('is', $currentUserId, $q);
+                    $stmtQ->execute();
+                }
+            }
+            $stmtQ->close();
+        }
+    }
 
     $profilePicUrl = $_SESSION['user']['profilePicture'] ?? $_SESSION['user']['profile_picture'] ?? null;
     
@@ -157,8 +174,12 @@ if ($targetId !== $currentUserId) {
 
 // Fetch user info (no password returned)
 $stmt = $conn->prepare(
-    "SELECT id, account_type, full_name, reg_number, email, phone, street, area, city, working_sectors, qualification, specialization, profile_picture
-     FROM users WHERE id = ?"
+    "SELECT u.id, u.account_type, u.full_name, u.reg_number, u.email, u.phone, u.street, u.area, u.city, u.working_sectors, u.specialization, u.profile_picture,
+            GROUP_CONCAT(dq.qualification) AS qualification
+     FROM users u
+     LEFT JOIN doctor_qualifications dq ON u.id = dq.user_id
+     WHERE u.id = ?
+     GROUP BY u.id"
 );
 $stmt->bind_param('i', $targetId);
 $stmt->execute();

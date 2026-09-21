@@ -27,10 +27,18 @@ CREATE TABLE IF NOT EXISTS users (
     city         VARCHAR(100) DEFAULT NULL,
     password     VARCHAR(255) NOT NULL,
     working_sectors ENUM('Food','Medical','Education','Financial') DEFAULT NULL,
-    qualification   VARCHAR(255) DEFAULT NULL,
-    specialization  VARCHAR(255) DEFAULT NULL,
+    specialization  ENUM('Cardiology','Neurology','Pediatrics','General Medicine','Orthopedics','Gynaecology','Dermatology','Psychiatry','Ophthalmology','Dental') DEFAULT NULL,
     profile_picture VARCHAR(255) DEFAULT NULL,
     created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB;
+
+-- ── Doctor Qualifications Table ─────────────────────────
+CREATE TABLE IF NOT EXISTS doctor_qualifications (
+    id            INT AUTO_INCREMENT PRIMARY KEY,
+    user_id       INT NOT NULL,
+    qualification ENUM('MBBS','FCPS','BCS Health') NOT NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    UNIQUE KEY (user_id, qualification)
 ) ENGINE=InnoDB;
 
 -- ── Food Posts Table ─────────────────────────────────────

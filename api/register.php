@@ -104,13 +104,26 @@ if (isset($_FILES['profilePicture']) && $_FILES['profilePicture']['error'] === U
 
 $hashed = password_hash($password, PASSWORD_DEFAULT);
 $stmt = $conn->prepare(
-     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, qualification, specialization, profile_picture)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+     "INSERT INTO users (account_type, full_name, reg_number, email, phone, street, area, city, password, working_sectors, specialization, profile_picture)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
 );
-$stmt->bind_param('sssssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $workingSectors, $qualification, $specialization, $profilePicUrl);
+$stmt->bind_param('ssssssssssss', $accountType, $fullName, $regNumber, $email, $phone, $street, $area, $city, $hashed, $workingSectors, $specialization, $profilePicUrl);
 $stmt->execute();
 $userId = $conn->insert_id;
 $stmt->close();
+
+if ($accountType === 'doctor' && !empty($qualification)) {
+    $quals = explode(',', $qualification);
+    $stmtQ = $conn->prepare("INSERT IGNORE INTO doctor_qualifications (user_id, qualification) VALUES (?, ?)");
+    foreach ($quals as $q) {
+        $q = trim($q);
+        if ($q) {
+            $stmtQ->bind_param('is', $userId, $q);
+            $stmtQ->execute();
+        }
+    }
+    $stmtQ->close();
+}
 
 $user = [
     'id'          => $userId,
