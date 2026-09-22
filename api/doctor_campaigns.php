@@ -84,7 +84,7 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         $stmt->bind_param('i', $user['id']);
     } else {
         $stmt = $conn->prepare("
-            SELECT dc.*, u.full_name as doctor_name, u.qualification, u.specialization, u.profile_picture as doctor_profile_picture,
+            SELECT dc.*, u.full_name as doctor_name, u.specialization, u.profile_picture as doctor_profile_picture,
             (SELECT COUNT(*) FROM campaign_participants cp WHERE cp.campaign_id = dc.id) as participant_count,
             (SELECT COUNT(*) FROM campaign_participants cp WHERE cp.campaign_id = dc.id AND cp.user_id = ?) as joined
             FROM doctor_campaigns dc
