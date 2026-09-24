@@ -80,175 +80,255 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard - HumanityLink</title>
+  <!-- Apply theme BEFORE stylesheets to prevent flash -->
+  <script>
+    (function() {
+      var saved = localStorage.getItem('hl_theme');
+      var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+      var theme = saved ? saved : (prefersDark ? 'dark' : 'light');
+      if (theme === 'dark') document.documentElement.classList.add('dark-theme');
+    })();
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="../styles.css">
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-    :root { --primary: #0ea5e9; --bg: #0f172a; --card: #1e293b; --text: #f8fafc; --text-muted: #94a3b8; --border: #334155; }
-    body { margin: 0; font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); }
-    .navbar { background: var(--card); border-bottom: 1px solid var(--border); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
-    .navbar h1 { margin: 0; font-size: 1.5rem; color: var(--primary); }
-    .btn { padding: 8px 16px; background: var(--primary); color: #fff; border: none; border-radius: 6px; cursor: pointer; text-decoration: none; font-size: 0.9rem; font-weight: 500; }
-    .btn:hover { background: #0284c7; }
-    .btn-danger { background: #ef4444; }
-    .btn-danger:hover { background: #dc2626; }
-    .container { padding: 30px; max-width: 1200px; margin: 0 auto; }
+    /* Admin specific overrides */
+    .admin-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .admin-stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .admin-stat-card h3 { margin: 0 0 8px; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .admin-stat-card .value { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 0; }
     
-    .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-    .stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-align: center; }
-    .stat-card h3 { margin: 0 0 10px; font-size: 0.9rem; color: var(--text-muted); text-transform: uppercase; }
-    .stat-card .value { font-size: 2rem; font-weight: 700; color: var(--primary); margin: 0; }
+    .admin-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; overflow-x: auto; }
+    .admin-card-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
     
-    .section-title { font-size: 1.25rem; font-weight: 600; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
-    
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 30px; overflow-x: auto; }
-    
-    table { width: 100%; border-collapse: collapse; }
-    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
-    th { color: var(--text-muted); font-weight: 600; }
+    table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    th, td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); font-size: 0.95rem; }
+    th { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.5px; }
     tr:last-child td { border-bottom: none; }
-    .badge { padding: 4px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+    
+    .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
     .badge-success { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
     .badge-pending { background: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
     .badge-failed { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
 
-    .filters { display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; }
-    .filters select, .filters input { padding: 8px 12px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 6px; color: var(--text); }
+    .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+    .filters select, .filters input { padding: 8px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; }
+    .filters select:focus, .filters input:focus { outline: none; border-color: var(--primary); }
   </style>
 </head>
-<body>
-  <div class="navbar">
-    <h1>HumanityLink Admin</h1>
-    <div>
-      <span style="margin-right: 15px;">Welcome, <?= htmlspecialchars($_SESSION['user']['fullName']) ?></span>
-      <a href="logout.php" class="btn btn-danger">Logout</a>
+<body class="has-sidebar">
+
+  <!-- ── Sidebar ── -->
+  <aside class="app-sidebar" id="appSidebar">
+    <a href="../index.html" class="app-sidebar-logo">
+      <img src="../assets/logo.jpg" alt="HumanityLink">
+      <span>HumanityLink</span>
+    </a>
+    <nav class="app-sidebar-nav">
+      <div class="app-sidebar-section-label">Admin Panel</div>
+      <a href="dashboard.php" class="app-sidebar-link active">
+        <span class="asbl-icon"><i class="fa-solid fa-chart-pie"></i></span>
+        <span class="asbl-text">Dashboard</span>
+      </a>
+      <a href="../index.html" class="app-sidebar-link">
+        <span class="asbl-icon"><i class="fa-solid fa-house"></i></span>
+        <span class="asbl-text">Return to App</span>
+      </a>
+    </nav>
+    <div class="app-sidebar-spacer"></div>
+    <div class="app-sidebar-account">
+      <div style="display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid var(--border);">
+        <div style="width:40px; height:40px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">
+          AD
+        </div>
+        <div style="flex:1; overflow:hidden;">
+          <div style="font-weight:600; font-size:0.95rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;"><?= htmlspecialchars($_SESSION['user']['fullName']) ?></div>
+          <div style="font-size:0.8rem; color:var(--text-muted);">Administrator</div>
+        </div>
+      </div>
     </div>
+  </aside>
+
+  <button class="sidebar-overlay" id="sidebarOverlay" onclick="document.body.classList.remove('sidebar-open')" aria-label="Close sidebar"></button>
+
+  <div class="app-topbar">
+    <button class="sidebar-toggle" onclick="document.body.classList.toggle('sidebar-open')" aria-label="Toggle sidebar">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+    <div class="topbar-title">Admin Dashboard</div>
+    <div class="topbar-right"></div>
+    <button class="btn btn-ghost theme-toggle-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+    <a href="logout.php" class="btn btn-primary" style="margin-left:12px;">
+      <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+    </a>
   </div>
 
-  <div class="container">
-    <div class="stats-grid">
-      <div class="stat-card">
-        <h3>Total Donated</h3>
-        <p class="value">৳<?= number_format($stats['total_amount'], 2) ?></p>
-      </div>
-      <div class="stat-card">
-        <h3>Total Donations</h3>
-        <p class="value"><?= $stats['total_donations'] ?></p>
-      </div>
-      <div class="stat-card">
-        <h3>Successful Txns</h3>
-        <p class="value"><?= $stats['successful_txns'] ?></p>
-      </div>
-      <div class="stat-card">
-        <h3>Unique Donors</h3>
-        <p class="value"><?= $stats['donors_count'] ?></p>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Campaign Progress</div>
-      <table>
-        <thead>
-          <tr>
-            <th>Campaign Title</th>
-            <th>Status</th>
-            <th>Goal Amount</th>
-            <th>Collected Amount</th>
-            <th>Progress</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php foreach ($campaigns as $camp): 
-            $prog = $camp['goal_amount'] > 0 ? min(100, round(($camp['collected_amount'] / $camp['goal_amount']) * 100, 1)) : 0;
-          ?>
-          <tr>
-            <td><?= htmlspecialchars($camp['title']) ?></td>
-            <td><?= ucfirst($camp['status']) ?></td>
-            <td>৳<?= number_format($camp['goal_amount'], 2) ?></td>
-            <td>৳<?= number_format($camp['collected_amount'], 2) ?></td>
-            <td>
-              <div style="display:flex; align-items:center; gap:10px;">
-                <div style="flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
-                  <div style="height:100%; width:<?= $prog ?>%; background:var(--primary);"></div>
-                </div>
-                <span style="font-size:0.85rem; width:40px; text-align:right;"><?= $prog ?>%</span>
-              </div>
-            </td>
-          </tr>
-          <?php endforeach; ?>
-        </tbody>
-      </table>
-    </div>
-
-    <div class="card">
-      <div class="section-title">Donation Transactions</div>
+  <!-- ── Main Content ── -->
+  <div class="app-main">
+    <div class="container mw-container">
       
-      <form class="filters" method="GET">
-        <select name="method">
-          <option value="">All Payment Methods</option>
-          <option value="card" <?= ($_GET['method'] ?? '') === 'card' ? 'selected' : '' ?>>Card</option>
-          <option value="bkash" <?= ($_GET['method'] ?? '') === 'bkash' ? 'selected' : '' ?>>bKash</option>
-          <option value="nagad" <?= ($_GET['method'] ?? '') === 'nagad' ? 'selected' : '' ?>>Nagad</option>
-          <option value="rocket" <?= ($_GET['method'] ?? '') === 'rocket' ? 'selected' : '' ?>>Rocket</option>
-        </select>
-        
-        <select name="campaign">
-          <option value="">All Campaigns</option>
-          <?php foreach ($campaigns as $camp): ?>
-          <option value="<?= $camp['id'] ?>" <?= ($_GET['campaign'] ?? '') == $camp['id'] ? 'selected' : '' ?>><?= htmlspecialchars($camp['title']) ?></option>
-          <?php endforeach; ?>
-        </select>
-        
-        <select name="status">
-          <option value="">All Statuses</option>
-          <option value="SUCCESS" <?= ($_GET['status'] ?? '') === 'SUCCESS' ? 'selected' : '' ?>>Success</option>
-          <option value="PENDING" <?= ($_GET['status'] ?? '') === 'PENDING' ? 'selected' : '' ?>>Pending</option>
-          <option value="FAILED" <?= ($_GET['status'] ?? '') === 'FAILED' ? 'selected' : '' ?>>Failed</option>
-        </select>
-        
-        <input type="date" name="date" value="<?= htmlspecialchars($_GET['date'] ?? '') ?>">
-        
-        <button type="submit" class="btn">Filter</button>
-        <a href="dashboard.php" class="btn" style="background:var(--border); color:var(--text);">Reset</a>
-      </form>
+      <div class="page-header" style="margin-bottom:24px;">
+        <div class="page-header-row">
+          <div>
+            <h1><i class="fa-solid fa-shield-halved"></i> Overview</h1>
+            <p>Monitor system donations, campaigns, and overall progress.</p>
+          </div>
+        </div>
+      </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>Donor Name</th>
-            <th>Campaign / Fund</th>
-            <th>Amount</th>
-            <th>Method</th>
-            <th>Transaction ID</th>
-            <th>Status</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <?php if (empty($donations)): ?>
-          <tr><td colspan="7" style="text-align:center; padding:20px; color:var(--text-muted);">No transactions found.</td></tr>
-          <?php else: ?>
-            <?php foreach ($donations as $don): ?>
+      <div class="admin-stats-grid">
+        <div class="admin-stat-card">
+          <h3>Total Donated</h3>
+          <p class="value">৳<?= number_format($stats['total_amount'], 2) ?></p>
+        </div>
+        <div class="admin-stat-card">
+          <h3>Total Donations</h3>
+          <p class="value"><?= $stats['total_donations'] ?></p>
+        </div>
+        <div class="admin-stat-card">
+          <h3>Successful Txns</h3>
+          <p class="value"><?= $stats['successful_txns'] ?></p>
+        </div>
+        <div class="admin-stat-card">
+          <h3>Unique Donors</h3>
+          <p class="value"><?= $stats['donors_count'] ?></p>
+        </div>
+      </div>
+
+      <div class="admin-card">
+        <div class="admin-card-title"><i class="fa-solid fa-bullseye"></i> Campaign Progress</div>
+        <table>
+          <thead>
             <tr>
-              <td><?= htmlspecialchars($don['donor_name']) ?></td>
-              <td><?= htmlspecialchars($don['campaign_name']) ?></td>
-              <td style="font-weight:600;">৳<?= number_format($don['amount'], 2) ?></td>
-              <td style="text-transform:capitalize;"><?= htmlspecialchars($don['payment_method']) ?></td>
-              <td style="font-family:monospace;"><?= htmlspecialchars($don['transaction_id']) ?></td>
+              <th>Campaign Title</th>
+              <th>Status</th>
+              <th>Goal Amount</th>
+              <th>Collected Amount</th>
+              <th>Progress</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php foreach ($campaigns as $camp): 
+              $prog = $camp['goal_amount'] > 0 ? min(100, round(($camp['collected_amount'] / $camp['goal_amount']) * 100, 1)) : 0;
+            ?>
+            <tr>
+              <td style="font-weight:600;"><?= htmlspecialchars($camp['title']) ?></td>
+              <td><span class="badge" style="background:rgba(255,255,255,0.1);"><?= ucfirst($camp['status']) ?></span></td>
+              <td>৳<?= number_format($camp['goal_amount'], 2) ?></td>
+              <td style="color:var(--primary); font-weight:600;">৳<?= number_format($camp['collected_amount'], 2) ?></td>
               <td>
-                <?php 
-                  $cls = 'badge-pending';
-                  if ($don['payment_status'] === 'SUCCESS') $cls = 'badge-success';
-                  if ($don['payment_status'] === 'FAILED') $cls = 'badge-failed';
-                ?>
-                <span class="badge <?= $cls ?>"><?= $don['payment_status'] ?></span>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <div style="flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
+                    <div style="height:100%; width:<?= $prog ?>%; background:var(--primary);"></div>
+                  </div>
+                  <span style="font-size:0.85rem; width:40px; text-align:right; font-weight:600;"><?= $prog ?>%</span>
+                </div>
               </td>
-              <td style="font-size:0.85rem; color:var(--text-muted);"><?= date('M j, Y H:i', strtotime($don['created_at'])) ?></td>
             </tr>
             <?php endforeach; ?>
-          <?php endif; ?>
-        </tbody>
-      </table>
-    </div>
+          </tbody>
+        </table>
+      </div>
 
+      <div class="admin-card">
+        <div class="admin-card-title"><i class="fa-solid fa-money-bill-transfer"></i> Donation Transactions</div>
+        
+        <form class="filters" method="GET">
+          <select name="method">
+            <option value="">All Payment Methods</option>
+            <option value="card" <?= ($_GET['method'] ?? '') === 'card' ? 'selected' : '' ?>>Card</option>
+            <option value="bkash" <?= ($_GET['method'] ?? '') === 'bkash' ? 'selected' : '' ?>>bKash</option>
+            <option value="nagad" <?= ($_GET['method'] ?? '') === 'nagad' ? 'selected' : '' ?>>Nagad</option>
+            <option value="rocket" <?= ($_GET['method'] ?? '') === 'rocket' ? 'selected' : '' ?>>Rocket</option>
+          </select>
+          
+          <select name="campaign">
+            <option value="">All Campaigns</option>
+            <?php foreach ($campaigns as $camp): ?>
+            <option value="<?= $camp['id'] ?>" <?= ($_GET['campaign'] ?? '') == $camp['id'] ? 'selected' : '' ?>><?= htmlspecialchars($camp['title']) ?></option>
+            <?php endforeach; ?>
+          </select>
+          
+          <select name="status">
+            <option value="">All Statuses</option>
+            <option value="SUCCESS" <?= ($_GET['status'] ?? '') === 'SUCCESS' ? 'selected' : '' ?>>Success</option>
+            <option value="PENDING" <?= ($_GET['status'] ?? '') === 'PENDING' ? 'selected' : '' ?>>Pending</option>
+            <option value="FAILED" <?= ($_GET['status'] ?? '') === 'FAILED' ? 'selected' : '' ?>>Failed</option>
+          </select>
+          
+          <input type="date" name="date" value="<?= htmlspecialchars($_GET['date'] ?? '') ?>">
+          
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
+          <a href="dashboard.php" class="btn btn-ghost" style="border:1px solid var(--border);">Reset</a>
+        </form>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Donor Name</th>
+              <th>Campaign / Fund</th>
+              <th>Amount</th>
+              <th>Method</th>
+              <th>Transaction ID</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (empty($donations)): ?>
+            <tr><td colspan="7" style="text-align:center; padding:30px; color:var(--text-muted);">No transactions found.</td></tr>
+            <?php else: ?>
+              <?php foreach ($donations as $don): ?>
+              <tr>
+                <td><?= htmlspecialchars($don['donor_name']) ?></td>
+                <td><?= htmlspecialchars($don['campaign_name']) ?></td>
+                <td style="font-weight:700; color:var(--primary);">৳<?= number_format($don['amount'], 2) ?></td>
+                <td style="text-transform:capitalize;"><?= htmlspecialchars($don['payment_method']) ?></td>
+                <td style="font-family:monospace;"><?= htmlspecialchars($don['transaction_id']) ?></td>
+                <td>
+                  <?php 
+                    $cls = 'badge-pending';
+                    if ($don['payment_status'] === 'SUCCESS') $cls = 'badge-success';
+                    if ($don['payment_status'] === 'FAILED') $cls = 'badge-failed';
+                  ?>
+                  <span class="badge <?= $cls ?>"><?= $don['payment_status'] ?></span>
+                </td>
+                <td style="font-size:0.85rem; color:var(--text-muted);"><?= date('M j, Y h:i A', strtotime($don['created_at'])) ?></td>
+              </tr>
+              <?php endforeach; ?>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
   </div>
+
+  <script>
+    function updateThemeIcon() {
+      var isDark = document.documentElement.classList.contains('dark-theme');
+      var btns = document.querySelectorAll('.theme-toggle-btn');
+      btns.forEach(function(btn) {
+        btn.innerHTML = isDark ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+      });
+    }
+
+    function toggleTheme() {
+      var html = document.documentElement;
+      var isDark = html.classList.contains('dark-theme');
+      if (isDark) {
+        html.classList.remove('dark-theme');
+        localStorage.setItem('hl_theme', 'light');
+      } else {
+        html.classList.add('dark-theme');
+        localStorage.setItem('hl_theme', 'dark');
+      }
+      updateThemeIcon();
+    }
+
+    document.addEventListener('DOMContentLoaded', updateThemeIcon);
+  </script>
 </body>
 </html>

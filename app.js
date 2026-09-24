@@ -169,6 +169,8 @@ function renderNavAuth() {
       dashLink = "dashboard.html";
     else if (HL.currentUser.accountType === "doctor")
       dashLink = "doctor-dashboard.html";
+    else if (HL.currentUser.accountType === "admin")
+      dashLink = "admin/dashboard.php";
     else if (HL.currentUser.accountType === "charity") {
       const s = (HL.currentUser.sectors || "").toLowerCase();
       dashLink =
@@ -873,6 +875,8 @@ async function doLogin(e) {
     dest = "dashboard.html";
   } else if (res.user.accountType === "doctor") {
     dest = "doctor-dashboard.html";
+  } else if (res.user.accountType === "admin") {
+    dest = "admin/dashboard.php";
   } else if (res.user.accountType === "charity") {
     const s = (res.user.sectors || "").toLowerCase();
     if (s.includes("medical") && !s.includes("food")) {
@@ -1058,6 +1062,10 @@ function initAuthPage() {
   if (HL.currentUser) {
     // Redirect based on account type
     const type = HL.currentUser.accountType;
+    if (type === "admin") {
+      window.location.href = "admin/dashboard.php";
+      return;
+    }
     if (type === "doctor") {
       window.location.href = "doctor-dashboard.html";
       return;
@@ -2715,8 +2723,7 @@ async function initMedicalPage() {
   if (HL.currentUser.accountType === "charity" && HL.currentUser.sectors) {
     const navEl = document.querySelector(".app-sidebar-nav");
     if (navEl) {
-      navEl.innerHTML =
-        '<div class="app-sidebar-section-label">Your Sectors</div>';
+      navEl.innerHTML = '<div class="app-sidebar-section-label">Your Sectors</div>';
       const sectors = HL.currentUser.sectors.split(",");
       if (sectors.includes("Food")) {
         navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
@@ -2730,6 +2737,13 @@ async function initMedicalPage() {
       if (sectors.includes("Financial")) {
         navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
       }
+    }
+  } else if (HL.currentUser.accountType === "admin") {
+    const navEl = document.querySelector(".app-sidebar-nav");
+    if (navEl) {
+      navEl.innerHTML = '<div class="app-sidebar-section-label">Navigation</div>';
+      navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
+      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical &amp; Welfare</span></a>`;
     }
   }
 
@@ -2856,6 +2870,7 @@ function buildFinSidebar() {
   const navEl = document.getElementById('fin-sidebar-nav');
   if (!navEl) return;
   const isCharity = HL.currentUser && HL.currentUser.accountType === 'charity';
+  const isAdmin = HL.currentUser && HL.currentUser.accountType === 'admin';
 
   if (isCharity && HL.currentUser.sectors) {
     const sectors = HL.currentUser.sectors.split(',');
@@ -2866,6 +2881,10 @@ function buildFinSidebar() {
       navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
     if (sectors.includes('Financial'))
       navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>`;
+  } else if (isAdmin) {
+    navEl.innerHTML = '<div class="app-sidebar-section-label">Navigation</div>';
+    navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
+    navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>`;
   } else {
     navEl.innerHTML = `
       <div class="app-sidebar-section-label">Navigation</div>
