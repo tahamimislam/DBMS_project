@@ -2251,8 +2251,20 @@ function toggleReportForm(show) {
     btnWrap.innerHTML = show
       ? ""
       : `<button class="btn btn-primary" onclick="toggleReportForm(true)" id="open-report-btn">
-           <i class="fa-solid fa-triangle-exclamation"></i> Report a Case
+           <i class="fa-solid fa-plus"></i> Report a Case
          </button>`;
+  }
+  
+  const emptyEl = document.getElementById("mwUserEmpty");
+  const gridEl = document.getElementById("mwUserGrid");
+  if (emptyEl && gridEl) {
+    if (show) {
+      emptyEl.classList.add("hidden");
+    } else {
+      if (gridEl.innerHTML.trim() === "") {
+        emptyEl.classList.remove("hidden");
+      }
+    }
   }
 }
 
@@ -2318,6 +2330,8 @@ async function submitWelfareCase(e) {
       (c) => Number(c.reportedBy) === Number(HL.currentUser.id),
     );
     renderMwUserGrid(myCases);
+    // Switch to My Reported Cases section after submit
+    showMwSection('mycases', document.getElementById('sbl-mycases'));
   }
   document.getElementById("reportCaseForm")?.reset();
   toggleReportForm(false);
@@ -2730,7 +2744,7 @@ async function initMedicalPage() {
     const btnWrap = document.getElementById("report-btn-wrapper");
     if (btnWrap) {
       btnWrap.innerHTML = `<button class="btn btn-primary" onclick="toggleReportForm(true)" id="open-report-btn">
-        <i class="fa-solid fa-triangle-exclamation"></i> Report a Case
+        <i class="fa-solid fa-plus"></i> Report a Case
       </button>`;
     }
     // Only show own cases
@@ -2741,4 +2755,27 @@ async function initMedicalPage() {
   }
 
   await loadPublicCampaigns();
+
+  // Handle hash-based section routing for user views
+  if (window.location.hash === "#doctor-campaigns") {
+    showMwSection('campaigns', document.getElementById('sbl-campaigns'));
+  } else {
+    showMwSection('report', document.getElementById('sbl-report'));
+  }
 }
+
+function showMwSection(sec, link, e) {
+  if (e && e.preventDefault) e.preventDefault();
+  
+  // Hide all sections
+  document.querySelectorAll(".mw-section").forEach((el) => el.classList.add("hidden"));
+  
+  // Show target section
+  const target = document.getElementById("section-" + sec);
+  if (target) target.classList.remove("hidden");
+  
+  // Update sidebar active state
+  document.querySelectorAll(".app-sidebar-link").forEach((l) => l.classList.remove("active"));
+  if (link) link.classList.add("active");
+}
+window.showMwSection = showMwSection;

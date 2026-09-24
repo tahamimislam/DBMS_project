@@ -22,9 +22,17 @@
       <span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span>
       <span class="asbl-text">Food Support</span>
     </a>
-    <a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-medical">
-      <span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span>
-      <span class="asbl-text">Medical &amp; Welfare</span>
+    <a href="#report-case" class="app-sidebar-link active" id="sbl-report" onclick="showMwSection('report', this, event)">
+      <span class="asbl-icon"><i class="fa-solid fa-circle-plus"></i></span>
+      <span class="asbl-text">Report a Case</span>
+    </a>
+    <a href="#mycases" class="app-sidebar-link" id="sbl-mycases" onclick="showMwSection('mycases', this, event)">
+      <span class="asbl-icon"><i class="fa-solid fa-clipboard-list"></i></span>
+      <span class="asbl-text">My Reported Cases</span>
+    </a>
+    <a href="#doctor-campaigns" class="app-sidebar-link" id="sbl-campaigns" onclick="showMwSection('campaigns', this, event)">
+      <span class="asbl-icon"><i class="fa-solid fa-stethoscope"></i></span>
+      <span class="asbl-text">Doctor Campaigns</span>
     </a>
   </nav>
   <div class="app-sidebar-spacer"></div>
@@ -45,6 +53,11 @@
 <!-- ── Main Content ──────────────────────────────────────── -->
 <div class="app-main" id="appMain">
 <div class="container mw-container">
+
+  <!-- ═══════════════════════════════════════════════════════
+       REPORT A CASE SECTION
+  ════════════════════════════════════════════════════════ -->
+  <div id="section-report" class="mw-section">
 
   <!-- ═══════════════════════════════════════════════════════
        CHARITY DASHBOARD VIEW  (shown by JS when charity)
@@ -186,18 +199,8 @@
       </div>
     </div>
 
-    <!-- User's own reported cases -->
-    <div class="subheading-label subheading-label-lg" style="margin-bottom:12px">
-      <i class="fa-solid fa-clipboard-list"></i> My Reported Cases
-    </div>
-    <div class="mw-grid" id="mwUserGrid"></div>
-    <div id="mwUserEmpty" class="empty-state hidden">
-      <div class="empty-icon"><i class="fa-solid fa-notes-medical"></i></div>
-      <h3>No cases reported yet</h3>
-      <p>Use the "Report a Case" button above to report a person in need.</p>
-    </div>
-
   </div>
+  <!-- /#mw-user-dashboard inside section-report -->
 
   <!-- NOT LOGGED IN -->
   <div id="mw-guest-view" class="hidden">
@@ -211,9 +214,39 @@
       <a href="auth.html" class="btn btn-primary" style="margin-top:16px" id="mw-login-btn">Log In / Register</a>
     </div>
   </div>
+  <!-- /#mw-guest-view -->
+  </div>
+  <!-- /#section-report -->
 
+  <!-- ═══════════════════════════════════════════════════════
+       MY REPORTED CASES SECTION
+  ════════════════════════════════════════════════════════ -->
+  <div id="section-mycases" class="mw-section hidden">
+    <div id="mw-user-dashboard-cases">
+      <div class="page-header" style="margin-bottom:8px">
+        <div class="page-header-row">
+          <div>
+            <h1><i class="fa-solid fa-clipboard-list"></i> My Reported Cases</h1>
+            <p>Cases you have reported. Track their status here.</p>
+          </div>
+        </div>
+      </div>
+      <div class="mw-grid" id="mwUserGrid"></div>
+      <div id="mwUserEmpty" class="empty-state hidden">
+        <div class="empty-icon" onclick="showMwSection('report', document.getElementById('sbl-report'))" style="cursor: pointer;" title="Report a Case"><i class="fa-solid fa-notes-medical"></i></div>
+        <h3>No cases reported yet</h3>
+        <p>Click "Report a Case" in the sidebar to report a person in need.</p>
+      </div>
+    </div>
+  </div>
+  <!-- /#section-mycases -->
+
+  <!-- ═══════════════════════════════════════════════════════
+       DOCTOR CAMPAIGNS SECTION
+  ════════════════════════════════════════════════════════ -->
+  <div id="section-campaigns" class="mw-section hidden">
     <!-- Doctor Campaigns Global Section -->
-    <div id="doctor-campaigns-section" style="margin-top: 40px; border-top: 1px solid var(--border); padding-top: 30px;">
+    <div id="doctor-campaigns-section" style="margin-top: 20px;">
       <div class="page-header" style="margin-bottom:20px;">
         <h2><i class="fa-solid fa-stethoscope"></i> Doctor Campaigns</h2>
         <p>Join free medical checkups and treatments hosted by verified doctors.</p>
@@ -222,6 +255,8 @@
         <!-- Campaigns will be injected here by JS -->
       </div>
     </div>
+  </div>
+  <!-- /#section-campaigns -->
 
   </div><!-- /.app-content -->
 </div><!-- /.app-main -->
