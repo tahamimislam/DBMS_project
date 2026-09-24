@@ -366,7 +366,7 @@
 
 <!-- ═══ DONATE MODAL ═══════════════════════════════════════════ -->
 <div class="donate-modal-overlay" id="donateModal">
-  <div class="donate-modal">
+  <div class="donate-modal" style="background-color: #1C2027;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
       <h3 id="donate-modal-title"><i class="fa-solid fa-heart" style="color:var(--primary)"></i> Make a Donation</h3>
       <button class="btn btn-ghost" onclick="closeDonateModal()" style="padding:4px 8px;font-size:1.1rem"><i class="fa-solid fa-xmark"></i></button>
@@ -386,6 +386,34 @@
     <div class="form-group">
       <label for="donate-message">Message <span style="font-size:0.8rem;color:var(--muted)">(Optional)</span></label>
       <textarea id="donate-message" class="form-control" rows="2" placeholder="Leave an encouraging message..."></textarea>
+    </div>
+    <div class="form-group" style="margin-top: 15px;">
+      <label>Payment Method <span class="req">*</span></label>
+      <div style="display:flex; gap:10px; margin-top:5px; margin-bottom:15px;">
+        <label style="flex:1; cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--border); text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;" onclick="document.getElementById('mfs-options').style.display='none'">
+          <input type="radio" name="payment_method" value="card" checked style="margin:0;">
+          <span><i class="fa-solid fa-credit-card"></i> Card</span>
+        </label>
+        <label style="flex:1; cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--border); text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;" onclick="document.getElementById('mfs-options').style.display='flex'">
+          <input type="radio" name="payment_method" value="mfs" style="margin:0;">
+          <span><i class="fa-solid fa-mobile-screen-button"></i> Mobile Banking</span>
+        </label>
+      </div>
+
+      <div id="mfs-options" style="display:none; gap:20px; justify-content:center; margin-bottom:15px;">
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
+          <input type="radio" name="mfs_provider" value="nagad" checked>
+          <img src="assets/nagad.jpg" alt="Nagad" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
+        </label>
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
+          <input type="radio" name="mfs_provider" value="bkash">
+          <img src="assets/bkash.jpg" alt="bKash" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
+        </label>
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
+          <input type="radio" name="mfs_provider" value="rocket">
+          <img src="assets/rocket.png" alt="Rocket" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
+        </label>
+      </div>
     </div>
     <div id="donate-error" class="form-error-msg" style="display:none"></div>
     <div style="display:flex;gap:12px;margin-top:20px">
