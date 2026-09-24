@@ -2757,11 +2757,18 @@ async function initMedicalPage() {
 
   await loadPublicCampaigns();
 
-  // Handle hash-based section routing for user views
-  if (window.location.hash === "#doctor-campaigns") {
-    showMwSection('campaigns', document.getElementById('sbl-campaigns'));
-  } else {
-    showMwSection('report', document.getElementById('sbl-report'));
+  const reportSec = document.getElementById("section-report");
+  if (reportSec) reportSec.classList.remove("hidden");
+
+  // Handle hash-based tab routing for user views
+  if (!isCharity) {
+    if (window.location.hash === "#doctor-campaigns") {
+      switchMwUserTab('campaigns', document.getElementById('tab-campaigns'));
+    } else if (window.location.hash === "#mycases") {
+      switchMwUserTab('mycases', document.getElementById('tab-mycases'));
+    } else {
+      switchMwUserTab('report', document.getElementById('tab-report'));
+    }
   }
 }
 
@@ -2974,7 +2981,7 @@ function renderPublicFinCampaigns(camps) {
     } else if (isExpired) {
       donateBtn = `<button class="btn btn-ghost btn-sm" disabled>Expired</button>`;
     } else {
-      donateBtn = `<button class="btn btn-primary btn-sm" onclick="openDonateModal(${c.id})"><i class="fa-solid fa-heart"></i> Donate</button>`;
+      donateBtn = `<button class="btn btn-primary btn-sm" onclick="openDonateModal(${c.id})">Donate</button>`;
     }
 
     return `
@@ -3093,7 +3100,7 @@ async function submitDonation() {
     res = await apiPost('financial.php', { action: 'donate', campaign_id: finDonateTarget, amount: amt, message: msg });
   }
 
-  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-heart"></i> Donate Now'; }
+  if (btn) { btn.disabled = false; btn.innerHTML = 'Donate Now'; }
 
   if (!res.ok) {
     if (errEl) { errEl.style.display = 'block'; errEl.textContent = res.msg || 'Donation failed.'; }
