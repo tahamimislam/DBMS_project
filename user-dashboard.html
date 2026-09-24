@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink User Dashboard">
+  <title>Dashboard – HumanityLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    .ud-nav-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      margin-top: 32px;
+    }
+    .ud-nav-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      text-decoration: none;
+      color: var(--text-color);
+      transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+    }
+    .ud-nav-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(0,0,0,0.1);
+      border-color: var(--primary);
+    }
+    .ud-nav-icon {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      margin-bottom: 8px;
+    }
+    .ud-nav-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    .ud-nav-desc {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+  </style>
+</head>
+<body class="has-sidebar">
+
+<!-- ── Sidebar ── -->
+<aside class="app-sidebar" id="appSidebar">
+  <a href="index.html" class="app-sidebar-logo" id="sidebar-logo-link">
+    <img src="assets/logo.jpg" alt="HumanityLink">
+    <span>HumanityLink</span>
+  </a>
+  <nav class="app-sidebar-nav">
+    <div class="app-sidebar-section-label">Navigation</div>
+    <a href="user-dashboard.html" class="app-sidebar-link active">
+      <span class="asbl-icon"><i class="fa-solid fa-table-columns"></i></span>
+      <span class="asbl-text">Dashboard</span>
+    </a>
+    <a href="medical-welfare.html" class="app-sidebar-link">
+      <span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span>
+      <span class="asbl-text">Medical & Welfare</span>
+    </a>
+    <a href="financial-support.html" class="app-sidebar-link">
+      <span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+      <span class="asbl-text">Financial Support</span>
+    </a>
+  </nav>
+  <div class="app-sidebar-spacer"></div>
+  <div class="app-sidebar-account" id="sidebarAccount"></div>
+</aside>
+
+<button class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()" aria-label="Close sidebar"></button>
+
+<div class="app-topbar" id="appTopbar">
+  <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+  <div class="topbar-title">Dashboard</div>
+  <div class="topbar-right" id="topbarRight"></div>
+  <button class="btn btn-ghost theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle theme">
+    <i class="fa-solid fa-moon"></i>
+  </button>
+  <button class="btn btn-ghost" onclick="document.getElementById('logoutBtn').click()" style="display:none" id="topbarLogout">
+    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+  </button>
+</div>
+
+<button id="logoutBtn" style="display:none" onclick="apiPost('logout.php',{}).then(()=>{window.location.href='auth.html';})"></button>
+
+<!-- ── Main Content ── -->
+<div class="app-main" id="appMain">
+  <div class="container mw-container" style="padding-top: 40px; max-width: 900px;">
+    
+    <div style="text-align: center; margin-bottom: 40px;">
+      <h1 style="font-size: 2.2rem; margin-bottom: 12px;">Welcome back, <span id="ud-user-name" style="color: var(--primary);">User</span>!</h1>
+      <p style="font-size: 1.1rem; color: var(--text-muted);">How would you like to contribute to the community today?</p>
+    </div>
+
+    <div class="ud-nav-grid">
+      
+      <!-- Medical & Welfare -->
+      <a href="medical-welfare.html" class="ud-nav-card">
+        <div class="ud-nav-icon" style="background: #e0e7ff; color: #3b82f6;">
+          <i class="fa-solid fa-notes-medical"></i>
+        </div>
+        <div class="ud-nav-title">Medical & Welfare Support</div>
+        <div class="ud-nav-desc">Report homeless or medically distressed individuals and track welfare cases.</div>
+      </a>
+
+      <!-- Financial Support -->
+      <a href="financial-support.html" class="ud-nav-card">
+        <div class="ud-nav-icon" style="background: #dcfce7; color: #22c55e;">
+          <i class="fa-solid fa-hand-holding-dollar"></i>
+        </div>
+        <div class="ud-nav-title">Financial Support</div>
+        <div class="ud-nav-desc">Donate to system funds and support verified charity campaigns securely.</div>
+      </a>
+
+    </div>
+
+  </div>
+</div>
+
+<script src="app.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Check if user is logged in
+    const checkUser = setInterval(() => {
+      if (HL.currentUser) {
+        clearInterval(checkUser);
+        const nameEl = document.getElementById('ud-user-name');
+        if (nameEl) nameEl.textContent = HL.currentUser.fullName.split(' ')[0];
+        if (typeof renderSidebarAccount === 'function') renderSidebarAccount();
+      }
+    }, 100);
+  });
+</script>
+</body>
+</html>

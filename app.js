@@ -176,7 +176,7 @@ function renderNavAuth() {
           ? "medical-welfare.html"
           : "food-support.html";
     } else if (HL.currentUser.accountType === "user") {
-      dashLink = "medical-welfare.html";
+      dashLink = "user-dashboard.html";
     } else dashLink = "food-support.html";
 
     const heroBtn = document.getElementById("hero-join-btn");
@@ -2339,7 +2339,6 @@ async function submitWelfareCase(e) {
     showMwSection('mycases', document.getElementById('sbl-mycases'));
   }
   document.getElementById("reportCaseForm")?.reset();
-  toggleReportForm(false);
   showToast(
     "Case reported successfully! A charity organization will review it.",
     "success",
@@ -2745,12 +2744,9 @@ async function initMedicalPage() {
   } else {
     // ── User View ──
     userView.classList.remove("hidden");
-    // Show "Report a Case" button
     const btnWrap = document.getElementById("report-btn-wrapper");
     if (btnWrap) {
-      btnWrap.innerHTML = `<button class="btn btn-primary" onclick="toggleReportForm(true)" id="open-report-btn">
-        <i class="fa-solid fa-plus"></i> Report a Case
-      </button>`;
+      btnWrap.innerHTML = "";
     }
     // Only show own cases
     const myCases = cases.filter(
@@ -2841,6 +2837,7 @@ function buildFinSidebar() {
   } else {
     navEl.innerHTML = `
       <div class="app-sidebar-section-label">Navigation</div>
+      <a href="user-dashboard.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-table-columns"></i></span><span class="asbl-text">Dashboard</span></a>
       <a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>
       <a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>
     `;
