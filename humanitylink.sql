@@ -149,3 +149,29 @@ CREATE TABLE IF NOT EXISTS campaign_participants (
     UNIQUE KEY (campaign_id, user_id)
 ) ENGINE=InnoDB;
 
+
+-- ── Financial Campaigns Table ──────────────────────────────
+CREATE TABLE IF NOT EXISTS financial_campaigns (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    charity_id  INT NOT NULL,
+    title       VARCHAR(200) NOT NULL,
+    description TEXT NOT NULL,
+    goal_amount DECIMAL(12,2) NOT NULL,
+    image_url   VARCHAR(255) DEFAULT NULL,
+    deadline    DATE NOT NULL,
+    status      ENUM('active','completed','cancelled') DEFAULT 'active',
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (charity_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+-- ── Donations Table ────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS donations (
+    id          INT AUTO_INCREMENT PRIMARY KEY,
+    campaign_id INT NOT NULL,
+    user_id     INT NOT NULL,
+    amount      DECIMAL(10,2) NOT NULL,
+    message     TEXT DEFAULT NULL,
+    created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (campaign_id) REFERENCES financial_campaigns(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;

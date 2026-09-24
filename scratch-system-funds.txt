@@ -1,0 +1,58 @@
+      <div class="subheading-label subheading-label-lg" style="margin-top: 20px; margin-bottom: 16px;">
+        <i class="fa-solid fa-building-columns"></i> System Managed Funds
+      </div>
+      <div class="fin-campaign-grid" style="margin-bottom: 40px;">
+        
+        <!-- Emergency Relief -->
+        <div class="fin-campaign-card">
+          <div class="fin-campaign-img" style="background: #fee2e2; color: #ef4444;">
+            <i class="fa-solid fa-house-chimney-crack"></i>
+          </div>
+          <div class="fin-campaign-body">
+            <div class="fin-campaign-title">Emergency Relief Fund</div>
+            <div class="fin-campaign-charity"><i class="fa-solid fa-shield-halved"></i> HumanityLink System</div>
+            <div class="fin-campaign-desc">Rapid response fund for natural disasters, floods, and unforeseen emergencies affecting vulnerable communities across Bangladesh.</div>
+            <div class="fin-campaign-footer" style="margin-top: auto;">
+              <div class="fin-meta"><span style="color:var(--primary); font-weight: 600;">System Managed</span></div>
+              <button class="btn btn-primary btn-sm" onclick="openSystemDonateModal('Emergency')"><i class="fa-solid fa-heart"></i> Donate</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- General Welfare -->
+        <div class="fin-campaign-card">
+          <div class="fin-campaign-img" style="background: #e0e7ff; color: #3b82f6;">
+            <i class="fa-solid fa-people-carry-box"></i>
+          </div>
+          <div class="fin-campaign-body">
+            <div class="fin-campaign-title">General Welfare Fund</div>
+            <div class="fin-campaign-charity"><i class="fa-solid fa-shield-halved"></i> HumanityLink System</div>
+            <div class="fin-campaign-desc">A flexible fund utilized for medical aid, clothing, and essential sustenance for marginalized individuals without access to specific charity campaigns.</div>
+            <div class="fin-campaign-footer" style="margin-top: auto;">
+              <div class="fin-meta"><span style="color:var(--primary); font-weight: 600;">System Managed</span></div>
+              <button class="btn btn-primary btn-sm" onclick="openSystemDonateModal('Welfare')"><i class="fa-solid fa-heart"></i> Donate</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meritorious Fund -->
+        <div class="fin-campaign-card">
+          <div class="fin-campaign-img" style="background: #fef3c7; color: #f59e0b;">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div class="fin-campaign-body">
+            <div class="fin-campaign-title">Meritorious Fund</div>
+            <div class="fin-campaign-charity"><i class="fa-solid fa-shield-halved"></i> HumanityLink System</div>
+            <div class="fin-campaign-desc">Dedicated financial assistance for meritorious but impoverished students who cannot afford their educational expenses.</div>
+            <div class="fin-campaign-footer" style="margin-top: auto;">
+              <div class="fin-meta"><span style="color:var(--primary); font-weight: 600;">System Managed</span></div>
+              <button class="btn btn-primary btn-sm" onclick="openSystemDonateModal('Meritorious')"><i class="fa-solid fa-heart"></i> Donate</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="subheading-label subheading-label-lg" style="margin-bottom: 16px;">
+        <i class="fa-solid fa-building-ngo"></i> Charity Organization Campaigns
+      </div>

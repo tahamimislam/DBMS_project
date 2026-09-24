@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink Financial Support - Donate to charity campaigns and help those in need.">
+  <title>Financial Support - HumanityLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Financial Support Page Styles ─────────────────────── */
+    .fin-campaign-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .fin-campaign-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .fin-campaign-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    .fin-campaign-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 2.5rem;
+    }
+    .fin-campaign-img img { width:100%; height:100%; object-fit:cover; }
+    .fin-campaign-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .fin-campaign-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 6px; color: var(--text-color); }
+    .fin-campaign-charity { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 10px; }
+    .fin-campaign-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 16px; flex: 1; }
+    .fin-progress-wrap { margin-bottom: 14px; }
+    .fin-progress-bar-bg { background: var(--bg-secondary); border-radius: 99px; height: 8px; overflow: hidden; margin-bottom: 6px; }
+    .fin-progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width 0.6s ease; }
+    .fin-progress-labels { display: flex; justify-content: space-between; font-size: 0.8rem; }
+    .fin-raised { font-weight: 700; color: var(--primary); }
+    .fin-goal { color: var(--text-muted); }
+    .fin-campaign-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 4px; }
+    .fin-meta { font-size: 0.8rem; color: var(--text-muted); }
+    .fin-deadline { color: var(--warning, #f59e0b); font-weight: 600; }
+
+    /* Charity management card */
+    .fin-mgmt-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .fin-mgmt-info { flex: 1; min-width: 200px; }
+    .fin-mgmt-title { font-weight: 700; font-size: 1rem; margin: 0 0 4px; }
+    .fin-mgmt-meta { font-size: 0.82rem; color: var(--text-muted); }
+    .fin-mgmt-raised { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+    .fin-mgmt-progress { width: 100%; margin: 10px 0 0; }
+
+    /* Donation history */
+    .donation-hist-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .donation-hist-row:last-child { border-bottom: none; }
+    .donation-hist-amount {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 80px;
+      text-align: right;
+    }
+    .donation-hist-info { flex: 1; }
+    .donation-hist-campaign { font-weight: 600; font-size: 0.95rem; }
+    .donation-hist-charity { font-size: 0.82rem; color: var(--text-muted); }
+    .donation-hist-date { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+
+    /* Donate Modal */
+    .donate-modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+    }
+    .donate-modal-overlay.show { display: flex; }
+    .donate-modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 460px;
+      margin: 20px;
+    }
+    .donate-modal h3 { margin: 0 0 6px; font-size: 1.3rem; }
+    .donate-modal p { margin: 0 0 20px; color: var(--text-muted); font-size: 0.9rem; }
+    .amount-presets { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .amount-btn { padding: 8px 18px; border: 1.5px solid var(--primary); border-radius: 99px; background: transparent; color: var(--primary); font-weight: 600; cursor: pointer; transition: all 0.15s; font-size: 0.9rem; }
+    .amount-btn:hover, .amount-btn.selected { background: var(--primary); color: #fff; }
+    .fin-stat-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px; margin-bottom:28px; }
+    .fin-stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+    .fin-stat-num { font-size:1.8rem; font-weight:800; color:var(--primary); }
+    .fin-stat-lbl { font-size:0.82rem; color:var(--text-muted); margin-top:2px; }
+  </style>
+</head>
+<body class="has-sidebar">
+
+<!-- ── Sidebar ── -->
+<aside class="app-sidebar" id="appSidebar">
+  <a href="index.html" class="app-sidebar-logo" id="sidebar-logo-link">
+    <img src="assets/logo.jpg" alt="HumanityLink">
+    <span>HumanityLink</span>
+  </a>
+  <nav class="app-sidebar-nav" id="fin-sidebar-nav">
+    <div class="app-sidebar-section-label">Navigation</div>
+    <!-- Nav links injected by JS based on account type -->
+  </nav>
+  <div class="app-sidebar-spacer"></div>
+  <div class="app-sidebar-account" id="sidebarAccount"></div>
+</aside>
+
+<button class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()" aria-label="Close sidebar"></button>
+
+<div class="app-topbar" id="appTopbar">
+  <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+  <div class="topbar-title">Financial Support</div>
+  <div class="topbar-right" id="topbarRight"></div>
+  <button class="btn btn-ghost theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle theme">
+    <i class="fa-solid fa-moon"></i>
+  </button>
+  <button class="btn btn-ghost" onclick="document.getElementById('logoutBtn').click()" style="display:none" id="topbarLogout">
+    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+  </button>
+</div>
+
+<button id="logoutBtn" style="display:none" onclick="apiPost('logout.php',{}).then(()=>{window.location.href='auth.html';})"></button>
+
+<!-- ── Main Content ── -->
+<div class="app-main" id="appMain">
+<div class="container mw-container">
+
+  <!-- ═══ CHARITY DASHBOARD ═══════════════════════════════════ -->
+  <div id="fin-section-charity" class="fin-section hidden">
+    <div class="page-header" style="margin-bottom:8px">
+      <div class="page-header-row">
+        <div>
+          <h1><i class="fa-solid fa-hand-holding-dollar"></i> Financial Campaigns</h1>
+          <p>Create and manage fundraising campaigns for your organization.</p>
+        </div>
+        <button class="btn btn-primary" onclick="toggleCreateForm(true)" id="create-campaign-btn">
+          <i class="fa-solid fa-plus"></i> New Campaign
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="fin-stat-row" id="charity-stats-row">
+      <div class="fin-stat-card">
+        <div class="fin-stat-num" id="cs-total">0</div>
+        <div class="fin-stat-lbl">Total Campaigns</div>
+      </div>
+      <div class="fin-stat-card">
+        <div class="fin-stat-num" id="cs-raised">৳0</div>
+        <div class="fin-stat-lbl">Total Raised</div>
+      </div>
+      <div class="fin-stat-card">
+        <div class="fin-stat-num" id="cs-donors">0</div>
+        <div class="fin-stat-lbl">Total Donors</div>
+      </div>
+    </div>
+
+    <!-- Create Campaign Form -->
+    <div id="create-campaign-form" class="post-card mw-form-card hidden" style="margin-bottom:28px">
+      <h3><i class="fa-solid fa-bullhorn"></i> Create New Campaign</h3>
+      <form id="campaignForm" onsubmit="submitCreateCampaign(event)">
+        <div class="form-group">
+          <label for="fc-title">Campaign Title <span class="req">*</span></label>
+          <input type="text" id="fc-title" class="form-control" placeholder="e.g. Help Flood Victims in Sylhet" required>
+        </div>
+        <div class="form-group">
+          <label for="fc-desc">Description <span class="req">*</span></label>
+          <textarea id="fc-desc" class="form-control" rows="4" placeholder="Describe who you are helping and how the funds will be used..." required></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fc-goal">Fundraising Goal (৳) <span class="req">*</span></label>
+            <input type="number" id="fc-goal" class="form-control" placeholder="e.g. 50000" min="100" step="1" required>
+          </div>
+          <div class="form-group">
+            <label for="fc-deadline">Deadline <span class="req">*</span></label>
+            <input type="date" id="fc-deadline" class="form-control" required>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="fc-image">Campaign Image <span style="font-size:0.8rem;color:var(--muted)">(Optional)</span></label>
+          <input type="file" id="fc-image" class="form-control" accept="image/*">
+        </div>
+        <div id="create-campaign-error" class="form-error-msg" style="display:none"></div>
+        <div class="form-actions-row">
+          <button type="submit" class="btn btn-primary" id="submit-campaign-btn">
+            <i class="fa-solid fa-paper-plane"></i> Create Campaign
+          </button>
+          <button type="button" class="btn btn-ghost" onclick="toggleCreateForm(false)">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- My Campaigns List -->
+    <div class="subheading-label subheading-label-lg" style="margin-bottom:16px">
+      <i class="fa-solid fa-list"></i> My Campaigns
+    </div>
+    <div id="my-campaigns-list"></div>
+    <div id="my-campaigns-empty" class="empty-state hidden">
+      <div class="empty-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+      <h3>No campaigns yet</h3>
+      <p>Click "New Campaign" to create your first fundraising campaign.</p>
+    </div>
+  </div>
+
+  <!-- ═══ USER VIEW ════════════════════════════════════════════ -->
+  <div id="fin-section-user" class="fin-section hidden">
+    <!-- Tabs: Browse Campaigns / My Donations -->
+    <div class="mw-tabs" style="margin-bottom:24px">
+      <button class="mw-tab active" id="tab-browse" onclick="switchFinTab('browse', this)">
+        <i class="fa-solid fa-hand-holding-dollar"></i> Browse Campaigns
+      </button>
+      <button class="mw-tab" id="tab-history" onclick="switchFinTab('history', this)">
+        <i class="fa-solid fa-clock-rotate-left"></i> My Donations
+      </button>
+    </div>
+
+    <!-- Browse Campaigns -->
+    <div id="fin-browse-section">
+      <div class="page-header" style="margin-bottom:4px">
+        <div>
+          <h1><i class="fa-solid fa-hand-holding-dollar"></i> Financial Support</h1>
+          <p>Support verified charity organizations with donations. Every contribution matters.</p>
+        </div>
+      </div>
+
+      <div class="subheading-label subheading-label-lg" style="margin-top: 20px; margin-bottom: 16px;">
+        <i class="fa-solid fa-building-columns"></i> System Managed Funds
+      </div>
+      <div class="fin-campaign-grid" style="margin-bottom: 40px;">
+        
+        <!-- Emergency Relief -->
+        <div class="fin-campaign-card">
+          <div class="fin-campaign-img" style="background: #fee2e2; color: #ef4444; font-size: 3.5rem;">
+            <i class="fa-solid fa-house-chimney-crack"></i>
+          </div>
+          <div class="fin-campaign-body">
+            <div class="fin-campaign-title">Emergency Relief Fund</div>
+            <div class="fin-campaign-charity"><i class="fa-solid fa-shield-halved"></i> HumanityLink System</div>
+            <div class="fin-campaign-desc">Rapid response fund for natural disasters, floods, and unforeseen emergencies affecting vulnerable communities across Bangladesh.</div>
+            <div class="fin-campaign-footer" style="margin-top: auto; border-top: none; padding-top: 0;">
+              <button class="btn btn-primary" style="width: 100%;" onclick="openSystemDonateModal('Emergency Relief')"><i class="fa-solid fa-heart"></i> Donate</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- General Welfare -->
+        <div class="fin-campaign-card">
+          <div class="fin-campaign-img" style="background: #e0e7ff; color: #3b82f6; font-size: 3.5rem;">
+            <i class="fa-solid fa-people-carry-box"></i>
+          </div>
+          <div class="fin-campaign-body">
+            <div class="fin-campaign-title">General Welfare Fund</div>
+            <div class="fin-campaign-charity"><i class="fa-solid fa-shield-halved"></i> HumanityLink System</div>
+            <div class="fin-campaign-desc">A flexible fund utilized for medical aid, clothing, and essential sustenance for marginalized individuals without access to specific charity campaigns.</div>
+            <div class="fin-campaign-footer" style="margin-top: auto; border-top: none; padding-top: 0;">
+              <button class="btn btn-primary" style="width: 100%;" onclick="openSystemDonateModal('General Welfare')"><i class="fa-solid fa-heart"></i> Donate</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Meritorious Fund -->
+        <div class="fin-campaign-card">
+          <div class="fin-campaign-img" style="background: #fef3c7; color: #f59e0b; font-size: 3.5rem;">
+            <i class="fa-solid fa-graduation-cap"></i>
+          </div>
+          <div class="fin-campaign-body">
+            <div class="fin-campaign-title">Meritorious Fund</div>
+            <div class="fin-campaign-charity"><i class="fa-solid fa-shield-halved"></i> HumanityLink System</div>
+            <div class="fin-campaign-desc">Dedicated financial assistance for meritorious but impoverished students who cannot afford their educational expenses.</div>
+            <div class="fin-campaign-footer" style="margin-top: auto; border-top: none; padding-top: 0;">
+              <button class="btn btn-primary" style="width: 100%;" onclick="openSystemDonateModal('Meritorious Fund')"><i class="fa-solid fa-heart"></i> Donate</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="subheading-label subheading-label-lg" style="margin-bottom: 16px;">
+        <i class="fa-solid fa-building-ngo"></i> Charity Organization Campaigns
+      </div>
+
+      <div class="fin-campaign-grid" id="public-campaigns-grid"></div>
+      <div id="public-campaigns-empty" class="empty-state hidden" style="margin-top:40px">
+        <div class="empty-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
+        <h3>No active campaigns</h3>
+        <p>There are no fundraising campaigns at the moment. Check back soon!</p>
+      </div>
+    </div>
+
+    <!-- My Donations History -->
+    <div id="fin-history-section" class="hidden">
+      <div class="page-header" style="margin-bottom:8px">
+        <h1><i class="fa-solid fa-clock-rotate-left"></i> My Donation History</h1>
+        <p>A record of all your contributions.</p>
+      </div>
+      <div id="donation-history-list"></div>
+      <div id="donation-history-empty" class="empty-state hidden">
+        <div class="empty-icon"><i class="fa-solid fa-heart"></i></div>
+        <h3>No donations yet</h3>
+        <p>Browse campaigns and make your first donation to help those in need.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ GUEST VIEW ═══════════════════════════════════════════ -->
+  <div id="fin-section-guest" class="fin-section hidden">
+    <div class="page-header">
+      <h1><i class="fa-solid fa-hand-holding-dollar"></i> Financial Support</h1>
+    </div>
+    <div class="empty-state" style="margin-top:40px">
+      <div class="empty-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
+      <h3>Login Required</h3>
+      <p>Please log in to browse campaigns and make donations.</p>
+      <a href="auth.html" class="btn btn-primary" style="margin-top:16px">Log In / Register</a>
+    </div>
+  </div>
+
+</div><!-- /.mw-container -->
+</div><!-- /.app-main -->
+
+<!-- ═══ DONATE MODAL ═══════════════════════════════════════════ -->
+<div class="donate-modal-overlay" id="donateModal">
+  <div class="donate-modal">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+      <h3 id="donate-modal-title"><i class="fa-solid fa-heart" style="color:var(--primary)"></i> Make a Donation</h3>
+      <button class="btn btn-ghost" onclick="closeDonateModal()" style="padding:4px 8px;font-size:1.1rem"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p id="donate-modal-subtitle">Your contribution will go directly to the campaign.</p>
+    <div class="amount-presets">
+      <button class="amount-btn" onclick="selectAmount(100)">৳100</button>
+      <button class="amount-btn" onclick="selectAmount(250)">৳250</button>
+      <button class="amount-btn" onclick="selectAmount(500)">৳500</button>
+      <button class="amount-btn" onclick="selectAmount(1000)">৳1,000</button>
+      <button class="amount-btn" onclick="selectAmount(2500)">৳2,500</button>
+    </div>
+    <div class="form-group">
+      <label for="donate-amount">Amount (৳) <span class="req">*</span></label>
+      <input type="number" id="donate-amount" class="form-control" placeholder="Enter amount" min="1" step="1">
+    </div>
+    <div class="form-group">
+      <label for="donate-message">Message <span style="font-size:0.8rem;color:var(--muted)">(Optional)</span></label>
+      <textarea id="donate-message" class="form-control" rows="2" placeholder="Leave an encouraging message..."></textarea>
+    </div>
+    <div id="donate-error" class="form-error-msg" style="display:none"></div>
+    <div style="display:flex;gap:12px;margin-top:20px">
+      <button class="btn btn-primary" onclick="submitDonation()" id="donate-submit-btn" style="flex:1">
+        <i class="fa-solid fa-heart"></i> Donate Now
+      </button>
+      <button class="btn btn-ghost" onclick="closeDonateModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DONORS LIST MODAL ════════════════════════════════════ -->
+<div class="modal-overlay" id="donorsModal">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header">
+      <h3 id="donors-modal-title"><i class="fa-solid fa-users"></i> Donors</h3>
+      <button class="modal-close" onclick="closeDonorsModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="donors-modal-list" style="padding:0 24px 24px;max-height:400px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

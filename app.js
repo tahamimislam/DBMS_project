@@ -180,10 +180,14 @@ function renderNavAuth() {
     } else dashLink = "food-support.html";
 
     const heroBtn = document.getElementById("hero-join-btn");
+    const donateBtn = document.getElementById("hero-donate-btn");
     if (heroBtn) {
       heroBtn.href = dashLink;
       heroBtn.innerHTML =
         '<i class="fa-solid fa-table-columns"></i> Go to Dashboard';
+      if (HL.currentUser.accountType === "user" && donateBtn) {
+        donateBtn.style.display = "inline-flex";
+      }
     }
 
     const ctaBtn = document.getElementById("cta-register-btn");
@@ -1275,7 +1279,7 @@ async function initFoodSupportPage() {
         navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education</span></a>`;
       }
       if (sectors.includes("Financial")) {
-        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
+        navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
       }
     }
   }
@@ -2002,6 +2006,7 @@ async function initApp() {
   await initRestaurantProfilePage();
   await initMedicalPage();
   await initDoctorDashboardPage();
+  await initFinancialPage();
 }
 
 if (document.readyState === "loading") {
@@ -2724,7 +2729,7 @@ async function initMedicalPage() {
         navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education</span></a>`;
       }
       if (sectors.includes("Financial")) {
-        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
+        navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
       }
     }
   }
@@ -2779,3 +2784,452 @@ function showMwSection(sec, link, e) {
   if (link) link.classList.add("active");
 }
 window.showMwSection = showMwSection;
+
+// ── Financial Support Page ─────────────────────────────────
+
+HL.finCampaigns = [];
+let finDonateTarget = null;
+let finActiveTab = 'browse';
+
+async function initFinancialPage() {
+  if (!document.getElementById('fin-section-charity') && !document.getElementById('fin-section-user')) return;
+
+  const charityView = document.getElementById('fin-section-charity');
+  const userView    = document.getElementById('fin-section-user');
+  const guestView   = document.getElementById('fin-section-guest');
+
+  // Hide all
+  [charityView, userView, guestView].forEach(el => el && el.classList.add('hidden'));
+
+  if (!HL.currentUser) {
+    guestView && guestView.classList.remove('hidden');
+    return;
+  }
+
+  renderSidebarAccount();
+  buildFinSidebar();
+
+  const isCharity = HL.currentUser.accountType === 'charity';
+
+  if (isCharity) {
+    charityView && charityView.classList.remove('hidden');
+    await loadMyCampaigns();
+  } else {
+    userView && userView.classList.remove('hidden');
+    await loadPublicFinCampaigns();
+    // Set min date for deadline
+    const today = new Date().toISOString().split('T')[0];
+    const ddl = document.getElementById('fc-deadline');
+    if (ddl) ddl.min = today;
+  }
+}
+
+function buildFinSidebar() {
+  const navEl = document.getElementById('fin-sidebar-nav');
+  if (!navEl) return;
+  const isCharity = HL.currentUser && HL.currentUser.accountType === 'charity';
+
+  if (isCharity && HL.currentUser.sectors) {
+    const sectors = HL.currentUser.sectors.split(',');
+    navEl.innerHTML = '<div class="app-sidebar-section-label">Your Sectors</div>';
+    if (sectors.includes('Food'))
+      navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+    if (sectors.includes('Medical'))
+      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
+    if (sectors.includes('Financial'))
+      navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>`;
+  } else {
+    navEl.innerHTML = `
+      <div class="app-sidebar-section-label">Navigation</div>
+      <a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>
+      <a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>
+    `;
+  }
+}
+
+// ── Charity: Load My Campaigns ─────────────────────────────
+async function loadMyCampaigns() {
+  const res = await apiGet('financial.php?action=my_campaigns');
+  if (!res.ok) return;
+  const camps = res.campaigns || [];
+
+  // Update stats
+  const totalRaised = camps.reduce((s, c) => s + c.raised_amount, 0);
+  const totalDonors = camps.reduce((s, c) => s + c.donor_count, 0);
+  const setEl = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+  setEl('cs-total', camps.length);
+  setEl('cs-raised', '৳' + totalRaised.toLocaleString());
+  setEl('cs-donors', totalDonors);
+
+  renderMyCampaigns(camps);
+}
+
+function renderMyCampaigns(camps) {
+  const list  = document.getElementById('my-campaigns-list');
+  const empty = document.getElementById('my-campaigns-empty');
+  if (!list) return;
+  if (!camps.length) {
+    list.innerHTML = '';
+    empty && empty.classList.remove('hidden');
+    return;
+  }
+  empty && empty.classList.add('hidden');
+
+  list.innerHTML = camps.map(c => `
+    <div class="fin-mgmt-card" id="fin-mgmt-${c.id}">
+      <div class="fin-mgmt-info">
+        <div class="fin-mgmt-title">${c.title}</div>
+        <div class="fin-mgmt-meta">
+          <i class="fa-regular fa-calendar"></i> Deadline: ${new Date(c.deadline + 'T00:00:00').toLocaleDateString('en-BD')}
+          &nbsp;|&nbsp; <i class="fa-solid fa-users"></i> ${c.donor_count} donor${c.donor_count !== 1 ? 's' : ''}
+          &nbsp;|&nbsp; <span style="color:${c.status==='active'?'var(--primary)':'var(--text-muted)'}">${c.status}</span>
+        </div>
+        <div class="fin-mgmt-progress">
+          <div class="fin-progress-bar-bg">
+            <div class="fin-progress-bar-fill" style="width:${c.progress}%"></div>
+          </div>
+          <div class="fin-progress-labels">
+            <span class="fin-raised">৳${c.raised_amount.toLocaleString()} raised</span>
+            <span class="fin-goal">of ৳${c.goal_amount.toLocaleString()} (${c.progress}%)</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+        <div class="fin-mgmt-raised">৳${c.raised_amount.toLocaleString()}</div>
+        <button class="btn btn-outline btn-sm" onclick="openDonorsModal(${c.id}, '${c.title.replace(/'/g,"\\'")}')">
+          <i class="fa-solid fa-users"></i> Donors
+        </button>
+        <button class="btn btn-sm" onclick="deleteFinCampaign(${c.id})"
+          style="background:rgba(220,53,69,.1);color:var(--danger);border:1px solid rgba(220,53,69,.3)">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── User: Load Public Campaigns ────────────────────────────
+async function loadPublicFinCampaigns() {
+  const grid  = document.getElementById('public-campaigns-grid');
+  const empty = document.getElementById('public-campaigns-empty');
+  if (!grid) return;
+  grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><br><br>Loading campaigns...</div>';
+
+  const res = await apiGet('financial.php?action=campaigns');
+  if (!res.ok) {
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--danger)">Failed to load campaigns.</div>';
+    return;
+  }
+  HL.finCampaigns = res.campaigns || [];
+  renderPublicFinCampaigns(HL.finCampaigns);
+}
+
+function renderPublicFinCampaigns(camps) {
+  const grid  = document.getElementById('public-campaigns-grid');
+  const empty = document.getElementById('public-campaigns-empty');
+  if (!grid) return;
+
+  if (!camps.length) {
+    grid.innerHTML = '';
+    empty && empty.classList.remove('hidden');
+    return;
+  }
+  empty && empty.classList.add('hidden');
+
+  const isLoggedIn = !!HL.currentUser;
+
+  grid.innerHTML = camps.map(c => {
+    const deadlineDate = c.deadline.split('T')[0]; // get YYYY-MM-DD
+    const todayDate = new Date().toISOString().split('T')[0];
+    const isExpired = deadlineDate < todayDate;
+    const deadlineStr = new Date(c.deadline + 'T00:00:00').toLocaleDateString('en-BD');
+
+    let donateBtn = '';
+    if (!isLoggedIn) {
+      donateBtn = `<a href="auth.html" class="btn btn-primary btn-sm">Log in to Donate</a>`;
+    } else if (c.i_donated) {
+      donateBtn = `<button class="btn btn-outline btn-sm" disabled><i class="fa-solid fa-check"></i> Donated</button>`;
+    } else if (isExpired) {
+      donateBtn = `<button class="btn btn-ghost btn-sm" disabled>Expired</button>`;
+    } else {
+      donateBtn = `<button class="btn btn-primary btn-sm" onclick="openDonateModal(${c.id})"><i class="fa-solid fa-heart"></i> Donate</button>`;
+    }
+
+    return `
+    <div class="fin-campaign-card" id="fin-card-${c.id}">
+      <div class="fin-campaign-img">
+        ${c.image_url ? `<img src="${c.image_url}" alt="${c.title}">` : `<i class="fa-solid fa-hand-holding-heart"></i>`}
+      </div>
+      <div class="fin-campaign-body">
+        <div class="fin-campaign-title">${c.title}</div>
+        <div class="fin-campaign-charity"><i class="fa-solid fa-building-ngo"></i> ${c.charity_name}</div>
+        <div class="fin-campaign-desc">${c.description.length > 120 ? c.description.substring(0,120)+'...' : c.description}</div>
+        <div class="fin-progress-wrap">
+          <div class="fin-progress-bar-bg">
+            <div class="fin-progress-bar-fill" style="width:${c.progress}%"></div>
+          </div>
+          <div class="fin-progress-labels">
+            <span class="fin-raised">৳${c.raised_amount.toLocaleString()}</span>
+            <span class="fin-goal">of ৳${c.goal_amount.toLocaleString()}</span>
+          </div>
+        </div>
+        <div class="fin-campaign-footer">
+          <div class="fin-meta">
+            <i class="fa-solid fa-users"></i> ${c.donor_count} donor${c.donor_count!==1?'s':''}
+            &nbsp;|&nbsp;
+            <span class="fin-deadline"><i class="fa-regular fa-calendar"></i> ${deadlineStr}</span>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost btn-sm" onclick="openDonorsModal(${c.id}, '${c.title.replace(/'/g,"\\'")}')">
+              <i class="fa-solid fa-users"></i>
+            </button>
+            ${donateBtn}
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+let finSystemFund = null;
+
+function openSystemDonateModal(fundName) {
+  if (!HL.currentUser) { window.location.href = 'auth.html'; return; }
+  finDonateTarget = null;
+  finSystemFund = fundName;
+  
+  const titleEl = document.getElementById('donate-modal-title');
+  const subEl   = document.getElementById('donate-modal-subtitle');
+  if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-heart" style="color:var(--primary)"></i> Donate to ${fundName}`;
+  if (subEl) subEl.textContent = "Your contribution will go directly to the HumanityLink System Fund.";
+  
+  const errEl = document.getElementById('donate-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  const amtEl = document.getElementById('donate-amount');
+  if (amtEl) amtEl.value = '';
+  const msgEl = document.getElementById('donate-message');
+  if (msgEl) msgEl.value = '';
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('donateModal').classList.add('show');
+}
+window.openSystemDonateModal = openSystemDonateModal;
+
+// ── Donate Modal ───────────────────────────────────────────
+function openDonateModal(campaignId) {
+  if (!HL.currentUser) { window.location.href = 'auth.html'; return; }
+  finDonateTarget = campaignId;
+  finSystemFund = null;
+  const camp = HL.finCampaigns.find(c => Number(c.id) === Number(campaignId));
+  if (camp) {
+    const titleEl = document.getElementById('donate-modal-title');
+    const subEl   = document.getElementById('donate-modal-subtitle');
+    if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-heart" style="color:var(--primary)"></i> Donate to Campaign`;
+    if (subEl) subEl.textContent = camp.title;
+  }
+  const errEl = document.getElementById('donate-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+  const amtEl = document.getElementById('donate-amount');
+  if (amtEl) amtEl.value = '';
+  const msgEl = document.getElementById('donate-message');
+  if (msgEl) msgEl.value = '';
+  document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('donateModal').classList.add('show');
+}
+window.openDonateModal = openDonateModal;
+
+function closeDonateModal() {
+  document.getElementById('donateModal').classList.remove('show');
+  finDonateTarget = null;
+}
+window.closeDonateModal = closeDonateModal;
+
+function selectAmount(amt) {
+  document.getElementById('donate-amount').value = amt;
+  document.querySelectorAll('.amount-btn').forEach(b => {
+    b.classList.toggle('selected', parseInt(b.textContent.replace(/[^\d]/g,'')) === amt);
+  });
+}
+window.selectAmount = selectAmount;
+
+async function submitDonation() {
+  const amt  = parseFloat(document.getElementById('donate-amount')?.value || 0);
+  const msg  = document.getElementById('donate-message')?.value.trim() || '';
+  const errEl = document.getElementById('donate-error');
+
+  if (!amt || amt < 1) {
+    if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Please enter a valid amount.'; }
+    return;
+  }
+
+  const btn = document.getElementById('donate-submit-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; }
+
+  let res;
+  if (finSystemFund) {
+    res = await apiPost('financial.php', { action: 'donate_system', fund_type: finSystemFund, amount: amt, message: msg });
+  } else {
+    res = await apiPost('financial.php', { action: 'donate', campaign_id: finDonateTarget, amount: amt, message: msg });
+  }
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-heart"></i> Donate Now'; }
+
+  if (!res.ok) {
+    if (errEl) { errEl.style.display = 'block'; errEl.textContent = res.msg || 'Donation failed.'; }
+    return;
+  }
+
+  closeDonateModal();
+  showToast(res.msg, 'success');
+
+  // Update card live if not a system fund
+  if (!finSystemFund) {
+    const camp = HL.finCampaigns.find(c => Number(c.id) === Number(finDonateTarget));
+    if (camp) {
+      camp.raised_amount = res.raised_amount;
+      camp.donor_count   = res.donor_count;
+      camp.i_donated     = true;
+      camp.progress      = camp.goal_amount > 0 ? Math.min(100, Math.round((res.raised_amount / camp.goal_amount) * 100 * 10) / 10) : 0;
+    }
+    renderPublicFinCampaigns(HL.finCampaigns);
+  }
+}
+window.submitDonation = submitDonation;
+
+// ── Donation History ───────────────────────────────────────
+async function loadDonationHistory() {
+  const listEl  = document.getElementById('donation-history-list');
+  const emptyEl = document.getElementById('donation-history-empty');
+  if (!listEl) return;
+  listEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+
+  const res = await apiGet('financial.php?action=my_donations');
+  if (!res.ok || !res.donations.length) {
+    listEl.innerHTML = '';
+    emptyEl && emptyEl.classList.remove('hidden');
+    return;
+  }
+  emptyEl && emptyEl.classList.add('hidden');
+  listEl.innerHTML = res.donations.map(d => `
+    <div class="donation-hist-row">
+      <div class="donation-hist-amount">৳${d.amount.toLocaleString()}</div>
+      <div class="donation-hist-info">
+        <div class="donation-hist-campaign">${d.campaign_title}</div>
+        <div class="donation-hist-charity"><i class="fa-solid fa-building-ngo"></i> ${d.charity_name}</div>
+        ${d.message ? `<div style="font-size:0.82rem;color:var(--text-muted);margin-top:3px"><i class="fa-solid fa-quote-left"></i> ${d.message}</div>` : ''}
+      </div>
+      <div class="donation-hist-date">${new Date(d.created_at).toLocaleDateString('en-BD', {month:'short',day:'numeric',year:'numeric'})}</div>
+    </div>
+  `).join('');
+}
+
+function switchFinTab(tab, btn) {
+  finActiveTab = tab;
+  document.querySelectorAll('.mw-tab').forEach(b => b.classList.remove('active'));
+  if (btn) btn.classList.add('active');
+
+  const browseEl  = document.getElementById('fin-browse-section');
+  const historyEl = document.getElementById('fin-history-section');
+
+  if (tab === 'browse') {
+    browseEl && browseEl.classList.remove('hidden');
+    historyEl && historyEl.classList.add('hidden');
+  } else {
+    browseEl && browseEl.classList.add('hidden');
+    historyEl && historyEl.classList.remove('hidden');
+    loadDonationHistory();
+  }
+}
+window.switchFinTab = switchFinTab;
+
+// ── Charity: Create Campaign ───────────────────────────────
+function toggleCreateForm(show) {
+  const form = document.getElementById('create-campaign-form');
+  const btn  = document.getElementById('create-campaign-btn');
+  if (form) form.classList.toggle('hidden', !show);
+  if (btn)  btn.style.display = show ? 'none' : '';
+}
+window.toggleCreateForm = toggleCreateForm;
+
+async function submitCreateCampaign(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('create-campaign-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+  const fd = new FormData();
+  fd.append('action', 'create_campaign');
+  fd.append('title',       document.getElementById('fc-title').value.trim());
+  fd.append('description', document.getElementById('fc-desc').value.trim());
+  fd.append('goal_amount', document.getElementById('fc-goal').value);
+  fd.append('deadline',    document.getElementById('fc-deadline').value);
+  const img = document.getElementById('fc-image');
+  if (img && img.files[0]) fd.append('image', img.files[0]);
+
+  const btn = document.getElementById('submit-campaign-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating...'; }
+
+  const res = await apiPost('financial.php', fd);
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Create Campaign'; }
+
+  if (!res.ok) {
+    if (errEl) { errEl.style.display = 'block'; errEl.textContent = res.msg || 'Failed to create campaign.'; }
+    return;
+  }
+
+  document.getElementById('campaignForm')?.reset();
+  toggleCreateForm(false);
+  showToast('Campaign created successfully!', 'success');
+  await loadMyCampaigns();
+}
+window.submitCreateCampaign = submitCreateCampaign;
+
+// ── Delete Campaign (Charity) ──────────────────────────────
+async function deleteFinCampaign(id) {
+  if (!confirm('Delete this campaign? This cannot be undone.')) return;
+  const res = await apiPost('financial.php', { action: 'delete_campaign', id });
+  if (res.ok) {
+    showToast(res.msg, 'success');
+    const card = document.getElementById('fin-mgmt-' + id);
+    if (card) { card.style.opacity = '0'; card.style.transition = 'opacity 0.3s'; setTimeout(() => card.remove(), 300); }
+    await loadMyCampaigns();
+  } else {
+    showToast(res.msg || 'Delete failed.', 'error');
+  }
+}
+window.deleteFinCampaign = deleteFinCampaign;
+
+// ── Donors Modal ───────────────────────────────────────────
+async function openDonorsModal(campaignId, title) {
+  const modal   = document.getElementById('donorsModal');
+  const listEl  = document.getElementById('donors-modal-list');
+  const titleEl = document.getElementById('donors-modal-title');
+  if (!modal || !listEl) return;
+
+  if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-users"></i> Donors — ${title}`;
+  listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+  modal.classList.add('show');
+
+  const res = await apiGet(`financial.php?action=campaign_donors&campaign_id=${campaignId}`);
+  if (!res.ok || !res.donors.length) {
+    listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)">No donations yet.</div>';
+    return;
+  }
+  listEl.innerHTML = res.donors.map(d => `
+    <div style="display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="width:38px;height:38px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem;flex-shrink:0">
+        ${d.full_name[0].toUpperCase()}
+      </div>
+      <div style="flex:1">
+        <div style="font-weight:600;font-size:0.95rem">${d.full_name}</div>
+        ${d.message ? `<div style="font-size:0.8rem;color:var(--text-muted)">"${d.message}"</div>` : ''}
+      </div>
+      <div style="font-weight:700;color:var(--primary);white-space:nowrap">৳${parseFloat(d.amount).toLocaleString()}</div>
+    </div>
+  `).join('');
+}
+window.openDonorsModal = openDonorsModal;
+
+function closeDonorsModal() {
+  document.getElementById('donorsModal')?.classList.remove('show');
+}
+window.closeDonorsModal = closeDonorsModal;
