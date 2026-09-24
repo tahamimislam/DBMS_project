@@ -22,17 +22,13 @@
       <span class="asbl-icon"><i class="fa-solid fa-table-columns"></i></span>
       <span class="asbl-text">Dashboard</span>
     </a>
-    <a href="#report-case" class="app-sidebar-link active" id="sbl-report" onclick="showMwSection('report', this, event)">
-      <span class="asbl-icon"><i class="fa-solid fa-circle-plus"></i></span>
-      <span class="asbl-text">Report a Case</span>
+    <a href="medical-welfare.html" class="app-sidebar-link active">
+      <span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span>
+      <span class="asbl-text">Medical & Welfare</span>
     </a>
-    <a href="#mycases" class="app-sidebar-link" id="sbl-mycases" onclick="showMwSection('mycases', this, event)">
-      <span class="asbl-icon"><i class="fa-solid fa-clipboard-list"></i></span>
-      <span class="asbl-text">My Reported Cases</span>
-    </a>
-    <a href="#doctor-campaigns" class="app-sidebar-link" id="sbl-campaigns" onclick="showMwSection('campaigns', this, event)">
-      <span class="asbl-icon"><i class="fa-solid fa-stethoscope"></i></span>
-      <span class="asbl-text">Doctor Campaigns</span>
+    <a href="financial-support.html" class="app-sidebar-link">
+      <span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span>
+      <span class="asbl-text">Financial Support</span>
     </a>
   </nav>
   <div class="app-sidebar-spacer"></div>
@@ -132,14 +128,24 @@
           <h1><i class="fa-solid fa-notes-medical"></i> Medical &amp; Welfare Support</h1>
           <p>Report homeless, medically distressed, or vulnerable individuals.</p>
         </div>
-        <div id="report-btn-wrapper"></div>
       </div>
     </div>
 
+    <!-- Tabs -->
+    <div class="mw-tabs" style="margin-bottom:24px">
+      <button class="mw-tab active" id="tab-report" onclick="switchMwUserTab('report', this)">
+        <i class="fa-solid fa-circle-plus"></i> Report a Case
+      </button>
+      <button class="mw-tab" id="tab-mycases" onclick="switchMwUserTab('mycases', this)">
+        <i class="fa-solid fa-clipboard-list"></i> My Reported Cases
+      </button>
+      <button class="mw-tab" id="tab-campaigns" onclick="switchMwUserTab('campaigns', this)">
+        <i class="fa-solid fa-stethoscope"></i> Doctor Campaigns
+      </button>
+    </div>
 
-
-    <!-- Report Case Form -->
-    <div id="reportCaseSection">
+    <!-- Report Case Tab Content -->
+    <div id="mw-user-report-section">
       <div class="post-card mw-form-card">
         <h3><i class="fa-solid fa-triangle-exclamation"></i> Report a Welfare Case</h3>
         <form id="reportCaseForm" onsubmit="submitWelfareCase(event)">
@@ -199,6 +205,30 @@
       </div>
     </div>
 
+    <!-- My Reported Cases Tab Content -->
+    <div id="mw-user-mycases-section" class="hidden">
+      <div class="mw-grid" id="mwUserGrid"></div>
+      <div id="mwUserEmpty" class="empty-state hidden">
+        <div class="empty-icon"><i class="fa-solid fa-notes-medical"></i></div>
+        <h3>No cases reported yet</h3>
+        <p>Use the "Report a Case" tab to report a person in need.</p>
+      </div>
+    </div>
+
+    <!-- Doctor Campaigns Tab Content -->
+    <div id="mw-user-campaigns-section" class="hidden">
+      <div class="page-header" style="margin-bottom:20px;">
+        <p>Join free medical checkups and treatments hosted by verified doctors.</p>
+      </div>
+      <div id="public-campaigns-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px;">
+      </div>
+      <div id="public-campaigns-empty" class="empty-state hidden" style="margin-top:40px">
+        <div class="empty-icon"><i class="fa-solid fa-user-doctor"></i></div>
+        <h3>No active doctor campaigns</h3>
+        <p>There are no medical campaigns running right now. Check back later.</p>
+      </div>
+    </div>
+
   </div>
   <!-- /#mw-user-dashboard inside section-report -->
 
@@ -218,28 +248,7 @@
   </div>
   <!-- /#section-report -->
 
-  <!-- ═══════════════════════════════════════════════════════
-       MY REPORTED CASES SECTION
-  ════════════════════════════════════════════════════════ -->
-  <div id="section-mycases" class="mw-section hidden">
-    <div id="mw-user-dashboard-cases">
-      <div class="page-header" style="margin-bottom:8px">
-        <div class="page-header-row">
-          <div>
-            <h1><i class="fa-solid fa-clipboard-list"></i> My Reported Cases</h1>
-            <p>Cases you have reported. Track their status here.</p>
-          </div>
-        </div>
-      </div>
-      <div class="mw-grid" id="mwUserGrid"></div>
-      <div id="mwUserEmpty" class="empty-state hidden">
-        <div class="empty-icon" onclick="showMwSection('report', document.getElementById('sbl-report'))" style="cursor: pointer;" title="Report a Case"><i class="fa-solid fa-notes-medical"></i></div>
-        <h3>No cases reported yet</h3>
-        <p>Click "Report a Case" in the sidebar to report a person in need.</p>
-      </div>
-    </div>
-  </div>
-  <!-- /#section-mycases -->
+  
 
   <!-- ═══════════════════════════════════════════════════════
        DOCTOR CAMPAIGNS SECTION
@@ -357,3 +366,4 @@
 <script src="app.js"></script>
 </body>
 </html>
+

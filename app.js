@@ -2336,7 +2336,7 @@ async function submitWelfareCase(e) {
     );
     renderMwUserGrid(myCases);
     // Switch to My Reported Cases section after submit
-    showMwSection('mycases', document.getElementById('sbl-mycases'));
+    switchMwUserTab('mycases', document.getElementById('tab-mycases'));
   }
   document.getElementById("reportCaseForm")?.reset();
   showToast(
@@ -2765,6 +2765,31 @@ async function initMedicalPage() {
   }
 }
 
+function switchMwUserTab(tab, btn) {
+  const tabsContainer = btn ? btn.closest('.mw-tabs') : document.querySelector('.mw-tabs');
+  if (tabsContainer) {
+    tabsContainer.querySelectorAll('.mw-tab').forEach(b => b.classList.remove('active'));
+  }
+  if (btn) btn.classList.add('active');
+
+  const reportEl = document.getElementById('mw-user-report-section');
+  const mycasesEl = document.getElementById('mw-user-mycases-section');
+  const campaignsEl = document.getElementById('mw-user-campaigns-section');
+
+  if (reportEl) reportEl.classList.add('hidden');
+  if (mycasesEl) mycasesEl.classList.add('hidden');
+  if (campaignsEl) campaignsEl.classList.add('hidden');
+
+  if (tab === 'report') {
+    if (reportEl) reportEl.classList.remove('hidden');
+  } else if (tab === 'mycases') {
+    if (mycasesEl) mycasesEl.classList.remove('hidden');
+  } else if (tab === 'campaigns') {
+    if (campaignsEl) campaignsEl.classList.remove('hidden');
+  }
+}
+window.switchMwUserTab = switchMwUserTab;
+
 function showMwSection(sec, link, e) {
   if (e && e.preventDefault) e.preventDefault();
   
@@ -3124,15 +3149,20 @@ function switchFinTab(tab, btn) {
   document.querySelectorAll('.mw-tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 
-  const browseEl  = document.getElementById('fin-browse-section');
+  const systemEl  = document.getElementById('fin-system-section');
+  const charityEl = document.getElementById('fin-charity-section');
   const historyEl = document.getElementById('fin-history-section');
 
-  if (tab === 'browse') {
-    browseEl && browseEl.classList.remove('hidden');
-    historyEl && historyEl.classList.add('hidden');
-  } else {
-    browseEl && browseEl.classList.add('hidden');
-    historyEl && historyEl.classList.remove('hidden');
+  if (systemEl) systemEl.classList.add('hidden');
+  if (charityEl) charityEl.classList.add('hidden');
+  if (historyEl) historyEl.classList.add('hidden');
+
+  if (tab === 'system') {
+    if (systemEl) systemEl.classList.remove('hidden');
+  } else if (tab === 'charity') {
+    if (charityEl) charityEl.classList.remove('hidden');
+  } else if (tab === 'history') {
+    if (historyEl) historyEl.classList.remove('hidden');
     loadDonationHistory();
   }
 }

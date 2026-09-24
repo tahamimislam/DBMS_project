@@ -244,28 +244,28 @@
 
   <!-- ═══ USER VIEW ════════════════════════════════════════════ -->
   <div id="fin-section-user" class="fin-section hidden">
-    <!-- Tabs: Browse Campaigns / My Donations -->
+    <!-- Tabs: System Funds / Charity Campaigns / My Donations -->
     <div class="mw-tabs" style="margin-bottom:24px">
-      <button class="mw-tab active" id="tab-browse" onclick="switchFinTab('browse', this)">
-        <i class="fa-solid fa-hand-holding-dollar"></i> Browse Campaigns
+      <button class="mw-tab active" id="tab-system" onclick="switchFinTab('system', this)">
+        <i class="fa-solid fa-building-columns"></i> System Managed Funds
+      </button>
+      <button class="mw-tab" id="tab-charity" onclick="switchFinTab('charity', this)">
+        <i class="fa-solid fa-building-ngo"></i> Charity Campaigns
       </button>
       <button class="mw-tab" id="tab-history" onclick="switchFinTab('history', this)">
         <i class="fa-solid fa-clock-rotate-left"></i> My Donations
       </button>
     </div>
 
-    <!-- Browse Campaigns -->
-    <div id="fin-browse-section">
-      <div class="page-header" style="margin-bottom:4px">
+    <!-- System Managed Funds -->
+    <div id="fin-system-section">
+      <div class="page-header" style="margin-bottom:16px">
         <div>
-          <h1><i class="fa-solid fa-hand-holding-dollar"></i> Financial Support</h1>
-          <p>Support verified charity organizations with donations. Every contribution matters.</p>
+          <h1><i class="fa-solid fa-building-columns"></i> System Managed Funds</h1>
+          <p>Your contribution goes directly to the HumanityLink System Fund for coordinated responses.</p>
         </div>
       </div>
 
-      <div class="subheading-label subheading-label-lg" style="margin-top: 20px; margin-bottom: 16px;">
-        <i class="fa-solid fa-building-columns"></i> System Managed Funds
-      </div>
       <div class="fin-campaign-grid" style="margin-bottom: 40px;">
         
         <!-- Emergency Relief -->
@@ -314,9 +314,15 @@
         </div>
 
       </div>
+    </div>
 
-      <div class="subheading-label subheading-label-lg" style="margin-bottom: 16px;">
-        <i class="fa-solid fa-building-ngo"></i> Charity Organization Campaigns
+    <!-- Charity Campaigns -->
+    <div id="fin-charity-section" class="hidden">
+      <div class="page-header" style="margin-bottom:16px">
+        <div>
+          <h1><i class="fa-solid fa-building-ngo"></i> Charity Organization Campaigns</h1>
+          <p>Support verified charity organizations with targeted donations. Every contribution matters.</p>
+        </div>
       </div>
 
       <div class="fin-campaign-grid" id="public-campaigns-grid"></div>
