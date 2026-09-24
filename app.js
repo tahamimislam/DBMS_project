@@ -3084,20 +3084,52 @@ async function submitDonation() {
   const amt  = parseFloat(document.getElementById('donate-amount')?.value || 0);
   const msg  = document.getElementById('donate-message')?.value.trim() || '';
   const errEl = document.getElementById('donate-error');
+  if (errEl) errEl.style.display = 'none';
 
   if (!amt || amt < 1) {
     if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Please enter a valid amount.'; }
     return;
   }
 
+  const methodType = document.querySelector('input[name="payment_method"]:checked').value;
+  let provider = 'card';
+  let maskedAccount = '';
+
+  if (methodType === 'card') {
+    const cardNum = document.getElementById('card-number').value.replace(/\s+/g, '');
+    if (cardNum.length < 16) {
+      if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Please enter a valid 16-digit card number.'; }
+      return;
+    }
+    maskedAccount = '**** **** **** ' + cardNum.slice(-4);
+  } else {
+    provider = document.querySelector('input[name="mfs_provider"]:checked').value;
+    const mfsNum = document.getElementById('mfs-number').value;
+    if (mfsNum.length < 11) {
+      if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Please enter a valid 11-digit mobile number.'; }
+      return;
+    }
+    maskedAccount = '*******' + mfsNum.slice(-4);
+  }
+
   const btn = document.getElementById('donate-submit-btn');
-  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing payment...'; }
+
+  // Simulate payment processing delay (1.5 seconds)
+  await new Promise(r => setTimeout(r, 1500));
+
+  // Generate fake transaction ID
+  let prefix = 'CRD';
+  if (provider === 'bkash') prefix = 'BKX';
+  else if (provider === 'nagad') prefix = 'NGD';
+  else if (provider === 'rocket') prefix = 'RKT';
+  const txnId = prefix + new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
 
   let res;
   if (finSystemFund) {
-    res = await apiPost('financial.php', { action: 'donate_system', fund_type: finSystemFund, amount: amt, message: msg });
+    res = await apiPost('financial.php', { action: 'donate_system', fund_type: finSystemFund, amount: amt, message: msg, payment_method: provider, transaction_id: txnId, masked_account: maskedAccount });
   } else {
-    res = await apiPost('financial.php', { action: 'donate', campaign_id: finDonateTarget, amount: amt, message: msg });
+    res = await apiPost('financial.php', { action: 'donate', campaign_id: finDonateTarget, amount: amt, message: msg, payment_method: provider, transaction_id: txnId, masked_account: maskedAccount });
   }
 
   if (btn) { btn.disabled = false; btn.innerHTML = 'Donate Now'; }
@@ -3108,7 +3140,7 @@ async function submitDonation() {
   }
 
   closeDonateModal();
-  showToast(res.msg, 'success');
+  showToast(`Donation Successful! Txn ID: ${txnId}`, 'success');
 
   // Update card live if not a system fund
   if (!finSystemFund) {

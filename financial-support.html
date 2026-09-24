@@ -112,7 +112,11 @@
       width: 100%;
       max-width: 460px;
       margin: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
     }
+    .donate-modal::-webkit-scrollbar { width: 6px; }
+    .donate-modal::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 6px; }
     .donate-modal h3 { margin: 0 0 6px; font-size: 1.3rem; }
     .donate-modal p { margin: 0 0 20px; color: var(--text-muted); font-size: 0.9rem; }
     .amount-presets { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -390,29 +394,57 @@
     <div class="form-group" style="margin-top: 15px;">
       <label>Payment Method <span class="req">*</span></label>
       <div style="display:flex; gap:10px; margin-top:5px; margin-bottom:15px;">
-        <label style="flex:1; cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--border); text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;" onclick="document.getElementById('mfs-options').style.display='none'">
+        <label style="flex:1; cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--border); text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;" onclick="document.getElementById('mfs-options').style.display='none'; document.getElementById('payment-card-details').style.display='block'; document.getElementById('payment-mfs-details').style.display='none';">
           <input type="radio" name="payment_method" value="card" checked style="margin:0;">
           <span><i class="fa-solid fa-credit-card"></i> Card</span>
         </label>
-        <label style="flex:1; cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--border); text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;" onclick="document.getElementById('mfs-options').style.display='flex'">
+        <label style="flex:1; cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--border); text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;" onclick="document.getElementById('mfs-options').style.display='flex'; document.getElementById('payment-card-details').style.display='none'; document.getElementById('payment-mfs-details').style.display='block';">
           <input type="radio" name="payment_method" value="mfs" style="margin:0;">
           <span><i class="fa-solid fa-mobile-screen-button"></i> Mobile Banking</span>
         </label>
       </div>
 
       <div id="mfs-options" style="display:none; gap:20px; justify-content:center; margin-bottom:15px;">
-        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" onclick="document.getElementById('mfs-number-label').innerText='Nagad Number'">
           <input type="radio" name="mfs_provider" value="nagad" checked>
           <img src="assets/nagad.jpg" alt="Nagad" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
         </label>
-        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" onclick="document.getElementById('mfs-number-label').innerText='bKash Number'">
           <input type="radio" name="mfs_provider" value="bkash">
           <img src="assets/bkash.jpg" alt="bKash" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
         </label>
-        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" onclick="document.getElementById('mfs-number-label').innerText='Rocket Number'">
           <input type="radio" name="mfs_provider" value="rocket">
           <img src="assets/rocket.png" alt="Rocket" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
         </label>
+      </div>
+
+      <div style="font-size: 0.8rem; text-align: center; color: var(--warning); margin-bottom: 10px;">
+        <i class="fa-solid fa-triangle-exclamation"></i> Demo Payment System — No real money will be charged.
+      </div>
+
+      <div id="payment-card-details" style="display:block; padding:15px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid var(--border);">
+        <label>Cardholder Name</label>
+        <input type="text" id="card-name" class="form-control" placeholder="John Doe" style="margin-bottom:10px;">
+        <label>Card Number</label>
+        <input type="text" id="card-number" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" style="margin-bottom:10px;">
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;">
+            <label>Expiry Date</label>
+            <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY" maxlength="5">
+          </div>
+          <div style="flex:1;">
+            <label>CVV</label>
+            <input type="password" id="card-cvv" class="form-control" placeholder="***" maxlength="4">
+          </div>
+        </div>
+      </div>
+
+      <div id="payment-mfs-details" style="display:none; padding:15px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid var(--border);">
+        <label id="mfs-number-label">Nagad Number</label>
+        <input type="text" id="mfs-number" class="form-control" placeholder="01XXXXXXXXX" maxlength="11" style="margin-bottom:10px;">
+        <label>PIN / OTP (Simulation Only)</label>
+        <input type="password" id="mfs-pin" class="form-control" placeholder="****" maxlength="6">
       </div>
     </div>
     <div id="donate-error" class="form-error-msg" style="display:none"></div>

@@ -19,7 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 $action = $_GET['action'] ?? ($_POST['action'] ?? '');
-$userId = $_SESSION['user_id'] ?? null;
+$userId = $_SESSION['user']['id'] ?? null;
 
 // ─── GET ────────────────────────────────────────────────────
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
@@ -201,14 +201,17 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $fundType = trim($_POST['fund_type'] ?? '');
         $amount   = (float)($_POST['amount'] ?? 0);
         $message  = trim($_POST['message'] ?? '');
+        $pm       = trim($_POST['payment_method'] ?? 'card');
+        $txId     = trim($_POST['transaction_id'] ?? '');
+        $masked   = trim($_POST['masked_account'] ?? '');
 
         if (!$fundType || $amount <= 0) {
             echo json_encode(['ok'=>false,'msg'=>'Invalid donation amount.']);
             exit;
         }
 
-        $stmt = $conn->prepare("INSERT INTO donations (campaign_id, user_id, amount, message, system_fund) VALUES (NULL, ?, ?, ?, ?)");
-        $stmt->bind_param("idss", $userId, $amount, $message, $fundType);
+        $stmt = $conn->prepare("INSERT INTO donations (campaign_id, user_id, amount, message, system_fund, payment_method, transaction_id, masked_account, payment_status) VALUES (NULL, ?, ?, ?, ?, ?, ?, ?, 'SUCCESS')");
+        $stmt->bind_param("idsssss", $userId, $amount, $message, $fundType, $pm, $txId, $masked);
 
         if ($stmt->execute()) {
             echo json_encode([
@@ -225,36 +228,48 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $campaignId = (int)($_POST['campaign_id'] ?? 0);
         $amount     = (float)($_POST['amount'] ?? 0);
         $message    = trim($_POST['message'] ?? '');
+        $pm         = trim($_POST['payment_method'] ?? 'card');
+        $txId       = trim($_POST['transaction_id'] ?? '');
+        $masked     = trim($_POST['masked_account'] ?? '');
 
         if (!$campaignId || $amount <= 0) {
             echo json_encode(['ok'=>false,'msg'=>'Invalid donation amount.']);
             exit;
         }
 
-        $stmt = $conn->prepare("SELECT id FROM financial_campaigns WHERE id = ? AND status = 'active'");
-        $stmt->bind_param("i", $campaignId);
-        $stmt->execute();
-        if (!$stmt->get_result()->fetch_assoc()) {
-            echo json_encode(['ok'=>false,'msg'=>'Campaign not found or no longer active.']);
-            exit;
-        }
+        $conn->begin_transaction();
+        try {
+            $stmt = $conn->prepare("SELECT id FROM financial_campaigns WHERE id = ? AND status = 'active' FOR UPDATE");
+            $stmt->bind_param("i", $campaignId);
+            $stmt->execute();
+            if (!$stmt->get_result()->fetch_assoc()) {
+                throw new Exception('Campaign not found or no longer active.');
+            }
 
-        $stmt = $conn->prepare("INSERT INTO donations (campaign_id, user_id, amount, message) VALUES (?,?,?,?)");
-        $stmt->bind_param("iids", $campaignId, $userId, $amount, $message);
+            $stmt = $conn->prepare("INSERT INTO donations (campaign_id, user_id, amount, message, payment_method, transaction_id, masked_account, payment_status) VALUES (?,?,?,?,?,?,?,'SUCCESS')");
+            $stmt->bind_param("iidssss", $campaignId, $userId, $amount, $message, $pm, $txId, $masked);
+            $stmt->execute();
 
-        if ($stmt->execute()) {
+            $stmt = $conn->prepare("UPDATE financial_campaigns SET collected_amount = collected_amount + ? WHERE id = ?");
+            $stmt->bind_param("di", $amount, $campaignId);
+            $stmt->execute();
+
+            $conn->commit();
+
             $stmt2 = $conn->prepare("SELECT COALESCE(SUM(amount),0) AS raised, COUNT(*) AS donors FROM donations WHERE campaign_id = ?");
             $stmt2->bind_param("i", $campaignId);
             $stmt2->execute();
             $totals = $stmt2->get_result()->fetch_assoc();
+            
             echo json_encode([
                 'ok'           => true,
                 'msg'          => 'Thank you for your donation!',
                 'raised_amount'=> (float)$totals['raised'],
                 'donor_count'  => (int)$totals['donors'],
             ]);
-        } else {
-            echo json_encode(['ok'=>false,'msg'=>'Donation failed. Please try again.']);
+        } catch (Exception $e) {
+            $conn->rollback();
+            echo json_encode(['ok'=>false,'msg'=>$e->getMessage() ?: 'Donation failed. Please try again.']);
         }
         exit;
     }

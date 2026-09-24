@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS financial_campaigns (
     title       VARCHAR(200) NOT NULL,
     description TEXT NOT NULL,
     goal_amount DECIMAL(12,2) NOT NULL,
+    collected_amount DECIMAL(12,2) DEFAULT 0.00,
     image_url   VARCHAR(255) DEFAULT NULL,
     deadline    DATE NOT NULL,
     status      ENUM('active','completed','cancelled') DEFAULT 'active',
@@ -171,6 +172,10 @@ CREATE TABLE IF NOT EXISTS donations (
     user_id     INT NOT NULL,
     amount      DECIMAL(10,2) NOT NULL,
     message     TEXT DEFAULT NULL,
+    payment_method VARCHAR(50) DEFAULT 'card',
+    transaction_id VARCHAR(100),
+    payment_status ENUM('SUCCESS', 'PENDING', 'FAILED') DEFAULT 'SUCCESS',
+    masked_account VARCHAR(100),
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (campaign_id) REFERENCES financial_campaigns(id) ON DELETE CASCADE,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
