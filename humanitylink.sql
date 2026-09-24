@@ -17,7 +17,7 @@ USE humanitylink;
 -- ── Users Table ──────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS users (
     id           INT AUTO_INCREMENT PRIMARY KEY,
-    account_type ENUM('charity','restaurant','user','doctor') NOT NULL,
+    account_type ENUM('charity','restaurant','user','doctor','admin') NOT NULL,
     full_name    VARCHAR(150) NOT NULL,
     reg_number   VARCHAR(100) NOT NULL UNIQUE,
     email        VARCHAR(150) NOT NULL UNIQUE,
@@ -30,6 +30,10 @@ CREATE TABLE IF NOT EXISTS users (
     profile_picture VARCHAR(255) DEFAULT NULL,
     created_at   TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+-- Insert Predefined Admin
+INSERT IGNORE INTO users (account_type, full_name, reg_number, email, password)
+VALUES ('admin', 'System Admin', 'ADMIN-001', 'admin@charity.com', '$2y$10$UNo6idvhNE/jOO3WJaufm.aEYnu5GECipeGYE9ZHPS3yWnmka9NYe');
 
 -- ── Sectors Table (3NF for Charity Sectors) ───────────────
 CREATE TABLE IF NOT EXISTS sectors (
