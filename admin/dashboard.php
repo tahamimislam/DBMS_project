@@ -94,11 +94,11 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
   <style>
     /* Admin specific overrides */
     .admin-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .admin-stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
+    .admin-stat-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; }
     .admin-stat-card h3 { margin: 0 0 8px; font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
     .admin-stat-card .value { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 0; }
     
-    .admin-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; overflow-x: auto; }
+    .admin-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; overflow-x: auto; }
     .admin-card-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
     
     table { width: 100%; border-collapse: collapse; min-width: 700px; }
@@ -127,7 +127,7 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     .profile-card:hover { background: rgba(255,255,255,0.07); border-color: var(--primary); }
     .profile-dropdown {
       position: absolute; bottom: calc(100% + 8px); left: 0; right: 0;
-      background: var(--bg-card); border: 1px solid var(--border);
+      background: var(--card); border: 1px solid var(--border);
       border-radius: 12px; overflow: hidden;
       box-shadow: 0 8px 24px rgba(0,0,0,0.3);
       opacity: 0; pointer-events: none;
@@ -237,7 +237,7 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:24px;">
           
           <!-- Emergency Relief Fund -->
-          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
             <div style="background:#fde8e8; display:flex; align-items:center; justify-content:center; padding:40px 20px; min-height:160px;">
               <i class="fa-solid fa-house-crack" style="font-size:4rem; color:#e53e3e;"></i>
             </div>
@@ -255,7 +255,7 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           </div>
 
           <!-- General Welfare Fund -->
-          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
             <div style="background:#e8eeff; display:flex; align-items:center; justify-content:center; padding:40px 20px; min-height:160px;">
               <i class="fa-solid fa-hand-holding-heart" style="font-size:4rem; color:#4361ee;"></i>
             </div>
@@ -273,7 +273,7 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           </div>
 
           <!-- Meritorious Student Fund -->
-          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+          <div style="background:var(--card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
             <div style="background:#fef9e0; display:flex; align-items:center; justify-content:center; padding:40px 20px; min-height:160px;">
               <i class="fa-solid fa-graduation-cap" style="font-size:4rem; color:#d97706;"></i>
             </div>
@@ -306,7 +306,7 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             $isActive = $camp['status'] === 'active';
           ?>
           <div style="
-            background:var(--bg-card);
+            background:var(--card);
             border:1px solid var(--border);
             border-radius:16px;
             overflow:hidden;

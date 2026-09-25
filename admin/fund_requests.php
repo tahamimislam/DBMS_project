@@ -24,7 +24,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="../styles.css">
   <style>
-    .admin-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
+    .admin-card { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 24px; margin-bottom: 24px; }
     .badge { padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; }
     .badge-success { background: rgba(34, 197, 94, 0.1); color: #22c55e; border: 1px solid rgba(34, 197, 94, 0.3); }
     .badge-pending { background: rgba(234, 179, 8, 0.1); color: #eab308; border: 1px solid rgba(234, 179, 8, 0.3); }
@@ -43,7 +43,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
     .profile-card:hover { background: rgba(255,255,255,0.07); border-color: var(--primary); }
     .profile-dropdown {
       position: absolute; bottom: calc(100% + 8px); left: 0; right: 0;
-      background: var(--bg-card); border: 1px solid var(--border);
+      background: var(--card); border: 1px solid var(--border);
       border-radius: 12px; overflow: hidden;
       box-shadow: 0 8px 24px rgba(0,0,0,0.3);
       opacity: 0; pointer-events: none;
@@ -59,9 +59,36 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
       transition: background 0.15s;
     }
     .profile-dropdown a:hover { background: rgba(239,68,68,0.1); }
+    
+    /* Confirmation Modal */
+    .confirm-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6); z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    .confirm-overlay.show { opacity: 1; pointer-events: all; }
+    .confirm-modal {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 24px; width: 100%; max-width: 400px;
+      transform: translateY(20px); transition: transform 0.2s;
+    }
+    .confirm-overlay.show .confirm-modal { transform: translateY(0); }
   </style>
 </head>
 <body class="has-sidebar">
+
+  <!-- Confirmation Modal -->
+  <div class="confirm-overlay" id="confirmModal">
+    <div class="confirm-modal">
+      <h3 style="margin-top:0; margin-bottom:12px; font-size:1.25rem;">Confirm Approval</h3>
+      <p id="confirmText" style="color:var(--text-muted); font-size:0.95rem; margin-bottom:24px; line-height:1.5;"></p>
+      <div style="display:flex; gap:12px; justify-content:flex-end;">
+        <button class="btn btn-ghost" onclick="closeConfirmModal()">Cancel</button>
+        <button class="btn btn-primary" id="confirmOkBtn">Approve & Pay</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ── Sidebar ── -->
   <aside class="app-sidebar" id="appSidebar">
@@ -303,6 +330,30 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
       document.getElementById('reject-form-' + id).style.display = 'block';
     }
 
+    let pendingApproveId = null;
+    let pendingApproveAmount = null;
+
+    function openConfirmModal(id, amount, fundName) {
+      pendingApproveId = id;
+      pendingApproveAmount = amount;
+      document.getElementById('confirmText').innerHTML = `Are you sure you want to approve this request? <br><br><strong>৳${amount.toLocaleString()}</strong> will be permanently deducted from the <strong>${fundName}</strong> fund.`;
+      document.getElementById('confirmModal').classList.add('show');
+    }
+
+    function closeConfirmModal() {
+      document.getElementById('confirmModal').classList.remove('show');
+      pendingApproveId = null;
+      pendingApproveAmount = null;
+    }
+
+    document.getElementById('confirmOkBtn').addEventListener('click', async () => {
+      if (pendingApproveId) {
+        const id = pendingApproveId;
+        closeConfirmModal();
+        await sendAction(id, 'approve', '');
+      }
+    });
+
     async function processApprove(id, amount) {
       const errEl = document.getElementById('inline-error-' + id);
       errEl.style.display = 'none';
@@ -313,9 +364,12 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
         errEl.style.display = 'block';
         return;
       }
-      if (!confirm('Are you sure you want to approve this request? ৳' + amount + ' will be deducted from the system fund.')) return;
       
-      await sendAction(id, 'approve', '');
+      let fundName = 'Emergency Relief';
+      if (currentTab === 'welfare') fundName = 'General Welfare';
+      if (currentTab === 'educational') fundName = 'Educational Support';
+      
+      openConfirmModal(id, amount, fundName);
     }
 
     async function submitReject(id) {
