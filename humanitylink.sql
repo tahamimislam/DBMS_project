@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- Insert Predefined Admin
 INSERT IGNORE INTO users (account_type, full_name, reg_number, email, password)
-VALUES ('admin', 'System Admin', 'ADMIN-001', 'admin@charity.com', '$2y$10$UNo6idvhNE/jOO3WJaufm.aEYnu5GECipeGYE9ZHPS3yWnmka9NYe');
+VALUES ('admin', 'System Admin', 'ADMIN-001', 'admin@charity.com', '$2y$10$22AoL6HJlUZ79AJdigz/fuH3Yh0B1Q5aUUxCkS3UnimKEBFec34uq');
 
 -- ── Sectors Table (3NF for Charity Sectors) ───────────────
 CREATE TABLE IF NOT EXISTS sectors (

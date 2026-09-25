@@ -1872,42 +1872,37 @@ window.closeParticipantsModal = function () {
 
 window.postCampaign = postCampaign;
 
-window.deleteCampaign = async function (id, subject) {
-  if (
-    !confirm(
-      `"${subject}" campaign টি permanently delete করতে চান?\nParticipants list-ও মুছে যাবে।`,
-    )
-  )
-    return;
+window.deleteCampaign = function (id, subject) {
+  showConfirmModal(`Are you sure you want to permanently delete the "${subject}" campaign?<br>The participants list will also be deleted.`, async () => {
+    const res = await fetch("api/doctor_campaigns.php", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    })
+      .then((r) => r.json())
+      .catch(() => ({ ok: false, msg: "Network error." }));
 
-  const res = await fetch("api/doctor_campaigns.php", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ id }),
-  })
-    .then((r) => r.json())
-    .catch(() => ({ ok: false, msg: "Network error." }));
-
-  if (res.ok) {
-    showToast(res.msg, "success");
-    const card = document.getElementById("camp-card-" + id);
-    if (card) {
-      card.style.transition = "opacity 0.3s, transform 0.3s";
-      card.style.opacity = "0";
-      card.style.transform = "scale(0.95)";
-      setTimeout(() => card.remove(), 300);
-    }
-    // If grid is now empty, show empty state
-    setTimeout(() => {
-      const grid = document.getElementById("campaigns-grid");
-      if (grid && grid.children.length === 0) {
-        grid.innerHTML =
-          '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">You have not posted any campaigns yet.</div>';
+    if (res.ok) {
+      showToast(res.msg, "success");
+      const card = document.getElementById("camp-card-" + id);
+      if (card) {
+        card.style.transition = "opacity 0.3s, transform 0.3s";
+        card.style.opacity = "0";
+        card.style.transform = "scale(0.95)";
+        setTimeout(() => card.remove(), 300);
       }
-    }, 350);
-  } else {
-    showToast(res.msg || "Delete failed.", "error");
-  }
+      // If grid is now empty, show empty state
+      setTimeout(() => {
+        const grid = document.getElementById("campaigns-grid");
+        if (grid && grid.children.length === 0) {
+          grid.innerHTML =
+            '<div style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted);">You have not posted any campaigns yet.</div>';
+        }
+      }, 350);
+    } else {
+      showToast(res.msg || "Delete failed.", "error");
+    }
+  });
 };
 
 function renderDoctorCampaigns(campaigns) {
@@ -3320,28 +3315,48 @@ window.submitCreateCampaign = submitCreateCampaign;
 
 // ── Delete Campaign (Charity) ──────────────────────────────
 async function deleteFinCampaign(id) {
-  if (!confirm('Delete this campaign? This cannot be undone.')) return;
-  const res = await apiPost('financial.php', { action: 'delete_campaign', id });
-  if (res.ok) {
-    showToast(res.msg, 'success');
-    const card = document.getElementById('fin-mgmt-' + id);
-    if (card) { card.style.opacity = '0'; card.style.transition = 'opacity 0.3s'; setTimeout(() => card.remove(), 300); }
-    await loadMyCampaigns();
-  } else {
-    showToast(res.msg || 'Delete failed.', 'error');
-  }
+  showConfirmModal("Delete this campaign? This cannot be undone.", async () => {
+    const res = await apiPost('financial.php', { action: 'delete_campaign', id });
+    if (res.ok) {
+      showToast(res.msg, 'success');
+      const card = document.getElementById('fin-mgmt-' + id);
+      if (card) { card.style.opacity = '0'; card.style.transition = 'opacity 0.3s'; setTimeout(() => card.remove(), 300); }
+      await loadMyCampaigns();
+    } else {
+      showToast(res.msg || 'Delete failed.', 'error');
+    }
+  });
 }
 window.deleteFinCampaign = deleteFinCampaign;
 
 // ── Donors Modal ───────────────────────────────────────────
 async function openDonorsModal(campaignId, title) {
-  const modal   = document.getElementById('donorsModal');
+  let modal = document.getElementById('donorsModal');
+  if (!modal) {
+    modal = document.createElement('div');
+    modal.id = 'donorsModal';
+    modal.className = 'modal-overlay';
+    modal.innerHTML = `
+      <div class="modal modal-lg" style="background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius); max-width: 500px; width: 90%;">
+        <div class="modal-header">
+          <h3 id="donors-modal-title" style="margin: 0;"></h3>
+          <button class="modal-close" onclick="document.getElementById('donorsModal').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div class="modal-body" style="max-height: 400px; overflow-y: auto;" id="donors-modal-list"></div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    
+    modal.onclick = (e) => {
+      if (e.target === modal) modal.classList.remove('show');
+    };
+  }
+
   const listEl  = document.getElementById('donors-modal-list');
   const titleEl = document.getElementById('donors-modal-title');
-  if (!modal || !listEl) return;
 
   if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-users"></i> Donors — ${title}`;
-  listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
+  if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted)"><i class="fa-solid fa-spinner fa-spin fa-2x"></i></div>';
   modal.classList.add('show');
 
   const res = await apiGet(`financial.php?action=campaign_donors&campaign_id=${campaignId}`);

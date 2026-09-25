@@ -571,10 +571,10 @@
 
 <!-- ═══ DONORS LIST MODAL ════════════════════════════════════ -->
 <div class="modal-overlay" id="donorsModal">
-  <div class="modal-box" style="max-width:500px">
+  <div class="modal" style="max-width:500px">
     <div class="modal-header">
       <h3 id="donors-modal-title"><i class="fa-solid fa-users"></i> Donors</h3>
-      <button class="modal-close" onclick="closeDonorsModal()"><i class="fa-solid fa-xmark"></i></button>
+      <button class="modal-close" onclick="document.getElementById('donorsModal').classList.remove('show')"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div id="donors-modal-list" style="padding:0 24px 24px;max-height:400px;overflow-y:auto"></div>
   </div>
