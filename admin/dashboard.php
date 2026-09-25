@@ -7,28 +7,28 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
     exit;
 }
 
-// Fetch stats
-$stats = [
-    'total_amount' => 0,
-    'total_donations' => 0,
-    'successful_txns' => 0,
-    'donors_count' => 0
+// Fetch system managed funds totals
+$systemFunds = [
+    'Emergency Relief' => 0,
+    'General Welfare' => 0,
+    'Meritorious Student' => 0
 ];
-
-$res = $conn->query("SELECT SUM(amount) as amt, COUNT(*) as cnt FROM donations");
-if ($row = $res->fetch_assoc()) {
-    $stats['total_amount'] = $row['amt'] ?: 0;
-    $stats['total_donations'] = $row['cnt'] ?: 0;
+$res = $conn->query("SELECT system_fund, SUM(amount) as amt FROM donations WHERE campaign_id IS NULL AND payment_status = 'SUCCESS' GROUP BY system_fund");
+while ($row = $res->fetch_assoc()) {
+    if (array_key_exists($row['system_fund'], $systemFunds)) {
+        $systemFunds[$row['system_fund']] = (float)$row['amt'];
+    }
 }
 
-$res = $conn->query("SELECT COUNT(*) as cnt FROM donations WHERE payment_status = 'SUCCESS'");
-if ($row = $res->fetch_assoc()) $stats['successful_txns'] = $row['cnt'] ?: 0;
-
-$res = $conn->query("SELECT COUNT(DISTINCT user_id) as cnt FROM donations");
-if ($row = $res->fetch_assoc()) $stats['donors_count'] = $row['cnt'] ?: 0;
-
 // Fetch campaigns
-$campaignsRes = $conn->query("SELECT id, title, goal_amount, collected_amount, status FROM financial_campaigns ORDER BY created_at DESC");
+$campaignsRes = $conn->query("
+    SELECT fc.id, fc.title, fc.goal_amount, fc.collected_amount, fc.status, fc.image_url, fc.description, fc.deadline,
+           u.full_name as charity_name,
+           (SELECT COUNT(id) FROM donations d WHERE d.campaign_id = fc.id AND d.payment_status='SUCCESS') as donor_count
+    FROM financial_campaigns fc
+    JOIN users u ON fc.charity_id = u.id
+    ORDER BY fc.created_at DESC
+");
 $campaigns = [];
 while ($row = $campaignsRes->fetch_assoc()) {
     $campaigns[] = $row;
@@ -205,65 +205,178 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
       <div class="page-header" style="margin-bottom:24px;">
         <div class="page-header-row">
           <div>
-            <h1><i class="fa-solid fa-shield-halved"></i> Overview</h1>
-            <p>Monitor system donations, campaigns, and overall progress.</p>
+            <h1><i class="fa-solid fa-shield-halved"></i> Admin Panel</h1>
+            <p>Manage system funds, monitor charity campaigns, and view donation transactions.</p>
           </div>
         </div>
       </div>
 
-      <div class="admin-stats-grid">
-        <div class="admin-stat-card">
-          <h3>Total Donated</h3>
-          <p class="value">৳<?= number_format($stats['total_amount'], 2) ?></p>
+      <!-- Tabs -->
+      <div class="mw-tabs" style="margin-bottom:24px; display:flex; overflow-x:auto;">
+        <button class="mw-tab active" id="tab-admin-system" onclick="switchAdminTab('system')" style="white-space:nowrap;">
+          <i class="fa-solid fa-building-columns"></i> System managed fund
+        </button>
+        <button class="mw-tab" id="tab-admin-campaigns" onclick="switchAdminTab('campaigns')" style="white-space:nowrap;">
+          <i class="fa-solid fa-building-ngo"></i> Charity campaigns
+        </button>
+        <button class="mw-tab" id="tab-admin-transactions" onclick="switchAdminTab('transactions')" style="white-space:nowrap;">
+          <i class="fa-solid fa-money-bill-transfer"></i> Donation Transaction
+        </button>
+      </div>
+
+      <!-- Tab 1: System Managed Fund -->
+      <div id="admin-sub-system">
+        <div style="margin-bottom:28px;">
+          <h2 style="font-size:1.6rem; font-weight:800; margin-bottom:6px;"><i class="fa-solid fa-building-columns"></i> System Managed Funds</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem;">Your contribution goes directly to the HumanityLink System Fund for coordinated responses.</p>
         </div>
-        <div class="admin-stat-card">
-          <h3>Total Donations</h3>
-          <p class="value"><?= $stats['total_donations'] ?></p>
-        </div>
-        <div class="admin-stat-card">
-          <h3>Successful Txns</h3>
-          <p class="value"><?= $stats['successful_txns'] ?></p>
-        </div>
-        <div class="admin-stat-card">
-          <h3>Unique Donors</h3>
-          <p class="value"><?= $stats['donors_count'] ?></p>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px,1fr)); gap:24px;">
+          
+          <!-- Emergency Relief Fund -->
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+            <div style="background:#fde8e8; display:flex; align-items:center; justify-content:center; padding:40px 20px; min-height:160px;">
+              <i class="fa-solid fa-house-crack" style="font-size:4rem; color:#e53e3e;"></i>
+            </div>
+            <div style="padding:20px; flex:1; display:flex; flex-direction:column; gap:8px;">
+              <div style="font-size:1.05rem; font-weight:800;">Emergency Relief Fund</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);"><i class="fa-solid fa-shield-halved" style="color:var(--primary);"></i> HumanityLink System</div>
+              <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.55; flex:1;">
+                Rapid response fund for natural disasters, floods, and unforeseen emergencies affecting vulnerable communities across Bangladesh.
+              </div>
+              <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:14px; margin-top:8px; text-align:center;">
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Total Collected</div>
+                <div style="font-size:1.5rem; font-weight:800; color:var(--primary);">৳<?= number_format($systemFunds['Emergency Relief'] ?? 0, 2) ?></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- General Welfare Fund -->
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+            <div style="background:#e8eeff; display:flex; align-items:center; justify-content:center; padding:40px 20px; min-height:160px;">
+              <i class="fa-solid fa-hand-holding-heart" style="font-size:4rem; color:#4361ee;"></i>
+            </div>
+            <div style="padding:20px; flex:1; display:flex; flex-direction:column; gap:8px;">
+              <div style="font-size:1.05rem; font-weight:800;">General Welfare Fund</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);"><i class="fa-solid fa-shield-halved" style="color:var(--primary);"></i> HumanityLink System</div>
+              <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.55; flex:1;">
+                A flexible fund utilized for medical aid, clothing, and essential sustenance for marginalized individuals without access to specific charity campaigns.
+              </div>
+              <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:14px; margin-top:8px; text-align:center;">
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Total Collected</div>
+                <div style="font-size:1.5rem; font-weight:800; color:var(--primary);">৳<?= number_format($systemFunds['General Welfare'] ?? 0, 2) ?></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Meritorious Student Fund -->
+          <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:20px; overflow:hidden; display:flex; flex-direction:column; transition:transform 0.2s, box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-4px)';this.style.boxShadow='0 12px 40px rgba(0,0,0,0.2)'" onmouseout="this.style.transform='';this.style.boxShadow=''">
+            <div style="background:#fef9e0; display:flex; align-items:center; justify-content:center; padding:40px 20px; min-height:160px;">
+              <i class="fa-solid fa-graduation-cap" style="font-size:4rem; color:#d97706;"></i>
+            </div>
+            <div style="padding:20px; flex:1; display:flex; flex-direction:column; gap:8px;">
+              <div style="font-size:1.05rem; font-weight:800;">Meritorious Fund</div>
+              <div style="font-size:0.8rem; color:var(--text-muted);"><i class="fa-solid fa-shield-halved" style="color:var(--primary);"></i> HumanityLink System</div>
+              <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.55; flex:1;">
+                Dedicated financial assistance for meritorious but impoverished students who cannot afford their educational expenses.
+              </div>
+              <div style="background:var(--bg-secondary); border:1px solid var(--border); border-radius:12px; padding:14px; margin-top:8px; text-align:center;">
+                <div style="font-size:0.75rem; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-bottom:4px;">Total Collected</div>
+                <div style="font-size:1.5rem; font-weight:800; color:var(--primary);">৳<?= number_format($systemFunds['Meritorious Student'] ?? 0, 2) ?></div>
+              </div>
+            </div>
+          </div>
+
         </div>
       </div>
 
-      <div class="admin-card">
-        <div class="admin-card-title"><i class="fa-solid fa-bullseye"></i> Campaign Progress</div>
-        <table>
-          <thead>
-            <tr>
-              <th>Campaign Title</th>
-              <th>Status</th>
-              <th>Goal Amount</th>
-              <th>Collected Amount</th>
-              <th>Progress</th>
-            </tr>
-          </thead>
-          <tbody>
-            <?php foreach ($campaigns as $camp): 
-              $prog = $camp['goal_amount'] > 0 ? min(100, round(($camp['collected_amount'] / $camp['goal_amount']) * 100, 1)) : 0;
-            ?>
-            <tr>
-              <td style="font-weight:600;"><?= htmlspecialchars($camp['title']) ?></td>
-              <td><span class="badge" style="background:rgba(255,255,255,0.1);"><?= ucfirst($camp['status']) ?></span></td>
-              <td>৳<?= number_format($camp['goal_amount'], 2) ?></td>
-              <td style="color:var(--primary); font-weight:600;">৳<?= number_format($camp['collected_amount'], 2) ?></td>
-              <td>
-                <div style="display:flex; align-items:center; gap:10px;">
-                  <div style="flex:1; height:8px; background:var(--border); border-radius:4px; overflow:hidden;">
-                    <div style="height:100%; width:<?= $prog ?>%; background:var(--primary);"></div>
-                  </div>
-                  <span style="font-size:0.85rem; width:40px; text-align:right; font-weight:600;"><?= $prog ?>%</span>
+      <!-- Tab 2: Charity Campaigns -->
+      <div id="admin-sub-campaigns" class="hidden">
+        <div style="margin-bottom:28px;">
+          <h2 style="font-size:1.6rem; font-weight:800; margin-bottom:6px;"><i class="fa-solid fa-building-ngo"></i> Charity Organization Campaigns</h2>
+          <p style="color:var(--text-muted); font-size:0.9rem;">Monitor all active and archived campaigns created by verified charity organizations.</p>
+          <hr style="border:0; border-top:1px solid var(--border); margin:20px 0 0;">
+        </div>
+        <div style="display:flex; flex-direction:column; gap:16px;">
+          <?php foreach ($campaigns as $camp): 
+            $prog = $camp['goal_amount'] > 0 ? min(100, round(($camp['collected_amount'] / $camp['goal_amount']) * 100, 1)) : 0;
+            $isActive = $camp['status'] === 'active';
+          ?>
+          <div style="
+            background:var(--bg-card);
+            border:1px solid var(--border);
+            border-radius:16px;
+            overflow:hidden;
+            display:flex;
+            flex-direction:row;
+            transition:transform 0.2s, box-shadow 0.2s;
+            <?= !$isActive ? 'opacity:0.75;' : '' ?>
+          ">
+            <!-- Image Column -->
+            <div style="flex-shrink:0; width:180px; min-height:160px; background:var(--bg-secondary); display:flex; align-items:center; justify-content:center; position:relative;">
+              <?php if ($camp['image_url']): ?>
+                <img src="../<?= htmlspecialchars($camp['image_url']) ?>" style="width:100%; height:100%; object-fit:cover;" alt="<?= htmlspecialchars($camp['title']) ?>">
+              <?php else: ?>
+                <i class="fa-solid fa-hand-holding-dollar" style="font-size:3rem; color:var(--text-muted);"></i>
+              <?php endif; ?>
+            </div>
+
+            <!-- Content Column -->
+            <div style="flex:1; padding:20px; display:flex; flex-direction:column; gap:6px;">
+              
+              <!-- Title + Status -->
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+                <div style="font-size:1.05rem; font-weight:700;"><?= htmlspecialchars($camp['title']) ?></div>
+                <?php 
+                  $sBg = $isActive ? 'rgba(34,197,94,0.12)' : 'rgba(255,255,255,0.08)';
+                  $sColor = $isActive ? '#22c55e' : '#888';
+                  $sBorder = $isActive ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(255,255,255,0.15)';
+                ?>
+                <span style="background:<?= $sBg ?>; color:<?= $sColor ?>; border:<?= $sBorder ?>; padding:4px 10px; border-radius:20px; font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap;">
+                  <?= ucfirst($camp['status']) ?>
+                </span>
+              </div>
+
+              <!-- Charity Name -->
+              <div style="font-size:0.83rem; color:var(--text-muted);">
+                <i class="fa-solid fa-building-ngo"></i> <?= htmlspecialchars($camp['charity_name'] ?: 'Charity') ?>
+              </div>
+
+              <!-- Description -->
+              <?php if ($camp['description']): ?>
+              <div style="font-size:0.85rem; color:var(--text-muted); line-height:1.5; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;">
+                <?= htmlspecialchars($camp['description']) ?>
+              </div>
+              <?php endif; ?>
+
+              <!-- Progress Bar -->
+              <div style="margin-top:auto; padding-top:12px;">
+                <div style="display:flex; justify-content:space-between; font-size:0.82rem; margin-bottom:6px;">
+                  <span style="font-weight:700; color:var(--primary);">৳<?= number_format($camp['collected_amount'], 2) ?> collected</span>
+                  <span style="color:var(--text-muted);">Goal: ৳<?= number_format($camp['goal_amount'], 2) ?></span>
                 </div>
-              </td>
-            </tr>
-            <?php endforeach; ?>
-          </tbody>
-        </table>
+                <div style="background:var(--bg-secondary); border:1px solid rgba(255,255,255,0.1); border-radius:99px; height:8px; overflow:hidden;">
+                  <div style="height:8px; width:<?= $prog ?>%; background:linear-gradient(90deg,#22c55e,#16a34a); border-radius:99px;"></div>
+                </div>
+                <div style="display:flex; justify-content:space-between; margin-top:6px; font-size:0.78rem; color:var(--text-muted);">
+                  <span><i class="fa-solid fa-users"></i> <?= $camp['donor_count'] ?> donor<?= $camp['donor_count'] != 1 ? 's' : '' ?></span>
+                  <span style="font-weight:700; color:var(--primary);"><?= $prog ?>%</span>
+                  <span><i class="fa-regular fa-calendar"></i> <?= date('M j, Y', strtotime($camp['deadline'])) ?></span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <?php endforeach; ?>
+          <?php if (empty($campaigns)): ?>
+            <div style="text-align:center; padding:60px; color:var(--text-muted);">
+              <i class="fa-solid fa-hand-holding-dollar" style="font-size:3rem; margin-bottom:16px; display:block;"></i>
+              <p>No charity campaigns yet.</p>
+            </div>
+          <?php endif; ?>
+        </div>
       </div>
+
+      <!-- Tab 3: Donation Transactions -->
+      <div id="admin-sub-transactions" class="hidden">
 
       <div class="admin-card">
         <div class="admin-card-title"><i class="fa-solid fa-money-bill-transfer"></i> Donation Transactions</div>
@@ -335,11 +448,29 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           </tbody>
         </table>
       </div>
+      </div> <!-- End Tab 3: Donation Transactions -->
 
     </div>
   </div>
 
   <script>
+    function switchAdminTab(tab) {
+      document.querySelectorAll('.mw-tab').forEach(b => b.classList.remove('active'));
+      document.getElementById('tab-admin-' + tab)?.classList.add('active');
+
+      const systemEl = document.getElementById('admin-sub-system');
+      const campaignsEl = document.getElementById('admin-sub-campaigns');
+      const txnsEl = document.getElementById('admin-sub-transactions');
+
+      if (systemEl) systemEl.classList.add('hidden');
+      if (campaignsEl) campaignsEl.classList.add('hidden');
+      if (txnsEl) txnsEl.classList.add('hidden');
+
+      if (tab === 'system' && systemEl) systemEl.classList.remove('hidden');
+      else if (tab === 'campaigns' && campaignsEl) campaignsEl.classList.remove('hidden');
+      else if (tab === 'transactions' && txnsEl) txnsEl.classList.remove('hidden');
+    }
+
     function updateThemeIcon() {
       var isDark = document.documentElement.classList.contains('dark-theme');
       var btns = document.querySelectorAll('.theme-toggle-btn');
