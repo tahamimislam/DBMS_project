@@ -266,9 +266,23 @@
     <div id="create-campaign-form" class="post-card mw-form-card hidden" style="margin-bottom:28px">
       <h3><i class="fa-solid fa-bullhorn"></i> Create New Campaign</h3>
       <form id="campaignForm" onsubmit="submitCreateCampaign(event)">
-        <div class="form-group">
-          <label for="fc-title">Campaign Title <span class="req">*</span></label>
-          <input type="text" id="fc-title" class="form-control" placeholder="e.g. Help Flood Victims in Sylhet" required>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="fc-title">Campaign Title <span class="req">*</span></label>
+            <input type="text" id="fc-title" class="form-control" placeholder="e.g. Help Flood Victims in Sylhet" required>
+          </div>
+          <div class="form-group">
+            <label for="fc-category">Category <span class="req">*</span></label>
+            <select id="fc-category" class="form-control" required>
+              <option value="">Select Category...</option>
+              <option value="Medical">Medical Treatment</option>
+              <option value="Education">Education Support</option>
+              <option value="Disaster Relief">Disaster Relief</option>
+              <option value="Orphanage">Orphanage & Children</option>
+              <option value="Food & Hunger">Food & Hunger</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
         </div>
         <div class="form-group">
           <label for="fc-desc">Description <span class="req">*</span></label>
@@ -310,19 +324,72 @@
       <h3>No campaigns yet</h3>
       <p>Click "New Campaign" to create your first fundraising campaign.</p>
     </div>
+
+    <!-- My Donation Posts -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin:40px 0 16px;">
+      <div class="subheading-label subheading-label-lg" style="margin:0;">
+        <i class="fa-solid fa-signs-post"></i> My Donation Posts
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="togglePostForm(true)">
+        <i class="fa-solid fa-plus"></i> New Post
+      </button>
+    </div>
+
+    <div id="create-post-form" class="post-card mw-form-card hidden" style="margin-bottom:28px">
+      <h3><i class="fa-solid fa-pen"></i> Write a Post</h3>
+      <form id="donationPostForm" onsubmit="submitCreatePost(event)">
+        <div class="form-group">
+          <label for="dp-title">Post Title <span class="req">*</span></label>
+          <input type="text" id="dp-title" class="form-control" placeholder="e.g. Update on Flood Relief" required>
+        </div>
+        <div class="form-group">
+          <label for="dp-campaign">Link to Campaign <span class="req">*</span></label>
+          <select id="dp-campaign" class="form-control" required>
+            <option value="">Select a campaign to link...</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="dp-content">Content <span class="req">*</span></label>
+          <textarea id="dp-content" class="form-control" rows="4" placeholder="Share news, updates, or appeals..." required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="dp-image">Image <span style="font-size:0.8rem;color:var(--muted)">(Optional)</span></label>
+          <input type="file" id="dp-image" class="form-control" accept="image/*">
+        </div>
+        <div id="create-post-error" class="form-error-msg" style="display:none"></div>
+        <div class="form-actions-row">
+          <button type="submit" class="btn btn-primary" id="submit-post-btn">
+            <i class="fa-solid fa-paper-plane"></i> Publish Post
+          </button>
+          <button type="button" class="btn btn-ghost" onclick="togglePostForm(false)">
+            <i class="fa-solid fa-xmark"></i> Cancel
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <div id="my-posts-list"></div>
+    <div id="my-posts-empty" class="empty-state hidden">
+      <div class="empty-icon"><i class="fa-solid fa-signs-post"></i></div>
+      <h3>No posts yet</h3>
+      <p>Click "New Post" to share updates with donors.</p>
+    </div>
   </div>
 
   <!-- ═══ USER VIEW ════════════════════════════════════════════ -->
   <div id="fin-section-user" class="fin-section hidden">
-    <!-- Tabs: System Funds / Charity Campaigns / My Donations -->
-    <div class="mw-tabs" style="margin-bottom:24px">
-      <button class="mw-tab active" id="tab-system" onclick="switchFinTab('system', this)">
-        <i class="fa-solid fa-building-columns"></i> System Managed Funds
+    <!-- Tabs: System Funds / Charity Campaigns / Donation Posts / My Donations -->
+    <div class="mw-tabs" style="margin-bottom:24px; display:flex; overflow-x:auto;">
+      <button class="mw-tab active" id="tab-system" onclick="switchFinTab('system', this)" style="white-space:nowrap;">
+        <i class="fa-solid fa-building-columns"></i> System Managed
       </button>
-      <button class="mw-tab" id="tab-charity" onclick="switchFinTab('charity', this)">
+      <button class="mw-tab" id="tab-charity" onclick="switchFinTab('charity', this)" style="white-space:nowrap;">
         <i class="fa-solid fa-building-ngo"></i> Charity Campaigns
       </button>
-      <button class="mw-tab" id="tab-history" onclick="switchFinTab('history', this)">
+      <button class="mw-tab" id="tab-posts" onclick="switchFinTab('posts', this)" style="white-space:nowrap;">
+        <i class="fa-solid fa-signs-post"></i> Donation Posts
+      </button>
+      <button class="mw-tab" id="tab-history" onclick="switchFinTab('history', this)" style="white-space:nowrap;">
         <i class="fa-solid fa-clock-rotate-left"></i> My Donations
       </button>
     </div>
@@ -400,6 +467,23 @@
         <div class="empty-icon"><i class="fa-solid fa-hand-holding-heart"></i></div>
         <h3>No active campaigns</h3>
         <p>There are no fundraising campaigns at the moment. Check back soon!</p>
+      </div>
+    </div>
+
+    <!-- Donation Posts -->
+    <div id="fin-posts-section" class="hidden">
+      <div class="page-header" style="margin-bottom:16px">
+        <div>
+          <h1><i class="fa-solid fa-signs-post"></i> Donation Posts</h1>
+          <p>Read news, updates, and appeals from charity organizations.</p>
+        </div>
+      </div>
+
+      <div id="public-posts-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:24px;"></div>
+      <div id="public-posts-empty" class="empty-state hidden" style="margin-top:40px">
+        <div class="empty-icon"><i class="fa-solid fa-rss"></i></div>
+        <h3>No posts available</h3>
+        <p>There are no updates from charities at the moment.</p>
       </div>
     </div>
 

@@ -1267,28 +1267,13 @@ async function initFoodSupportPage() {
         navEl.prepend(dashLink);
       }
     }
-  } else if (
-    HL.currentUser &&
-    HL.currentUser.accountType === "charity" &&
-    HL.currentUser.sectors
-  ) {
+  } else if (HL.currentUser && HL.currentUser.accountType === "charity") {
     const navEl = document.querySelector(".app-sidebar-nav");
     if (navEl) {
-      navEl.innerHTML =
-        '<div class="app-sidebar-section-label">Your Sectors</div>';
-      const sectors = HL.currentUser.sectors.split(",");
-      if (sectors.includes("Food")) {
-        navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link active" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
-      }
-      if (sectors.includes("Medical")) {
-        navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical &amp; Welfare</span></a>`;
-      }
-      if (sectors.includes("Education")) {
-        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education</span></a>`;
-      }
-      if (sectors.includes("Financial")) {
-        navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
-      }
+      navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
+      navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link active" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
+      navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
     }
   }
 
@@ -2719,24 +2704,14 @@ async function initMedicalPage() {
     if (sblFood) sblFood.remove();
   }
 
-  // If charity user is browsing, show their specific sector nav
-  if (HL.currentUser.accountType === "charity" && HL.currentUser.sectors) {
+  // If charity user is browsing, show their specific nav
+  if (HL.currentUser.accountType === "charity") {
     const navEl = document.querySelector(".app-sidebar-nav");
     if (navEl) {
-      navEl.innerHTML = '<div class="app-sidebar-section-label">Your Sectors</div>';
-      const sectors = HL.currentUser.sectors.split(",");
-      if (sectors.includes("Food")) {
-        navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
-      }
-      if (sectors.includes("Medical")) {
-        navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical &amp; Welfare</span></a>`;
-      }
-      if (sectors.includes("Education")) {
-        navEl.innerHTML += `<a href="#" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education</span></a>`;
-      }
-      if (sectors.includes("Financial")) {
-        navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Relief</span></a>`;
-      }
+      navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
+      navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
+      navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
     }
   } else if (HL.currentUser.accountType === "admin") {
     const navEl = document.querySelector(".app-sidebar-nav");
@@ -2872,15 +2847,11 @@ function buildFinSidebar() {
   const isCharity = HL.currentUser && HL.currentUser.accountType === 'charity';
   const isAdmin = HL.currentUser && HL.currentUser.accountType === 'admin';
 
-  if (isCharity && HL.currentUser.sectors) {
-    const sectors = HL.currentUser.sectors.split(',');
-    navEl.innerHTML = '<div class="app-sidebar-section-label">Your Sectors</div>';
-    if (sectors.includes('Food'))
-      navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
-    if (sectors.includes('Medical'))
-      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
-    if (sectors.includes('Financial'))
-      navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>`;
+  if (isCharity) {
+    navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
+    navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+    navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
+    navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
   } else if (isAdmin) {
     navEl.innerHTML = '<div class="app-sidebar-section-label">Navigation</div>';
     navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
@@ -2909,7 +2880,15 @@ async function loadMyCampaigns() {
   setEl('cs-raised', '৳' + totalRaised.toLocaleString());
   setEl('cs-donors', totalDonors);
 
+  // Populate campaign dropdown
+  const dpCamp = document.getElementById('dp-campaign');
+  if (dpCamp) {
+    dpCamp.innerHTML = '<option value="">Select a campaign to link...</option>' + 
+      camps.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+  }
+
   renderMyCampaigns(camps);
+  loadMyDonationPosts();
 }
 
 function renderMyCampaigns(camps) {
@@ -3252,16 +3231,18 @@ async function loadDonationHistory() {
 
 function switchFinTab(tab, btn) {
   finActiveTab = tab;
-  document.querySelectorAll('.mw-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#fin-section-user .mw-tab').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
 
   const systemEl  = document.getElementById('fin-system-section');
   const charityEl = document.getElementById('fin-charity-section');
   const historyEl = document.getElementById('fin-history-section');
+  const postsEl   = document.getElementById('fin-posts-section');
 
   if (systemEl) systemEl.classList.add('hidden');
   if (charityEl) charityEl.classList.add('hidden');
   if (historyEl) historyEl.classList.add('hidden');
+  if (postsEl) postsEl.classList.add('hidden');
 
   if (tab === 'system') {
     if (systemEl) systemEl.classList.remove('hidden');
@@ -3270,6 +3251,9 @@ function switchFinTab(tab, btn) {
   } else if (tab === 'history') {
     if (historyEl) historyEl.classList.remove('hidden');
     loadDonationHistory();
+  } else if (tab === 'posts') {
+    if (postsEl) postsEl.classList.remove('hidden');
+    loadPublicDonationPosts();
   }
 }
 window.switchFinTab = switchFinTab;
@@ -3291,6 +3275,7 @@ async function submitCreateCampaign(e) {
   const fd = new FormData();
   fd.append('action', 'create_campaign');
   fd.append('title',       document.getElementById('fc-title').value.trim());
+  fd.append('category',    document.getElementById('fc-category').value.trim());
   fd.append('description', document.getElementById('fc-desc').value.trim());
   fd.append('goal_amount', document.getElementById('fc-goal').value);
   fd.append('deadline',    document.getElementById('fc-deadline').value);
@@ -3366,3 +3351,120 @@ function closeDonorsModal() {
   document.getElementById('donorsModal')?.classList.remove('show');
 }
 window.closeDonorsModal = closeDonorsModal;
+
+// ── Donation Posts ─────────────────────────────────────────
+function togglePostForm(show) {
+  const form = document.getElementById('create-post-form');
+  if (form) {
+    if (show) {
+      form.classList.remove('hidden');
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      form.classList.add('hidden');
+    }
+  }
+}
+window.togglePostForm = togglePostForm;
+
+async function submitCreatePost(e) {
+  e.preventDefault();
+  const errEl = document.getElementById('create-post-error');
+  if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
+
+  const fd = new FormData();
+  fd.append('action', 'create_post');
+  fd.append('title',       document.getElementById('dp-title').value.trim());
+  fd.append('campaign_id', document.getElementById('dp-campaign').value);
+  fd.append('content',     document.getElementById('dp-content').value.trim());
+  
+  const img = document.getElementById('dp-image');
+  if (img && img.files[0]) fd.append('image', img.files[0]);
+
+  const btn = document.getElementById('submit-post-btn');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Publishing...'; }
+
+  const res = await apiPost('donation_posts.php', fd);
+
+  if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Publish Post'; }
+
+  if (!res.ok) {
+    if (errEl) { errEl.style.display = 'block'; errEl.textContent = res.msg || 'Failed to publish post.'; }
+    return;
+  }
+
+  document.getElementById('donationPostForm')?.reset();
+  togglePostForm(false);
+  showToast('Post published successfully!', 'success');
+  await loadMyDonationPosts();
+}
+window.submitCreatePost = submitCreatePost;
+
+async function loadMyDonationPosts() {
+  const res = await apiGet('donation_posts.php?action=my_posts');
+  if (!res.ok) return;
+  const posts = res.posts || [];
+  
+  const list = document.getElementById('my-posts-list');
+  const empty = document.getElementById('my-posts-empty');
+  if (!list) return;
+
+  if (!posts.length) {
+    list.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+
+  list.innerHTML = posts.map(p => `
+    <div class="post-card">
+      ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Post Image">` : ''}
+      <div class="post-content">
+        <h3 class="post-title">${p.title}</h3>
+        <p class="post-desc" style="white-space:pre-wrap;">${p.content}</p>
+        <div class="post-meta">
+          <span><i class="fa-regular fa-clock"></i> ${formatTimeAgo(p.created_at)}</span>
+          <span style="color:var(--primary)"><i class="fa-solid fa-bullseye"></i> ${p.campaign_title}</span>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+window.loadMyDonationPosts = loadMyDonationPosts;
+
+async function loadPublicDonationPosts() {
+  const res = await apiGet('donation_posts.php?action=public_posts');
+  if (!res.ok) return;
+  const posts = res.posts || [];
+  
+  const grid = document.getElementById('public-posts-grid');
+  const empty = document.getElementById('public-posts-empty');
+  if (!grid) return;
+
+  if (!posts.length) {
+    grid.innerHTML = '';
+    if (empty) empty.classList.remove('hidden');
+    return;
+  }
+  if (empty) empty.classList.add('hidden');
+
+  grid.innerHTML = posts.map(p => `
+    <div class="fin-campaign-card" style="display:flex; flex-direction:column; height:100%;">
+      ${p.image_url ? `<div class="fin-campaign-img" style="background-image:url('${p.image_url}')"></div>` : ''}
+      <div class="fin-campaign-body" style="flex:1;">
+        <div class="fin-campaign-title">${p.title}</div>
+        <div class="fin-campaign-charity" style="margin-bottom:12px;">
+          ${p.charity_avatar ? `<img src="${p.charity_avatar}" style="width:20px;height:20px;border-radius:50%;">` : '<i class="fa-solid fa-building-ngo"></i>'}
+          ${p.charity_name}
+        </div>
+        <div class="fin-campaign-desc" style="white-space:pre-wrap; margin-bottom:16px;">${p.content}</div>
+        <div style="font-size:0.8rem; color:var(--text-muted); margin-bottom:12px;">
+          <i class="fa-regular fa-clock"></i> ${formatTimeAgo(p.created_at)}
+        </div>
+        <div class="fin-campaign-footer" style="margin-top:auto; padding-top:16px;">
+          <button class="btn btn-primary" style="width:100%" onclick="openDonateModal(${p.campaign_id}, '${p.campaign_title.replace(/'/g, "\\'")}', '${p.charity_name.replace(/'/g, "\\'")}')">Donate to Campaign</button>
+        </div>
+      </div>
+    </div>
+  `).join('');
+}
+window.loadPublicDonationPosts = loadPublicDonationPosts;

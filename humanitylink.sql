@@ -159,6 +159,7 @@ CREATE TABLE IF NOT EXISTS financial_campaigns (
     id          INT AUTO_INCREMENT PRIMARY KEY,
     charity_id  INT NOT NULL,
     title       VARCHAR(200) NOT NULL,
+    category    VARCHAR(100) DEFAULT 'Other',
     description TEXT NOT NULL,
     goal_amount DECIMAL(12,2) NOT NULL,
     collected_amount DECIMAL(12,2) DEFAULT 0.00,

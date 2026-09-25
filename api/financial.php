@@ -32,6 +32,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 u.full_name     AS charity_name,
                 u.profile_picture AS charity_avatar,
                 fc.title,
+                fc.category,
                 fc.description,
                 fc.goal_amount,
                 fc.image_url,
@@ -162,6 +163,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
 
         $title       = trim($_POST['title'] ?? '');
+        $category    = trim($_POST['category'] ?? 'Other');
         $description = trim($_POST['description'] ?? '');
         $goalAmount  = (float)($_POST['goal_amount'] ?? 0);
         $deadline    = $_POST['deadline'] ?? '';
@@ -186,8 +188,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             $imageUrl = "uploads/financial/" . $filename;
         }
 
-        $stmt = $conn->prepare("INSERT INTO financial_campaigns (charity_id, title, description, goal_amount, image_url, deadline) VALUES (?,?,?,?,?,?)");
-        $stmt->bind_param("issdss", $userId, $title, $description, $goalAmount, $imageUrl, $deadline);
+        $stmt = $conn->prepare("INSERT INTO financial_campaigns (charity_id, title, category, description, goal_amount, image_url, deadline) VALUES (?,?,?,?,?,?,?)");
+        $stmt->bind_param("isssdss", $userId, $title, $category, $description, $goalAmount, $imageUrl, $deadline);
 
         if ($stmt->execute()) {
             echo json_encode(['ok'=>true,'msg'=>'Campaign created!','campaign_id'=>$conn->insert_id]);
