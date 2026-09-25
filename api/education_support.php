@@ -67,9 +67,33 @@ if ($method === 'POST') {
         }
     }
 
-    $sql = "INSERT INTO fund_requests (charity_id, fund_type, category, individual_name, nid_number, organization_name, group_category, reason, document_url, support_amount, street, area, city, case_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $extra_info = [];
+    if ($category === 'individual') {
+        if ($individual_name) $extra_info[] = "Individual: $individual_name";
+        if ($nid_number) $extra_info[] = "NID: $nid_number";
+    } else {
+        if ($organization_name) $extra_info[] = "Organization: $organization_name";
+    }
+    if ($case_name) $extra_info[] = "Case Name: $case_name";
+    
+    $final_reason = $reason;
+    if (!empty($extra_info)) {
+        $final_reason = implode("\n", $extra_info) . "\n\nDetails:\n" . $reason;
+    }
+    
+    // Ensure group_category is at least set to category if empty
+    if (!$group_category && $category) {
+        $group_category = $category;
+    }
+
+    $sql = "INSERT INTO fund_requests (charity_id, fund_type, group_category, reason, amount, location_street, location_area, location_city, document_url) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("issssssssdssss", $charity_id, $fund_type, $category, $individual_name, $nid_number, $organization_name, $group_category, $reason, $document_url, $support_amount, $street, $area, $city, $case_name);
+    if (!$stmt) {
+        echo json_encode(['ok' => false, 'error' => $conn->error]);
+        exit;
+    }
+    
+    $stmt->bind_param("isssdssss", $charity_id, $fund_type, $group_category, $final_reason, $support_amount, $street, $area, $city, $document_url);
     
     if ($stmt->execute()) {
         echo json_encode(['ok' => true]);

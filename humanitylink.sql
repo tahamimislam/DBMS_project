@@ -173,10 +173,11 @@ CREATE TABLE IF NOT EXISTS financial_campaigns (
 -- ── Donations Table ────────────────────────────────────────
 CREATE TABLE IF NOT EXISTS donations (
     id          INT AUTO_INCREMENT PRIMARY KEY,
-    campaign_id INT NOT NULL,
+    campaign_id INT NULL,
     user_id     INT NOT NULL,
     amount      DECIMAL(10,2) NOT NULL,
     message     TEXT DEFAULT NULL,
+    system_fund VARCHAR(100) DEFAULT NULL,
     payment_method VARCHAR(50) DEFAULT 'card',
     transaction_id VARCHAR(100),
     payment_status ENUM('SUCCESS', 'PENDING', 'FAILED') DEFAULT 'SUCCESS',
