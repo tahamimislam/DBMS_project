@@ -565,13 +565,7 @@ const HL_OFFERINGS_DATA = {
       { step: "4", title: "Distribution" },
       { step: "5", title: "Completed" },
     ],
-    stats: [
-      { num: "0", label: "Food Posts Shared" },
-      { num: "0", label: "Successfully Distributed" },
-      { num: "0", label: "Active Food Donations" },
-      { num: "0%", label: "Delivery Success Rate" },
-    ],
-    recent: [],
+    handlingDesc: "HumanityLink streamlines surplus food recovery by providing a centralized platform where restaurants and community centers can instantly post available food. Registered charity organizations are notified and can claim the donation for immediate distribution. The system automatically updates the status and records the transaction, ensuring transparent and efficient coordination to combat hunger.",
     primaryBtn: {
       label: "Explore Food Support Board →",
       href: "food-support.html",
@@ -589,13 +583,7 @@ const HL_OFFERINGS_DATA = {
       { step: "4", title: "Action Taken" },
       { step: "5", title: "Completed" },
     ],
-    stats: [
-      { num: "0", label: "Medical Cases Reported" },
-      { num: "0", label: "Treated & Aided" },
-      { num: "0", label: "Free Medical Camps" },
-      { num: "0%", label: "Response Rate" },
-    ],
-    recent: [],
+    handlingDesc: "Our platform enables any user to report destitute or medically distressed individuals in real-time. Verified charity organizations can browse these reports, accept cases, and dispatch medical aid or organize volunteer doctor camps. HumanityLink acts as the critical bridge between those needing urgent care and the organizations equipped to provide it.",
   },
   financial: {
     title: "Financial Support",
@@ -608,13 +596,7 @@ const HL_OFFERINGS_DATA = {
       { step: "3", title: "Transaction Recorded" },
       { step: "4", title: "Donation History Updated" },
     ],
-    stats: [
-      { num: "৳ 0", label: "Total Funds Raised" },
-      { num: "0", label: "Verified Campaigns" },
-      { num: "0", label: "Generous Donors" },
-      { num: "0%", label: "Audited Transparency" },
-    ],
-    recent: [],
+    handlingDesc: "HumanityLink offers a secure, transparent crowdfunding environment. Charities can launch verified campaigns for disaster relief or medical emergencies. Donors can contribute directly to these campaigns or to general system funds (Emergency, Welfare, Education). Every transaction is logged and audited in the system to ensure 100% accountability and trust.",
   },
   education: {
     title: "Education Support",
@@ -629,13 +611,7 @@ const HL_OFFERINGS_DATA = {
       { step: "5", title: "Fund Distribution" },
       { step: "6", title: "Record Updated" },
     ],
-    stats: [
-      { num: "0", label: "Students Sponsored" },
-      { num: "৳ 0", label: "Scholarships Awarded" },
-      { num: "0", label: "University Seats Funded" },
-      { num: "0%", label: "Academic Retention" },
-    ],
-    recent: [],
+    handlingDesc: "We provide a structured application process for underprivileged students, schools, or orphanages to request financial support. Applicants submit necessary academic documents and verification details through the platform. Charities and administrators can review, approve, and distribute funds directly from their allocated budgets.",
   },
 };
 
@@ -651,49 +627,7 @@ HL.openOfferingModal = async function (type) {
     document.body.appendChild(modalEl);
   }
 
-  // Real-time calculation for stats & recent records
-  let currentStats = [...data.stats];
-  let recentHTML = "";
-
-  if (type === "food") {
-    if (!HL.foodPosts || !HL.foodPosts.length) {
-      await loadFoodPosts();
-    }
-    const total = HL.foodPosts ? HL.foodPosts.length : 0;
-    const claimed = HL.foodPosts
-      ? HL.foodPosts.filter((p) => p.claimedBy).length
-      : 0;
-    const active = total - claimed;
-    const rate = total > 0 ? Math.round((claimed / total) * 100) + "%" : "0%";
-
-    currentStats = [
-      { num: String(total), label: "Food Posts Shared" },
-      { num: String(claimed), label: "Successfully Distributed" },
-      { num: String(active), label: "Active Food Donations" },
-      { num: rate, label: "Delivery Success Rate" },
-    ];
-
-    const claimedPosts = HL.foodPosts
-      ? HL.foodPosts.filter((p) => p.claimedBy).slice(0, 3)
-      : [];
-    if (claimedPosts.length > 0) {
-      recentHTML = claimedPosts
-        .map(
-          (p) => `
-        <div class="offering-recent-card">
-          <div class="recent-card-top"><span class="recent-badge"><i class="fa-solid fa-circle-check"></i> Distributed</span></div>
-          <div class="recent-parties">${p.postedByName} ➔ ${p.claimedByName || "Charity"}</div>
-          <div class="recent-item">${p.quantity} &bull; ${p.foodName} (${p.foodType})</div>
-          <div class="recent-meta"><i class="fa-solid fa-location-dot"></i> ${p.address || "Dhaka"} &bull; <i class="fa-regular fa-calendar"></i> Pickup: ${formatDate(p.pickupDate)}</div>
-        </div>`,
-        )
-        .join("");
-    } else {
-      recentHTML = `<div class="empty-state" style="padding:22px;grid-column:1/-1;text-align:center;color:var(--muted);font-size:.85rem"><i class="fa-solid fa-clock-rotate-left" style="font-size:1.4rem;display:block;margin-bottom:8px;opacity:.6"></i>No completed distribution records yet. Initialized at 0.</div>`;
-    }
-  } else {
-    recentHTML = `<div class="empty-state" style="padding:22px;grid-column:1/-1;text-align:center;color:var(--muted);font-size:.85rem"><i class="fa-solid fa-clock-rotate-left" style="font-size:1.4rem;display:block;margin-bottom:8px;opacity:.6"></i>No verified records yet. Initialized at 0.</div>`;
-  }
+  // Removed stats and recent records logic as per request
 
   const stepsHTML = data.process
     .map(
@@ -705,15 +639,7 @@ HL.openOfferingModal = async function (type) {
     )
     .join("");
 
-  const statsHTML = currentStats
-    .map(
-      (st) => `
-    <div class="offering-stat-box">
-      <div class="offering-stat-num">${st.num}</div>
-      <div class="offering-stat-label">${st.label}</div>
-    </div>`,
-    )
-    .join("");
+
 
   let actionBtns = "";
   if (!HL.currentUser) {
@@ -741,10 +667,10 @@ HL.openOfferingModal = async function (type) {
       <p class="offering-desc-clean">${data.desc}</p>
       <div class="subheading-label"><i class="fa-solid fa-list-check"></i> How It Works &mdash; Process</div>
       <div class="offering-steps-grid">${stepsHTML}</div>
-      <div class="subheading-label"><i class="fa-solid fa-chart-line"></i> Success History &mdash; Impact at a Glance</div>
-      <div class="offering-stats-grid">${statsHTML}</div>
-      <div class="subheading-label"><i class="fa-solid fa-star"></i> Recent Success Details &mdash; Verified Records</div>
-      <div class="offering-recent-grid">${recentHTML}</div>
+      <div class="subheading-label" style="margin-top: 24px;"><i class="fa-solid fa-sitemap"></i> How We Handle This Sector</div>
+      <div style="background: rgba(255, 255, 255, 0.02); border: 1px solid var(--border); padding: 16px; border-radius: 8px; color: var(--text-muted); font-size: 0.95rem; line-height: 1.6; margin-bottom: 24px;">
+        ${data.handlingDesc}
+      </div>
       <div class="offering-actions">
         <button class="btn btn-ghost btn-sm" onclick="HL.closeOfferingModal()">Close</button>
         ${actionBtns}
