@@ -51,9 +51,21 @@ if ($method === 'POST') {
     
     $fund_type = $data['fund_type'] ?? 'educational';
 
-    $sql = "INSERT INTO fund_requests (charity_id, fund_type, category, individual_name, nid_number, organization_name, group_category, reason, support_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $document_url = null;
+    if (isset($_FILES['document']) && $_FILES['document']['error'] === UPLOAD_ERR_OK) {
+        $uploadDir = '../uploads/';
+        if (!is_dir($uploadDir)) mkdir($uploadDir, 0777, true);
+        
+        $ext = pathinfo($_FILES['document']['name'], PATHINFO_EXTENSION);
+        $filename = 'doc_' . time() . '_' . rand(100, 999) . '.' . $ext;
+        if (move_uploaded_file($_FILES['document']['tmp_name'], $uploadDir . $filename)) {
+            $document_url = 'uploads/' . $filename;
+        }
+    }
+
+    $sql = "INSERT INTO fund_requests (charity_id, fund_type, category, individual_name, nid_number, organization_name, group_category, reason, document_url, support_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("isssssssd", $charity_id, $fund_type, $category, $individual_name, $nid_number, $organization_name, $group_category, $reason, $support_amount);
+    $stmt->bind_param("issssssssd", $charity_id, $fund_type, $category, $individual_name, $nid_number, $organization_name, $group_category, $reason, $document_url, $support_amount);
     
     if ($stmt->execute()) {
         echo json_encode(['ok' => true]);

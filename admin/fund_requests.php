@@ -240,12 +240,27 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
                      <div><strong>Type:</strong> <span style="text-transform:capitalize">${req.group_category.replace('_', ' ')}</span></div>`;
         }
         
+        let docLink = '';
+        if (req.document_url) {
+          docLink = `<div><strong>Document:</strong> <a href="../${req.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-arrow-down"></i> View/Download</a></div>`;
+        }
+
         let actions = '';
         if (req.status === 'pending') {
           actions = `
-            <div style="display:flex; gap:10px; margin-top:16px;">
-              <button class="btn btn-primary btn-sm" style="flex:1" onclick="processReq(${req.id}, 'approve', ${req.support_amount})">Approve & Pay</button>
-              <button class="btn btn-ghost btn-sm" onclick="processReq(${req.id}, 'reject', 0)">Reject</button>
+            <div id="inline-error-${req.id}" style="display:none; margin-top:12px; padding:8px 12px; background:rgba(239, 68, 68, 0.08); border-left:3px solid #ef4444; border-radius:6px; color:#fca5a5; font-size:0.85rem;"></div>
+            
+            <div id="reject-form-${req.id}" style="display:none; margin-top:16px;">
+              <textarea id="reject-reason-${req.id}" class="form-control" rows="2" placeholder="Reason for rejection..." style="width:100%; margin-bottom:8px; padding:8px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--text); border-radius:6px; font-family:inherit;"></textarea>
+              <div style="display:flex; gap:10px;">
+                <button class="btn btn-primary btn-sm" onclick="submitReject(${req.id})" style="flex:1;">Submit Rejection</button>
+                <button class="btn btn-ghost btn-sm" onclick="document.getElementById('reject-form-${req.id}').style.display='none'; document.getElementById('action-btns-${req.id}').style.display='flex';">Cancel</button>
+              </div>
+            </div>
+
+            <div id="action-btns-${req.id}" style="display:flex; gap:10px; margin-top:16px;">
+              <button class="btn btn-primary btn-sm" style="flex:1" onclick="processApprove(${req.id}, ${req.support_amount})">Approve & Pay</button>
+              <button class="btn btn-ghost btn-sm" onclick="showRejectForm(${req.id})">Reject</button>
             </div>
           `;
         }
@@ -270,6 +285,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
               ${details}
               <div><strong>Amount Requested:</strong> <span style="color:var(--primary); font-weight:700;">৳${parseFloat(req.support_amount).toLocaleString()}</span></div>
               <div><strong>Date:</strong> ${new Date(req.created_at).toLocaleDateString('en-GB')}</div>
+              ${docLink}
             </div>
             <div style="font-size:0.85rem; background:rgba(255,255,255,0.02); padding:10px; border-radius:8px; flex:1;">
               <strong>Reason:</strong> ${req.reason}
@@ -281,22 +297,40 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
       }).join('');
     }
 
-    async function processReq(id, action, amount) {
-      if (action === 'approve') {
-        const bal = balances[currentTab] || 0;
-        if (amount > bal) {
-          alert('Insufficient funds in ' + currentTab + ' to approve this request (Needs ৳' + amount + ', Available: ৳' + bal + ').');
-          return;
-        }
-        if (!confirm('Are you sure you want to approve this request? ৳' + amount + ' will be deducted from the system fund.')) return;
-      }
+    function showRejectForm(id) {
+      document.getElementById('action-btns-' + id).style.display = 'none';
+      document.getElementById('inline-error-' + id).style.display = 'none';
+      document.getElementById('reject-form-' + id).style.display = 'block';
+    }
+
+    async function processApprove(id, amount) {
+      const errEl = document.getElementById('inline-error-' + id);
+      errEl.style.display = 'none';
       
-      let reason = '';
-      if (action === 'reject') {
-        reason = prompt('Please enter a reason for rejection:');
-        if (reason === null) return;
+      const bal = balances[currentTab] || 0;
+      if (amount > bal) {
+        errEl.innerHTML = '<strong>Insufficient funds!</strong> Needs ৳' + amount + ', but only ৳' + bal + ' available in ' + currentTab + ' fund.';
+        errEl.style.display = 'block';
+        return;
       }
+      if (!confirm('Are you sure you want to approve this request? ৳' + amount + ' will be deducted from the system fund.')) return;
       
+      await sendAction(id, 'approve', '');
+    }
+
+    async function submitReject(id) {
+      const errEl = document.getElementById('inline-error-' + id);
+      errEl.style.display = 'none';
+      const reason = document.getElementById('reject-reason-' + id).value.trim();
+      if (!reason) {
+        errEl.innerHTML = 'Please enter a rejection reason.';
+        errEl.style.display = 'block';
+        return;
+      }
+      await sendAction(id, 'reject', reason);
+    }
+
+    async function sendAction(id, action, reason) {
       try {
         const res = await fetch('api_fund_requests.php', {
           method: 'POST',
@@ -307,11 +341,14 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
         if (data.ok) {
           loadRequests(); // Reload
         } else {
-          alert('Error: ' + data.error);
+          const errEl = document.getElementById('inline-error-' + id);
+          if (errEl) {
+             errEl.innerHTML = 'Error: ' + data.error;
+             errEl.style.display = 'block';
+          } else alert(data.error);
         }
       } catch (err) {
         console.error(err);
-        alert('Request failed');
       }
     }
 

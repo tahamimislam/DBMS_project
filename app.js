@@ -3572,22 +3572,30 @@ async function submitEduSupport(e) {
   errEl.style.display = 'none';
   succEl.style.display = 'none';
   
-  const payload = {
-    charity_id: HL.currentUser.id,
-    category: document.getElementById('edu-category').value,
-    reason: document.getElementById('edu-reason').value,
-    support_amount: document.getElementById('edu-amount').value,
-    individual_name: document.getElementById('edu-ind-name').value,
-    nid_number: document.getElementById('edu-ind-nid').value,
-    organization_name: document.getElementById('edu-grp-name').value,
-    group_category: document.getElementById('edu-grp-cat').value
-  };
+  const formData = new FormData();
+  formData.append('charity_id', HL.currentUser.id);
+  const cat = document.getElementById('edu-category').value;
+  formData.append('category', cat);
+  formData.append('reason', document.getElementById('edu-reason').value);
+  formData.append('support_amount', document.getElementById('edu-amount').value);
+  formData.append('individual_name', document.getElementById('edu-ind-name').value);
+  formData.append('nid_number', document.getElementById('edu-ind-nid').value);
+  formData.append('organization_name', document.getElementById('edu-grp-name').value);
+  formData.append('group_category', document.getElementById('edu-grp-cat').value);
+  
+  const fileInput = cat === 'individual' ? document.getElementById('edu-ind-doc') : document.getElementById('edu-grp-doc');
+  if (fileInput && fileInput.files[0]) {
+    formData.append('document', fileInput.files[0]);
+  }
   
   btn.disabled = true;
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
   
   try {
-    const res = await apiPost('education_support.php', payload);
+    const res = await fetch('api/education_support.php', {
+      method: 'POST',
+      body: formData
+    }).then(r => r.json());
     if (res && res.ok) {
       succEl.style.display = 'block';
       document.getElementById('eduSupportForm').reset();
