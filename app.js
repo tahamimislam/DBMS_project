@@ -1274,6 +1274,7 @@ async function initFoodSupportPage() {
       navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link active" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
       navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
       navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
+      navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
     }
   }
 
@@ -2712,6 +2713,7 @@ async function initMedicalPage() {
       navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
       navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
       navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
+      navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
     }
   } else if (HL.currentUser.accountType === "admin") {
     const navEl = document.querySelector(".app-sidebar-nav");
@@ -2852,6 +2854,7 @@ function buildFinSidebar() {
     navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
     navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
     navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
+    navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
   } else if (isAdmin) {
     navEl.innerHTML = '<div class="app-sidebar-section-label">Navigation</div>';
     navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
@@ -3505,3 +3508,182 @@ async function loadPublicDonationPosts() {
   `).join('');
 }
 window.loadPublicDonationPosts = loadPublicDonationPosts;
+// ── Education Support Logic ───────────────────────────────────
+
+function showEduTab(tabName) {
+  const tabs = document.querySelectorAll('#edu-section .mw-tab');
+  tabs.forEach(t => t.classList.remove('active'));
+  document.getElementById('tab-edu-' + tabName).classList.add('active');
+
+  const applyView = document.getElementById('edu-sub-apply');
+  const statusView = document.getElementById('edu-sub-status');
+
+  if (tabName === 'apply') {
+    applyView.classList.remove('hidden');
+    statusView.classList.add('hidden');
+  } else {
+    applyView.classList.add('hidden');
+    statusView.classList.remove('hidden');
+    loadEduApplications();
+  }
+}
+window.showEduTab = showEduTab;
+
+function toggleEduCategory(val) {
+  const indFields = document.getElementById('edu-individual-fields');
+  const grpFields = document.getElementById('edu-group-fields');
+  const comFields = document.getElementById('edu-common-fields');
+  
+  // Clear inputs inside when hiding
+  if (val === 'individual') {
+    indFields.style.display = 'block';
+    grpFields.style.display = 'none';
+    comFields.style.display = 'block';
+    document.getElementById('edu-grp-name').value = '';
+    document.getElementById('edu-grp-cat').value = '';
+  } else if (val === 'group') {
+    indFields.style.display = 'none';
+    grpFields.style.display = 'block';
+    comFields.style.display = 'block';
+    document.getElementById('edu-ind-name').value = '';
+    document.getElementById('edu-ind-nid').value = '';
+  } else {
+    indFields.style.display = 'none';
+    grpFields.style.display = 'none';
+    comFields.style.display = 'none';
+  }
+}
+window.toggleEduCategory = toggleEduCategory;
+
+async function submitEduSupport(e) {
+  e.preventDefault();
+  
+  if (!HL.currentUser || HL.currentUser.accountType !== 'charity') {
+    alert("You must be logged in as a Charity to submit an application.");
+    return;
+  }
+  
+  const errEl = document.getElementById('edu-form-error');
+  const succEl = document.getElementById('edu-form-success');
+  const btn = document.getElementById('edu-submit-btn');
+  
+  errEl.style.display = 'none';
+  succEl.style.display = 'none';
+  
+  const payload = {
+    charity_id: HL.currentUser.id,
+    category: document.getElementById('edu-category').value,
+    reason: document.getElementById('edu-reason').value,
+    support_amount: document.getElementById('edu-amount').value,
+    individual_name: document.getElementById('edu-ind-name').value,
+    nid_number: document.getElementById('edu-ind-nid').value,
+    organization_name: document.getElementById('edu-grp-name').value,
+    group_category: document.getElementById('edu-grp-cat').value
+  };
+  
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+  
+  try {
+    const res = await apiPost('education_support.php', payload);
+    if (res && res.ok) {
+      succEl.style.display = 'block';
+      document.getElementById('eduSupportForm').reset();
+      toggleEduCategory('');
+    } else {
+      throw new Error(res.error || "Submission failed");
+    }
+  } catch(err) {
+    errEl.textContent = err.message;
+    errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Application';
+  }
+}
+window.submitEduSupport = submitEduSupport;
+
+async function loadEduApplications() {
+  if (!HL.currentUser || HL.currentUser.accountType !== 'charity') return;
+  
+  const listEl = document.getElementById('edu-status-list');
+  const emptyEl = document.getElementById('edu-status-empty');
+  
+  listEl.innerHTML = '<div style="text-align:center;padding:40px;"><i class="fa-solid fa-spinner fa-spin" style="font-size:2rem;color:var(--primary);"></i></div>';
+  emptyEl.classList.add('hidden');
+  
+  try {
+    const res = await apiGet('education_support.php?charity_id=' + HL.currentUser.id);
+    if (res && res.ok) {
+      if (res.applications.length === 0) {
+        listEl.innerHTML = '';
+        emptyEl.classList.remove('hidden');
+      } else {
+        emptyEl.classList.add('hidden');
+        listEl.innerHTML = res.applications.map(app => {
+          
+          let statusBadge = '';
+          if (app.status === 'pending') statusBadge = '<span class="status-badge" style="background:#fef3c7; color:#d97706; padding:4px 10px; border-radius:99px; font-size:0.8rem; font-weight:600;"><i class="fa-regular fa-clock"></i> Pending</span>';
+          else if (app.status === 'approved') statusBadge = '<span class="status-badge" style="background:#dcfce7; color:#15803d; padding:4px 10px; border-radius:99px; font-size:0.8rem; font-weight:600;"><i class="fa-solid fa-check"></i> Approved</span>';
+          else if (app.status === 'rejected') statusBadge = '<span class="status-badge" style="background:#fee2e2; color:#b91c1c; padding:4px 10px; border-radius:99px; font-size:0.8rem; font-weight:600;"><i class="fa-solid fa-xmark"></i> Rejected</span>';
+          
+          let detailsHtml = '';
+          if (app.category === 'individual') {
+            detailsHtml = `<div><strong>Individual Name:</strong> ${app.individual_name}</div>
+                           <div><strong>NID/Birth Cert:</strong> ${app.nid_number}</div>`;
+          } else {
+            const catName = app.group_category === 'primary_school' ? 'Primary School' : (app.group_category === 'orphanage' ? 'Orphanage' : 'Madrasha');
+            detailsHtml = `<div><strong>Organization Name:</strong> ${app.organization_name}</div>
+                           <div><strong>Category:</strong> ${catName}</div>`;
+          }
+
+          let feedbackHtml = '';
+          if (app.status === 'rejected' && app.admin_feedback) {
+            feedbackHtml = `<div style="margin-top:12px; padding:10px 14px; background:rgba(239, 68, 68, 0.08); border-left:3px solid #ef4444; border-radius:6px; color:#fca5a5; font-size:0.9rem;">
+              <strong>Admin Reason:</strong> ${app.admin_feedback}
+            </div>`;
+          }
+          
+          return `
+            <div class="fin-mgmt-card" style="display:block;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <h4 style="margin:0; font-size:1.1rem; color:var(--text); text-transform:capitalize;">
+                  ${app.category} Support
+                </h4>
+                ${statusBadge}
+              </div>
+              <div style="font-size:0.9rem; color:var(--text-muted); line-height:1.6; margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+                ${detailsHtml}
+                <div><strong>Requested Amount:</strong> ৳${parseFloat(app.support_amount).toLocaleString()}</div>
+                <div><strong>Applied on:</strong> ${new Date(app.created_at).toLocaleDateString('en-GB')}</div>
+              </div>
+              <div style="font-size:0.9rem; color:var(--text); background:rgba(255,255,255,0.03); padding:12px; border-radius:8px;">
+                <strong>Reason:</strong> ${app.reason}
+              </div>
+              ${feedbackHtml}
+            </div>
+          `;
+        }).join('');
+      }
+    }
+  } catch (err) {
+    listEl.innerHTML = `<div class="form-error-msg" style="display:block;">Failed to load applications: ${err.message}</div>`;
+  }
+}
+window.loadEduApplications = loadEduApplications;
+
+document.addEventListener('DOMContentLoaded', () => {
+  if (window.location.pathname.includes('education-support.html')) {
+    if (HL.currentUser && HL.currentUser.accountType === 'charity') {
+      showEduTab('apply');
+    } else {
+      const guestSec = document.getElementById('fin-section-guest');
+      const eduSec = document.getElementById('edu-section');
+      if (guestSec && eduSec) {
+        guestSec.classList.remove('hidden');
+        eduSec.classList.add('hidden');
+      }
+    }
+  }
+});
+

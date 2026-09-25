@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="HumanityLink Financial Support - Donate to charity campaigns and help those in need.">
+  <title>Financial Support - HumanityLink</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* ── Financial Support Page Styles ─────────────────────── */
+    .fin-campaign-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      margin-top: 20px;
+    }
+    .fin-campaign-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .fin-campaign-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+    }
+    .fin-campaign-img {
+      width: 100%;
+      height: 180px;
+      object-fit: cover;
+      background: var(--bg-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--text-muted);
+      font-size: 2.5rem;
+    }
+    .fin-campaign-img img { width:100%; height:100%; object-fit:cover; }
+    .fin-campaign-body { padding: 20px; flex: 1; display: flex; flex-direction: column; }
+    .fin-campaign-title { font-size: 1.1rem; font-weight: 700; margin: 0 0 6px; color: var(--text-color); }
+    .fin-campaign-charity { font-size: 0.82rem; color: var(--text-muted); margin-bottom: 10px; }
+    .fin-campaign-desc { font-size: 0.9rem; color: var(--text-muted); line-height: 1.55; margin-bottom: 16px; flex: 1; }
+    .fin-progress-wrap { margin-bottom: 14px; }
+    .fin-progress-bar-bg { background: var(--bg-secondary); border-radius: 99px; height: 8px; overflow: hidden; margin-bottom: 6px; }
+    .fin-progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, #22c55e, #16a34a); transition: width 0.6s ease; }
+    .fin-progress-labels { display: flex; justify-content: space-between; font-size: 0.8rem; }
+    .fin-raised { font-weight: 700; color: var(--primary); }
+    .fin-goal { color: var(--text-muted); }
+    .fin-campaign-footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--border); padding-top: 14px; margin-top: 4px; }
+    .fin-meta { font-size: 0.8rem; color: var(--text-muted); }
+    .fin-deadline { color: var(--warning, #f59e0b); font-weight: 600; }
+
+    /* Charity management card */
+    .fin-mgmt-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+    .fin-mgmt-info { flex: 1; min-width: 200px; }
+    .fin-mgmt-title { font-weight: 700; font-size: 1rem; margin: 0 0 4px; }
+    .fin-mgmt-meta { font-size: 0.82rem; color: var(--text-muted); }
+    .fin-mgmt-raised { font-weight: 700; color: var(--primary); font-size: 1.1rem; }
+    .fin-mgmt-progress { width: 100%; margin: 10px 0 0; }
+
+    /* Donation history */
+    .donation-hist-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+    .donation-hist-row:last-child { border-bottom: none; }
+    .donation-hist-amount {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 80px;
+      text-align: right;
+    }
+    .donation-hist-info { flex: 1; }
+    .donation-hist-campaign { font-weight: 600; font-size: 0.95rem; }
+    .donation-hist-charity { font-size: 0.82rem; color: var(--text-muted); }
+    .donation-hist-date { font-size: 0.78rem; color: var(--text-muted); white-space: nowrap; }
+
+    /* Donate Modal */
+    .donate-modal-overlay {
+      display: none;
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,0.55);
+      z-index: 9000;
+      align-items: center;
+      justify-content: center;
+    }
+    .donate-modal-overlay.show { display: flex; }
+    .donate-modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 32px;
+      width: 100%;
+      max-width: 460px;
+      margin: 20px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .donate-modal::-webkit-scrollbar { width: 6px; }
+    .donate-modal::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 6px; }
+    .donate-modal h3 { margin: 0 0 6px; font-size: 1.3rem; }
+    .donate-modal p { margin: 0 0 20px; color: var(--text-muted); font-size: 0.9rem; }
+    .amount-presets { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+    .amount-btn { padding: 8px 18px; border: 1.5px solid var(--primary); border-radius: 99px; background: transparent; color: var(--primary); font-weight: 600; cursor: pointer; transition: all 0.15s; font-size: 0.9rem; }
+    .amount-btn:hover, .amount-btn.selected { background: var(--primary); color: #fff; }
+    .fin-stat-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px; margin-bottom:28px; }
+    .fin-stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+    .fin-stat-num { font-size:1.8rem; font-weight:800; color:var(--primary); }
+    .fin-stat-lbl { font-size:0.82rem; color:var(--text-muted); margin-top:2px; }
+
+    /* Payment Success Modal */
+    .pay-success-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.65); z-index: 9999;
+      align-items: center; justify-content: center;
+    }
+    .pay-success-overlay.show { display: flex; }
+    .pay-success-modal {
+      background: #1C2027; border: 1px solid var(--border);
+      border-radius: 24px; padding: 40px 36px; width: 100%;
+      max-width: 420px; margin: 20px;
+      text-align: center;
+      animation: successSlideUp 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes successSlideUp {
+      from { opacity: 0; transform: translateY(40px) scale(0.93); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    /* Animated checkmark */
+    .success-icon-wrap {
+      width: 80px; height: 80px; border-radius: 50%;
+      background: rgba(34,197,94,0.12); border: 3px solid #22c55e;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 20px;
+      animation: popIn 0.5s 0.1s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+    .success-icon-wrap i { font-size: 2.2rem; color: #22c55e; }
+    .pay-success-modal h2 { margin: 0 0 6px; font-size: 1.5rem; font-weight: 800; }
+    .pay-success-modal .success-sub { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
+    .pay-success-receipt {
+      background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+      border-radius: 14px; padding: 16px 20px; margin-bottom: 24px; text-align: left;
+    }
+    .pay-success-receipt .receipt-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 0.88rem;
+    }
+    .pay-success-receipt .receipt-row:last-child { border-bottom: none; }
+    .pay-success-receipt .receipt-label { color: var(--text-muted); }
+    .pay-success-receipt .receipt-value { font-weight: 700; color: var(--text); }
+    .pay-success-receipt .receipt-amount { font-size: 1.1rem; color: #22c55e; }
+    .pay-success-receipt .receipt-txn { font-family: monospace; font-size: 0.8rem; color: var(--primary); }
+
+    /* Card type selector — matches MFS style */
+    .card-type-selector { display:flex; gap:20px; justify-content:center; margin-bottom:15px; }
+    .card-type-btn {
+      cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;
+    }
+    .card-type-btn input[type=radio] { display:none; }
+    .card-type-btn img {
+      width:50px; height:50px; object-fit:contain; border-radius:8px;
+      background:#fff; padding:2px;
+      border: 2px solid transparent;
+      transition: border-color 0.18s, box-shadow 0.18s;
+    }
+    .card-type-btn:hover img { border-color: var(--primary); }
+    .card-type-btn.active img {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.25);
+    }
+  </style>
+</head>
+<body class="has-sidebar">
+
+<!-- ── Sidebar ── -->
+<aside class="app-sidebar" id="appSidebar">
+  <a href="index.html" class="app-sidebar-logo" id="sidebar-logo-link">
+    <img src="assets/logo.jpg" alt="HumanityLink">
+    <span>HumanityLink</span>
+  </a>
+  <nav class="app-sidebar-nav" id="fin-sidebar-nav">
+    <div class="app-sidebar-section-label">Navigation</div>
+    <!-- Nav links injected by JS based on account type -->
+  </nav>
+  <div class="app-sidebar-spacer"></div>
+  <div class="app-sidebar-account" id="sidebarAccount"></div>
+</aside>
+
+<button class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()" aria-label="Close sidebar"></button>
+
+<div class="app-topbar" id="appTopbar">
+  <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+    <i class="fa-solid fa-bars"></i>
+  </button>
+  <div class="topbar-title">Financial Support</div>
+  <div class="topbar-right" id="topbarRight"></div>
+  <button class="btn btn-ghost theme-toggle-btn" onclick="toggleTheme()" id="themeToggleBtn" aria-label="Toggle theme">
+    <i class="fa-solid fa-moon"></i>
+  </button>
+  <button class="btn btn-ghost" onclick="document.getElementById('logoutBtn').click()" style="display:none" id="topbarLogout">
+    <i class="fa-solid fa-arrow-right-from-bracket"></i>
+  </button>
+</div>
+
+<button id="logoutBtn" style="display:none" onclick="apiPost('logout.php',{}).then(()=>{window.location.href='auth.html';})"></button>
+
+<!-- ── Main Content ── -->
+<div class="app-main" id="appMain">
+<div class="container mw-container">
+
+  <!-- ═══ EDUCATION SUPPORT DASHBOARD ═══════════════════════════════════ -->
+  <div id="edu-section" class="fin-section">
+    <div class="page-header" style="margin-bottom:24px;">
+      <h1><i class="fa-solid fa-graduation-cap"></i> Education Support</h1>
+      <p style="color:var(--text-muted); margin-top:4px;">Apply for educational support or check your application status.</p>
+    </div>
+
+    <!-- Education Tabs -->
+    <div class="mw-tabs" style="margin-bottom:24px; display:flex; overflow-x:auto;">
+      <button class="mw-tab active" id="tab-edu-apply" onclick="showEduTab('apply')" style="white-space:nowrap;">
+        <i class="fa-solid fa-pen-to-square"></i> Apply for support
+      </button>
+      <button class="mw-tab" id="tab-edu-status" onclick="showEduTab('status')" style="white-space:nowrap;">
+        <i class="fa-solid fa-list-check"></i> Application status
+      </button>
+    </div>
+
+    <!-- Apply for Support Form -->
+    <div id="edu-sub-apply">
+      <div class="fin-mgmt-card" style="display:block;">
+        <h3 style="margin-top:0; margin-bottom:20px;"><i class="fa-solid fa-graduation-cap" style="color:var(--primary);"></i> Submit Education Support Application</h3>
+        
+        <form id="eduSupportForm" onsubmit="submitEduSupport(event)">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Category <span class="req">*</span></label>
+            <select id="edu-category" class="form-control" required onchange="toggleEduCategory(this.value)">
+              <option value="">Select Category...</option>
+              <option value="individual">Individual</option>
+              <option value="group">Group / Organization</option>
+            </select>
+          </div>
+
+          <!-- Individual Fields -->
+          <div id="edu-individual-fields" style="display:none;">
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Individual Name <span class="req">*</span></label>
+              <input type="text" id="edu-ind-name" class="form-control" placeholder="Student's Name">
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Birth Certificate / NID Number <span class="req">*</span></label>
+              <input type="text" id="edu-ind-nid" class="form-control" placeholder="ID Number">
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Academic Document (Optional)</label>
+              <input type="file" id="edu-ind-doc" class="form-control" accept="image/*,.pdf">
+            </div>
+          </div>
+
+          <!-- Group Fields -->
+          <div id="edu-group-fields" style="display:none;">
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Organization Name <span class="req">*</span></label>
+              <input type="text" id="edu-grp-name" class="form-control" placeholder="Name of Institution">
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Organization Category <span class="req">*</span></label>
+              <select id="edu-grp-cat" class="form-control">
+                <option value="">Select...</option>
+                <option value="orphanage">Orphanage</option>
+                <option value="primary_school">Primary School</option>
+                <option value="madrasha">Madrasha</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Organization Documentation (Optional)</label>
+              <input type="file" id="edu-grp-doc" class="form-control" accept="image/*,.pdf">
+            </div>
+          </div>
+
+          <!-- Common Fields -->
+          <div id="edu-common-fields" style="display:none;">
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Reason for Support <span class="req">*</span></label>
+              <textarea id="edu-reason" class="form-control" rows="4" placeholder="Detail the reasons why financial support is needed..." required></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:20px;">
+              <label>Support Amount (৳) <span class="req">*</span></label>
+              <input type="number" id="edu-amount" class="form-control" placeholder="Estimated required amount" min="1" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary" id="edu-submit-btn" style="width:100%;">
+              <i class="fa-solid fa-paper-plane"></i> Submit Application
+            </button>
+            <div id="edu-form-error" class="form-error-msg" style="display:none; margin-top:12px;"></div>
+            <div id="edu-form-success" style="display:none; margin-top:12px; color:#22c55e; font-weight:600; text-align:center;">Application submitted successfully!</div>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Application Status Tab -->
+    <div id="edu-sub-status" class="hidden">
+      <div id="edu-status-list" style="display:flex; flex-direction:column; gap:16px;">
+        <!-- Injected via JS -->
+      </div>
+      <div id="edu-status-empty" class="hidden" style="text-align:center; padding:60px 20px; color:var(--text-muted);">
+        <i class="fa-solid fa-folder-open" style="font-size:3rem; margin-bottom:16px; display:block;"></i>
+        <h3>No applications found</h3>
+        <p>You have not submitted any education support applications yet.</p>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.mw-container -->
+</div><!-- /.app-main -->
+
+<!-- ═══ DONATE MODAL ═══════════════════════════════════════════ -->
+<div class="donate-modal-overlay" id="donateModal">
+  <div class="donate-modal" style="background-color: #1C2027;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
+      <h3 id="donate-modal-title"><i class="fa-solid fa-heart" style="color:var(--primary)"></i> Make a Donation</h3>
+      <button class="btn btn-ghost" onclick="closeDonateModal()" style="padding:4px 8px;font-size:1.1rem"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <p id="donate-modal-subtitle">Your contribution will go directly to the campaign.</p>
+    <div class="amount-presets">
+      <button class="amount-btn" onclick="selectAmount(100)">৳100</button>
+      <button class="amount-btn" onclick="selectAmount(250)">৳250</button>
+      <button class="amount-btn" onclick="selectAmount(500)">৳500</button>
+      <button class="amount-btn" onclick="selectAmount(1000)">৳1,000</button>
+      <button class="amount-btn" onclick="selectAmount(2500)">৳2,500</button>
+    </div>
+    <div class="form-group">
+      <label for="donate-amount">Amount (৳) <span class="req">*</span></label>
+      <input type="number" id="donate-amount" class="form-control" placeholder="Enter amount" min="1" step="1" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label for="donate-message">Message <span style="font-size:0.8rem;color:var(--muted)">(Optional)</span></label>
+      <textarea id="donate-message" class="form-control" rows="2" placeholder="Leave an encouraging message..."></textarea>
+    </div>
+    <div class="form-group" style="margin-top: 15px;">
+      <label>Payment Method <span class="req">*</span></label>
+      <div style="display:flex; gap:10px; margin-top:5px; margin-bottom:15px;">
+        <label style="flex:1; cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--border); text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;" onclick="document.getElementById('mfs-options').style.display='none'; document.getElementById('payment-card-details').style.display='block'; document.getElementById('payment-mfs-details').style.display='none';">
+          <input type="radio" name="payment_method" value="card" checked style="margin:0;">
+          <span><i class="fa-solid fa-credit-card"></i> Card</span>
+        </label>
+        <label style="flex:1; cursor:pointer; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px; border:1px solid var(--border); text-align:center; display:flex; flex-direction:column; align-items:center; gap:8px;" onclick="document.getElementById('mfs-options').style.display='flex'; document.getElementById('payment-card-details').style.display='none'; document.getElementById('payment-mfs-details').style.display='block';">
+          <input type="radio" name="payment_method" value="mfs" style="margin:0;">
+          <span><i class="fa-solid fa-mobile-screen-button"></i> Mobile Banking</span>
+        </label>
+      </div>
+
+      <div id="mfs-options" style="display:none; gap:20px; justify-content:center; margin-bottom:15px;">
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" onclick="document.getElementById('mfs-number-label').innerText='Nagad Number'">
+          <input type="radio" name="mfs_provider" value="nagad" checked>
+          <img src="assets/nagad.jpg" alt="Nagad" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
+        </label>
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" onclick="document.getElementById('mfs-number-label').innerText='bKash Number'">
+          <input type="radio" name="mfs_provider" value="bkash">
+          <img src="assets/bkash.jpg" alt="bKash" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
+        </label>
+        <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;" onclick="document.getElementById('mfs-number-label').innerText='Rocket Number'">
+          <input type="radio" name="mfs_provider" value="rocket">
+          <img src="assets/rocket.png" alt="Rocket" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
+        </label>
+      </div>
+
+
+
+      <div id="payment-card-details" style="display:block; padding:15px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid var(--border);">
+        <!-- Card Type Selector -->
+        <label style="display:block; margin-bottom:8px; font-size:0.85rem; font-weight:600;">Card Network <span style="color:var(--primary)">*</span></label>
+        <div class="card-type-selector">
+          <label class="card-type-btn active" id="card-type-visa" onclick="selectCardType('visa')">
+            <input type="radio" name="card_type" value="visa" checked>
+            <img src="assets/visa.jpg" alt="Visa">
+          </label>
+          <label class="card-type-btn" id="card-type-mastercard" onclick="selectCardType('mastercard')">
+            <input type="radio" name="card_type" value="mastercard">
+            <img src="assets/mastercard.jpg" alt="Mastercard">
+          </label>
+          <label class="card-type-btn" id="card-type-nexus" onclick="selectCardType('nexus')">
+            <input type="radio" name="card_type" value="nexus">
+            <img src="assets/nexuspay.jpg" alt="NexusPay">
+          </label>
+        </div>
+        <label>Cardholder Name</label>
+        <input type="text" id="card-name" class="form-control" placeholder="John Doe" style="margin-bottom:10px;" autocomplete="off" autocorrect="off" autocapitalize="off">
+        <label>Card Number</label>
+        <input type="text" id="card-number" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" style="margin-bottom:10px;" autocomplete="off" inputmode="numeric">
+        <div style="display:flex; gap:10px;">
+          <div style="flex:1;">
+            <label>Expiry Date</label>
+            <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY" maxlength="5" autocomplete="off" inputmode="numeric">
+          </div>
+          <div style="flex:1;">
+            <label>CVV</label>
+            <input type="password" id="card-cvv" class="form-control" placeholder="***" maxlength="4" autocomplete="new-password" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+
+      <div id="payment-mfs-details" style="display:none; padding:15px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid var(--border);">
+        <label id="mfs-number-label">Nagad Number</label>
+        <input type="text" id="mfs-number" class="form-control" placeholder="01XXXXXXXXX" maxlength="11" style="margin-bottom:10px;" autocomplete="off" inputmode="numeric">
+        <label>PIN / OTP (Simulation Only)</label>
+        <input type="password" id="mfs-pin" class="form-control" placeholder="****" maxlength="6" autocomplete="new-password" inputmode="numeric">
+      </div>
+    </div>
+    <div id="donate-error" class="form-error-msg" style="display:none"></div>
+    <div style="display:flex;gap:12px;margin-top:20px">
+      <button class="btn btn-primary" onclick="submitDonation()" id="donate-submit-btn" style="flex:1">
+        Donate Now
+      </button>
+      <button class="btn btn-ghost" onclick="closeDonateModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DONORS LIST MODAL ════════════════════════════════════ -->
+<div class="modal-overlay" id="donorsModal">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-header">
+      <h3 id="donors-modal-title"><i class="fa-solid fa-users"></i> Donors</h3>
+      <button class="modal-close" onclick="closeDonorsModal()"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <div id="donors-modal-list" style="padding:0 24px 24px;max-height:400px;overflow-y:auto"></div>
+  </div>
+</div>
+
+<!-- ═══ PAYMENT SUCCESS MODAL ══════════════════════════════════ -->
+<div class="pay-success-overlay" id="paySuccessModal">
+  <div class="pay-success-modal">
+    <div class="success-icon-wrap">
+      <i class="fa-solid fa-check"></i>
+    </div>
+    <h2>Payment Successful!</h2>
+    <p class="success-sub">Thank you for your generous contribution 🎉</p>
+    <div class="pay-success-receipt">
+      <div class="receipt-row">
+        <span class="receipt-label"><i class="fa-solid fa-bangladeshi-taka-sign"></i> Amount</span>
+        <span class="receipt-value receipt-amount" id="psr-amount">—</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-label"><i class="fa-solid fa-credit-card"></i> Method</span>
+        <span class="receipt-value" id="psr-method">—</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-label"><i class="fa-solid fa-hashtag"></i> Transaction ID</span>
+        <span class="receipt-value receipt-txn" id="psr-txnid">—</span>
+      </div>
+      <div class="receipt-row">
+        <span class="receipt-label"><i class="fa-regular fa-clock"></i> Date & Time</span>
+        <span class="receipt-value" id="psr-date">—</span>
+      </div>
+    </div>
+    <button class="btn btn-primary" style="width:100%; font-size:1rem;" onclick="closePaySuccessModal()">
+      <i class="fa-solid fa-circle-check"></i> Done
+    </button>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
