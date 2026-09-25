@@ -114,6 +114,35 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
     .filters select, .filters input { padding: 8px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; }
     .filters select:focus, .filters input:focus { outline: none; border-color: var(--primary); }
+
+    /* Profile dropdown */
+    .profile-wrapper { position: relative; }
+    .profile-card {
+      display: flex; align-items: center; gap: 12px; padding: 12px;
+      background: rgba(255,255,255,0.03); border-radius: 12px;
+      border: 1px solid var(--border);
+      cursor: pointer; transition: background 0.2s, border-color 0.2s;
+      user-select: none;
+    }
+    .profile-card:hover { background: rgba(255,255,255,0.07); border-color: var(--primary); }
+    .profile-dropdown {
+      position: absolute; bottom: calc(100% + 8px); left: 0; right: 0;
+      background: var(--bg-card); border: 1px solid var(--border);
+      border-radius: 12px; overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+      opacity: 0; pointer-events: none;
+      transform: translateY(6px);
+      transition: opacity 0.2s, transform 0.2s;
+      z-index: 200;
+    }
+    .profile-dropdown.open { opacity: 1; pointer-events: all; transform: translateY(0); }
+    .profile-dropdown a {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 16px; color: #ef4444; font-weight: 600;
+      font-size: 0.9rem; text-decoration: none;
+      transition: background 0.15s;
+    }
+    .profile-dropdown a:hover { background: rgba(239,68,68,0.1); }
   </style>
 </head>
 <body class="has-sidebar">
@@ -130,20 +159,24 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         <span class="asbl-icon"><i class="fa-solid fa-chart-pie"></i></span>
         <span class="asbl-text">Dashboard</span>
       </a>
-      <a href="../index.html" class="app-sidebar-link">
-        <span class="asbl-icon"><i class="fa-solid fa-house"></i></span>
-        <span class="asbl-text">Return to App</span>
-      </a>
     </nav>
     <div class="app-sidebar-spacer"></div>
     <div class="app-sidebar-account">
-      <div style="display:flex; align-items:center; gap:12px; padding:12px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid var(--border);">
-        <div style="width:40px; height:40px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700;">
-          AD
+      <div class="profile-wrapper">
+        <div class="profile-card" id="profileCard" onclick="toggleProfileMenu(event)">
+          <div style="width:40px; height:40px; background:var(--primary); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0;">
+            AD
+          </div>
+          <div style="flex:1; overflow:hidden;">
+            <div style="font-weight:600; font-size:0.95rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;"><?= htmlspecialchars($_SESSION['user']['fullName']) ?></div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">Administrator</div>
+          </div>
+          <i class="fa-solid fa-chevron-up" id="profileChevron" style="font-size:0.75rem; color:var(--text-muted); transition:transform 0.2s;"></i>
         </div>
-        <div style="flex:1; overflow:hidden;">
-          <div style="font-weight:600; font-size:0.95rem; white-space:nowrap; text-overflow:ellipsis; overflow:hidden;"><?= htmlspecialchars($_SESSION['user']['fullName']) ?></div>
-          <div style="font-size:0.8rem; color:var(--text-muted);">Administrator</div>
+        <div class="profile-dropdown" id="profileDropdown">
+          <a href="logout.php">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i> Logout
+          </a>
         </div>
       </div>
     </div>
@@ -329,6 +362,25 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
     document.addEventListener('DOMContentLoaded', updateThemeIcon);
+
+    // Profile dropdown
+    function toggleProfileMenu(e) {
+      e.stopPropagation();
+      var dropdown = document.getElementById('profileDropdown');
+      var chevron  = document.getElementById('profileChevron');
+      var isOpen   = dropdown.classList.contains('open');
+      dropdown.classList.toggle('open', !isOpen);
+      chevron.style.transform = isOpen ? 'rotate(0deg)' : 'rotate(180deg)';
+    }
+
+    document.addEventListener('click', function() {
+      var dropdown = document.getElementById('profileDropdown');
+      var chevron  = document.getElementById('profileChevron');
+      if (dropdown && dropdown.classList.contains('open')) {
+        dropdown.classList.remove('open');
+        chevron.style.transform = 'rotate(0deg)';
+      }
+    });
   </script>
 </body>
 </html>
