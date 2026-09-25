@@ -80,7 +80,7 @@ if ($method === 'POST') {
         else if ($request['fund_type'] === 'welfare') $systemFundName = 'General Welfare';
         else if ($request['fund_type'] === 'educational') $systemFundName = 'Meritorious Student';
         
-        $amount = (float)$request['support_amount'];
+        $amount = (float)$request['amount'];
         $adminId = $_SESSION['user']['id'];
         
         $conn->begin_transaction();

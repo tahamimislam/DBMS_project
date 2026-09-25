@@ -90,6 +90,17 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
     </div>
   </div>
 
+  <!-- Success Modal -->
+  <div class="confirm-overlay" id="successModal">
+    <div class="confirm-modal" style="text-align: center;">
+      <h3 style="margin-top:0; color:var(--primary); font-size:1.25rem;"><i class="fa-solid fa-circle-check"></i> Success</h3>
+      <p id="successText" style="color:var(--text); font-size:0.95rem; margin:16px 0 24px; line-height:1.5;"></p>
+      <div style="display:flex; justify-content:center;">
+        <button class="btn btn-primary" onclick="document.getElementById('successModal').classList.remove('show')" style="width:100%;">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ── Sidebar ── -->
   <aside class="app-sidebar" id="appSidebar">
     <a href="../index.html" class="app-sidebar-logo">
@@ -394,6 +405,10 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
         });
         const data = await res.json();
         if (data.ok) {
+          if (action === 'approve') {
+            document.getElementById('successText').textContent = "Fund request approved and payment processed successfully!";
+            document.getElementById('successModal').classList.add('show');
+          }
           loadRequests(); // Reload
         } else {
           const errEl = document.getElementById('inline-error-' + id);
