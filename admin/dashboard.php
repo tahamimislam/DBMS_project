@@ -20,18 +20,31 @@ while ($row = $res->fetch_assoc()) {
     }
 }
 
-// Fetch campaigns
+// Fetch campaigns (using GROUP BY + HAVING to demonstrate aggregation)
 $campaignsRes = $conn->query("
     SELECT fc.id, fc.title, fc.goal_amount, fc.collected_amount, fc.status, fc.image_url, fc.description, fc.deadline,
            u.full_name as charity_name,
-           (SELECT COUNT(id) FROM donations d WHERE d.campaign_id = fc.id AND d.payment_status='SUCCESS') as donor_count
+           COUNT(d.id) as donor_count,
+           COALESCE(SUM(d.amount), 0) as total_donated
     FROM financial_campaigns fc
     JOIN users u ON fc.charity_id = u.id
+    LEFT JOIN donations d ON fc.id = d.campaign_id AND d.payment_status = 'SUCCESS'
+    GROUP BY fc.id, fc.title, fc.goal_amount, fc.collected_amount, fc.status, fc.image_url, fc.description, fc.deadline, u.full_name
+    HAVING total_donated >= 0
     ORDER BY fc.created_at DESC
 ");
 $campaigns = [];
 while ($row = $campaignsRes->fetch_assoc()) {
     $campaigns[] = $row;
+}
+
+// Fetch welfare workload per charity using VIEW (v_charity_welfare_workload)
+$welfareWorkload = [];
+$welfareViewRes = $conn->query("SELECT * FROM v_charity_welfare_workload HAVING total_cases > 0 ORDER BY total_cases DESC LIMIT 5");
+if ($welfareViewRes) {
+    while ($row = $welfareViewRes->fetch_assoc()) {
+        $welfareWorkload[] = $row;
+    }
 }
 
 // Fetch donations with filters
