@@ -2968,14 +2968,9 @@ function renderPublicFinCampaigns(camps) {
         </div>
         <div class="fin-campaign-footer">
           <div class="fin-meta">
-            <i class="fa-solid fa-users"></i> ${c.donor_count} donor${c.donor_count!==1?'s':''}
-            &nbsp;|&nbsp;
             <span class="fin-deadline"><i class="fa-regular fa-calendar"></i> ${deadlineStr}</span>
           </div>
           <div style="display:flex;gap:8px">
-            <button class="btn btn-ghost btn-sm" onclick="openDonorsModal(${c.id}, '${c.title.replace(/'/g,"\\'")}')">
-              <i class="fa-solid fa-users"></i>
-            </button>
             ${donateBtn}
           </div>
         </div>
