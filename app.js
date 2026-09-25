@@ -3029,7 +3029,7 @@ function openSystemDonateModal(fundName) {
   
   const titleEl = document.getElementById('donate-modal-title');
   const subEl   = document.getElementById('donate-modal-subtitle');
-  if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-heart" style="color:var(--primary)"></i> Donate to ${fundName}`;
+  if (titleEl) titleEl.innerHTML = `Donate to ${fundName}`;
   if (subEl) subEl.textContent = "Your contribution will go directly to the HumanityLink System Fund.";
   
   const errEl = document.getElementById('donate-error');
@@ -3052,7 +3052,7 @@ function openDonateModal(campaignId) {
   if (camp) {
     const titleEl = document.getElementById('donate-modal-title');
     const subEl   = document.getElementById('donate-modal-subtitle');
-    if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-heart" style="color:var(--primary)"></i> Donate to Campaign`;
+    if (titleEl) titleEl.innerHTML = `Donate to Campaign`;
     if (subEl) subEl.textContent = camp.title;
   }
   const errEl = document.getElementById('donate-error');
