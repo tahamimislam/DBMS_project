@@ -1271,7 +1271,7 @@ async function initFoodSupportPage() {
     const navEl = document.querySelector(".app-sidebar-nav");
     if (navEl) {
       navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
-      navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link active" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+      navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
       navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
       navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
       navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
@@ -2001,6 +2001,7 @@ async function initApp() {
   await initMedicalPage();
   await initDoctorDashboardPage();
   await initFinancialPage();
+  await initEducationSupportPage();
 }
 
 if (document.readyState === "loading") {
@@ -2711,7 +2712,7 @@ async function initMedicalPage() {
     if (navEl) {
       navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
       navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
-      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
+      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
       navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
       navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
     }
@@ -2720,7 +2721,7 @@ async function initMedicalPage() {
     if (navEl) {
       navEl.innerHTML = '<div class="app-sidebar-section-label">Navigation</div>';
       navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
-      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link active" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical &amp; Welfare</span></a>`;
+      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical &amp; Welfare</span></a>`;
     }
   }
 
@@ -2848,23 +2849,24 @@ function buildFinSidebar() {
   if (!navEl) return;
   const isCharity = HL.currentUser && HL.currentUser.accountType === 'charity';
   const isAdmin = HL.currentUser && HL.currentUser.accountType === 'admin';
+  const path = window.location.pathname;
 
   if (isCharity) {
     navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
-    navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
-    navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
-    navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
-    navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
+    navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link ${path.includes('food-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+    navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link ${path.includes('medical-welfare.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
+    navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link ${path.includes('financial-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
+    navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link ${path.includes('education-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
   } else if (isAdmin) {
     navEl.innerHTML = '<div class="app-sidebar-section-label">Navigation</div>';
-    navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
-    navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>`;
+    navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link ${path.includes('dashboard.php') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
+    navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link ${path.includes('financial-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>`;
   } else {
     navEl.innerHTML = `
       <div class="app-sidebar-section-label">Navigation</div>
-      <a href="user-dashboard.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-table-columns"></i></span><span class="asbl-text">Dashboard</span></a>
-      <a href="medical-welfare.html" class="app-sidebar-link"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>
-      <a href="financial-support.html" class="app-sidebar-link active"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>
+      <a href="user-dashboard.html" class="app-sidebar-link ${path.includes('user-dashboard.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-table-columns"></i></span><span class="asbl-text">Dashboard</span></a>
+      <a href="medical-welfare.html" class="app-sidebar-link ${path.includes('medical-welfare.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>
+      <a href="financial-support.html" class="app-sidebar-link ${path.includes('financial-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Financial Support</span></a>
     `;
   }
 }
@@ -3672,18 +3674,21 @@ async function loadEduApplications() {
 }
 window.loadEduApplications = loadEduApplications;
 
-document.addEventListener('DOMContentLoaded', () => {
-  if (window.location.pathname.includes('education-support.html')) {
-    if (HL.currentUser && HL.currentUser.accountType === 'charity') {
-      showEduTab('apply');
-    } else {
-      const guestSec = document.getElementById('fin-section-guest');
-      const eduSec = document.getElementById('edu-section');
-      if (guestSec && eduSec) {
-        guestSec.classList.remove('hidden');
-        eduSec.classList.add('hidden');
-      }
+async function initEducationSupportPage() {
+  if (!window.location.pathname.includes('education-support.html')) return;
+
+  renderSidebarAccount();
+  buildFinSidebar();
+
+  if (HL.currentUser && HL.currentUser.accountType === 'charity') {
+    showEduTab('apply');
+  } else {
+    const guestSec = document.getElementById('fin-section-guest');
+    const eduSec = document.getElementById('edu-section');
+    if (guestSec && eduSec) {
+      guestSec.classList.remove('hidden');
+      eduSec.classList.add('hidden');
     }
   }
-});
+}
 
