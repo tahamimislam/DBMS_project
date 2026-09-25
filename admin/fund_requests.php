@@ -259,12 +259,20 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
         else if (req.status === 'rejected') statusBadge = '<span class="badge badge-failed">Rejected</span>';
         
         let details = '';
-        if (req.category === 'individual') {
-          details = `<div><strong>Name:</strong> ${req.individual_name}</div>
-                     <div><strong>NID/Birth Cert:</strong> ${req.nid_number}</div>`;
-        } else if (req.category === 'group') {
-          details = `<div><strong>Org:</strong> ${req.organization_name}</div>
-                     <div><strong>Type:</strong> <span style="text-transform:capitalize">${req.group_category.replace('_', ' ')}</span></div>`;
+        if (req.fund_type === 'emergency') {
+          details = `<div><strong>Category:</strong> ${req.group_category}</div>
+                     <div><strong>Location:</strong> ${req.street}, ${req.area}, ${req.city}</div>`;
+        } else if (req.fund_type === 'welfare') {
+          details = `<div><strong>Case Name:</strong> ${req.case_name}</div>
+                     <div><strong>Location:</strong> ${req.street}, ${req.area}, ${req.city}</div>`;
+        } else {
+          if (req.category === 'individual') {
+            details = `<div><strong>Name:</strong> ${req.individual_name}</div>
+                       <div><strong>NID/Birth Cert:</strong> ${req.nid_number}</div>`;
+          } else if (req.category === 'group') {
+            details = `<div><strong>Org:</strong> ${req.organization_name}</div>
+                       <div><strong>Type:</strong> <span style="text-transform:capitalize">${req.group_category.replace('_', ' ')}</span></div>`;
+          }
         }
         
         let docLink = '';

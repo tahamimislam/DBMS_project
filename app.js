@@ -1274,7 +1274,7 @@ async function initFoodSupportPage() {
       navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
       navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
       navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
-      navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
+      navEl.innerHTML += `<a href="request-fund.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-hand"></i></span><span class="asbl-text">Request Fund</span></a>`;
     }
   }
 
@@ -2001,7 +2001,7 @@ async function initApp() {
   await initMedicalPage();
   await initDoctorDashboardPage();
   await initFinancialPage();
-  await initEducationSupportPage();
+  await initRequestFundPage();
 }
 
 if (document.readyState === "loading") {
@@ -2714,7 +2714,7 @@ async function initMedicalPage() {
       navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
       navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
       navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
-      navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
+      navEl.innerHTML += `<a href="request-fund.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-hand"></i></span><span class="asbl-text">Request Fund</span></a>`;
     }
   } else if (HL.currentUser.accountType === "admin") {
     const navEl = document.querySelector(".app-sidebar-nav");
@@ -2856,7 +2856,7 @@ function buildFinSidebar() {
     navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link ${path.includes('food-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
     navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link ${path.includes('medical-welfare.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
     navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link ${path.includes('financial-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
-    navEl.innerHTML += `<a href="education-support.html" class="app-sidebar-link ${path.includes('education-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-graduation-cap"></i></span><span class="asbl-text">Education Support</span></a>`;
+    navEl.innerHTML += `<a href="request-fund.html" class="app-sidebar-link ${path.includes('request-fund.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-hand"></i></span><span class="asbl-text">Request Fund</span></a>`;
   } else if (isAdmin) {
     navEl.innerHTML = '<div class="app-sidebar-section-label">Navigation</div>';
     navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link ${path.includes('dashboard.php') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
@@ -3512,24 +3512,33 @@ async function loadPublicDonationPosts() {
 window.loadPublicDonationPosts = loadPublicDonationPosts;
 // ── Education Support Logic ───────────────────────────────────
 
-function showEduTab(tabName) {
+function showFundTab(tabName) {
   const tabs = document.querySelectorAll('#edu-section .mw-tab');
   tabs.forEach(t => t.classList.remove('active'));
-  document.getElementById('tab-edu-' + tabName).classList.add('active');
+  document.getElementById('tab-' + (tabName === 'education' ? 'edu' : tabName === 'emergency' ? 'emg' : tabName === 'welfare' ? 'wel' : 'status')).classList.add('active');
 
-  const applyView = document.getElementById('edu-sub-apply');
-  const statusView = document.getElementById('edu-sub-status');
+  const eduView = document.getElementById('fund-sub-education');
+  const emgView = document.getElementById('fund-sub-emergency');
+  const welView = document.getElementById('fund-sub-welfare');
+  const statusView = document.getElementById('fund-sub-status');
 
-  if (tabName === 'apply') {
-    applyView.classList.remove('hidden');
-    statusView.classList.add('hidden');
-  } else {
-    applyView.classList.add('hidden');
+  eduView.style.display = 'none';
+  emgView.style.display = 'none';
+  welView.style.display = 'none';
+  statusView.classList.add('hidden');
+
+  if (tabName === 'education') {
+    eduView.style.display = 'block';
+  } else if (tabName === 'emergency') {
+    emgView.style.display = 'block';
+  } else if (tabName === 'welfare') {
+    welView.style.display = 'block';
+  } else if (tabName === 'status') {
     statusView.classList.remove('hidden');
     loadEduApplications();
   }
 }
-window.showEduTab = showEduTab;
+window.showFundTab = showFundTab;
 
 function toggleEduCategory(val) {
   const indFields = document.getElementById('edu-individual-fields');
@@ -3617,6 +3626,72 @@ async function submitEduSupport(e) {
 }
 window.submitEduSupport = submitEduSupport;
 
+async function submitEmgSupport(e) {
+  e.preventDefault();
+  if (!HL.currentUser || HL.currentUser.accountType !== 'charity') return;
+  const errEl = document.getElementById('emg-form-error');
+  const succEl = document.getElementById('emg-form-success');
+  const btn = document.getElementById('emg-submit-btn');
+  errEl.style.display = 'none'; succEl.style.display = 'none';
+  
+  const formData = new FormData();
+  formData.append('charity_id', HL.currentUser.id);
+  formData.append('fund_type', 'emergency');
+  formData.append('category', 'group'); // Just default to group for simplicity, or we can use the new columns
+  formData.append('group_category', document.getElementById('emg-category').value);
+  formData.append('street', document.getElementById('emg-street').value);
+  formData.append('area', document.getElementById('emg-area').value);
+  formData.append('city', document.getElementById('emg-city').value);
+  formData.append('reason', document.getElementById('emg-reason').value);
+  formData.append('support_amount', document.getElementById('emg-amount').value);
+  
+  const fileInput = document.getElementById('emg-doc');
+  if (fileInput && fileInput.files[0]) formData.append('document', fileInput.files[0]);
+  else { errEl.textContent = "Please upload the required JPG document."; errEl.style.display = 'block'; return; }
+  
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+  try {
+    const res = await fetch('api/education_support.php', { method: 'POST', body: formData }).then(r => r.json());
+    if (res && res.ok) { succEl.style.display = 'block'; document.getElementById('emgSupportForm').reset(); }
+    else throw new Error(res.error || "Submission failed");
+  } catch(err) { errEl.textContent = err.message; errEl.style.display = 'block'; } 
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Application'; }
+}
+window.submitEmgSupport = submitEmgSupport;
+
+async function submitWelSupport(e) {
+  e.preventDefault();
+  if (!HL.currentUser || HL.currentUser.accountType !== 'charity') return;
+  const errEl = document.getElementById('wel-form-error');
+  const succEl = document.getElementById('wel-form-success');
+  const btn = document.getElementById('wel-submit-btn');
+  errEl.style.display = 'none'; succEl.style.display = 'none';
+  
+  const formData = new FormData();
+  formData.append('charity_id', HL.currentUser.id);
+  formData.append('fund_type', 'welfare');
+  formData.append('category', 'individual'); // Default
+  formData.append('case_name', document.getElementById('wel-case-name').value);
+  formData.append('street', document.getElementById('wel-street').value);
+  formData.append('area', document.getElementById('wel-area').value);
+  formData.append('city', document.getElementById('wel-city').value);
+  formData.append('reason', document.getElementById('wel-reason').value);
+  formData.append('support_amount', document.getElementById('wel-amount').value);
+  
+  const fileInput = document.getElementById('wel-doc');
+  if (fileInput && fileInput.files[0]) formData.append('document', fileInput.files[0]);
+  else { errEl.textContent = "Please upload the required document."; errEl.style.display = 'block'; return; }
+  
+  btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+  try {
+    const res = await fetch('api/education_support.php', { method: 'POST', body: formData }).then(r => r.json());
+    if (res && res.ok) { succEl.style.display = 'block'; document.getElementById('welSupportForm').reset(); }
+    else throw new Error(res.error || "Submission failed");
+  } catch(err) { errEl.textContent = err.message; errEl.style.display = 'block'; } 
+  finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Application'; }
+}
+window.submitWelSupport = submitWelSupport;
+
 async function loadEduApplications() {
   if (!HL.currentUser || HL.currentUser.accountType !== 'charity') return;
   
@@ -3642,13 +3717,22 @@ async function loadEduApplications() {
           else if (app.status === 'rejected') statusBadge = '<span class="status-badge" style="background:#fee2e2; color:#b91c1c; padding:4px 10px; border-radius:99px; font-size:0.8rem; font-weight:600;"><i class="fa-solid fa-xmark"></i> Rejected</span>';
           
           let detailsHtml = '';
-          if (app.category === 'individual') {
-            detailsHtml = `<div><strong>Individual Name:</strong> ${app.individual_name}</div>
-                           <div><strong>NID/Birth Cert:</strong> ${app.nid_number}</div>`;
+          if (app.fund_type === 'emergency') {
+            detailsHtml = `<div><strong>Category:</strong> ${app.group_category}</div>
+                           <div><strong>Location:</strong> ${app.street}, ${app.area}, ${app.city}</div>`;
+          } else if (app.fund_type === 'welfare') {
+            detailsHtml = `<div><strong>Case Name:</strong> ${app.case_name}</div>
+                           <div><strong>Location:</strong> ${app.street}, ${app.area}, ${app.city}</div>`;
           } else {
-            const catName = app.group_category === 'primary_school' ? 'Primary School' : (app.group_category === 'orphanage' ? 'Orphanage' : 'Madrasha');
-            detailsHtml = `<div><strong>Organization Name:</strong> ${app.organization_name}</div>
-                           <div><strong>Category:</strong> ${catName}</div>`;
+            // Educational
+            if (app.category === 'individual') {
+              detailsHtml = `<div><strong>Individual Name:</strong> ${app.individual_name}</div>
+                             <div><strong>NID/Birth Cert:</strong> ${app.nid_number}</div>`;
+            } else {
+              const catName = app.group_category === 'primary_school' ? 'Primary School' : (app.group_category === 'orphanage' ? 'Orphanage' : 'Madrasha');
+              detailsHtml = `<div><strong>Organization Name:</strong> ${app.organization_name}</div>
+                             <div><strong>Category:</strong> ${catName}</div>`;
+            }
           }
 
           let feedbackHtml = '';
@@ -3662,12 +3746,13 @@ async function loadEduApplications() {
           if (app.document_url) {
             docHtml = `<div><strong>Document:</strong> <a href="${app.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-arrow-down"></i> View PDF</a></div>`;
           }
+          const titleStr = app.fund_type === 'emergency' ? 'Emergency Relief' : app.fund_type === 'welfare' ? 'General Welfare' : 'Education';
           
           return `
             <div class="fin-mgmt-card" style="display:block;">
               <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
                 <h4 style="margin:0; font-size:1.1rem; color:var(--text); text-transform:capitalize;">
-                  ${app.category} Support
+                  ${titleStr} Support
                 </h4>
                 ${statusBadge}
               </div>
@@ -3692,14 +3777,14 @@ async function loadEduApplications() {
 }
 window.loadEduApplications = loadEduApplications;
 
-async function initEducationSupportPage() {
-  if (!window.location.pathname.includes('education-support.html')) return;
+async function initRequestFundPage() {
+  if (!window.location.pathname.includes('request-fund.html')) return;
 
   renderSidebarAccount();
   buildFinSidebar();
 
   if (HL.currentUser && HL.currentUser.accountType === 'charity') {
-    showEduTab('apply');
+    showFundTab('education');
   } else {
     const guestSec = document.getElementById('fin-section-guest');
     const eduSec = document.getElementById('edu-section');

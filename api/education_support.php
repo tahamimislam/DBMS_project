@@ -43,6 +43,10 @@ if ($method === 'POST') {
     $nid_number = $data['nid_number'] ?? null;
     $organization_name = $data['organization_name'] ?? null;
     $group_category = $data['group_category'] ?? null;
+    $street = $data['street'] ?? null;
+    $area = $data['area'] ?? null;
+    $city = $data['city'] ?? null;
+    $case_name = $data['case_name'] ?? null;
     
     if (!$charity_id || !$category || !$reason || !$support_amount) {
         echo json_encode(['ok' => false, 'error' => 'Missing required fields']);
@@ -63,9 +67,9 @@ if ($method === 'POST') {
         }
     }
 
-    $sql = "INSERT INTO fund_requests (charity_id, fund_type, category, individual_name, nid_number, organization_name, group_category, reason, document_url, support_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+    $sql = "INSERT INTO fund_requests (charity_id, fund_type, category, individual_name, nid_number, organization_name, group_category, reason, document_url, support_amount, street, area, city, case_name) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("issssssssd", $charity_id, $fund_type, $category, $individual_name, $nid_number, $organization_name, $group_category, $reason, $document_url, $support_amount);
+    $stmt->bind_param("issssssssdssss", $charity_id, $fund_type, $category, $individual_name, $nid_number, $organization_name, $group_category, $reason, $document_url, $support_amount, $street, $area, $city, $case_name);
     
     if ($stmt->execute()) {
         echo json_encode(['ok' => true]);

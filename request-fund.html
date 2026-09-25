@@ -239,18 +239,16 @@
       <p style="color:var(--text-muted); margin-top:4px;">Apply for educational support or check your application status.</p>
     </div>
 
-    <!-- Education Tabs -->
+    <!-- Request Fund Tabs -->
     <div class="mw-tabs" style="margin-bottom:24px; display:flex; overflow-x:auto;">
-      <button class="mw-tab active" id="tab-edu-apply" onclick="showEduTab('apply')" style="white-space:nowrap;">
-        <i class="fa-solid fa-pen-to-square"></i> Apply for support
-      </button>
-      <button class="mw-tab" id="tab-edu-status" onclick="showEduTab('status')" style="white-space:nowrap;">
-        <i class="fa-solid fa-list-check"></i> Application status
-      </button>
+      <button class="mw-tab active" id="tab-edu" onclick="showFundTab('education')" style="white-space:nowrap;">Education Support</button>
+      <button class="mw-tab" id="tab-emg" onclick="showFundTab('emergency')" style="white-space:nowrap;">Emergency Relief Support</button>
+      <button class="mw-tab" id="tab-wel" onclick="showFundTab('welfare')" style="white-space:nowrap;">General Welfare Support</button>
+      <button class="mw-tab" id="tab-status" onclick="showFundTab('status')" style="white-space:nowrap;">Application status</button>
     </div>
 
     <!-- Apply for Support Form -->
-    <div id="edu-sub-apply">
+    <div id="fund-sub-education">
       <div class="fin-mgmt-card" style="display:block;">
         <h3 style="margin-top:0; margin-bottom:20px;"><i class="fa-solid fa-graduation-cap" style="color:var(--primary);"></i> Submit Education Support Application</h3>
         
@@ -322,8 +320,116 @@
       </div>
     </div>
 
+    <!-- Emergency Relief Form -->
+    <div id="fund-sub-emergency" style="display:none;">
+      <div class="fin-mgmt-card" style="display:block;">
+        <h3 style="margin-top:0; margin-bottom:20px;"><i class="fa-solid fa-house-chimney-crack" style="color:var(--primary);"></i> Submit Emergency Relief Application</h3>
+        
+        <form id="emgSupportForm" onsubmit="submitEmgSupport(event)">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Category <span class="req">*</span></label>
+            <select id="emg-category" class="form-control" required>
+              <option value="">Select Category...</option>
+              <option value="Flood">Flood</option>
+              <option value="Earthquake">Earthquake</option>
+              <option value="Storm">Storm</option>
+              <option value="Tidal wave">Tidal wave</option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Street <span class="req">*</span></label>
+              <input type="text" id="emg-street" class="form-control" placeholder="Street / House" required>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Area <span class="req">*</span></label>
+              <input type="text" id="emg-area" class="form-control" placeholder="Area" required>
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>City <span class="req">*</span></label>
+            <input type="text" id="emg-city" class="form-control" placeholder="City" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Reason <span class="req">*</span></label>
+            <textarea id="emg-reason" class="form-control" rows="4" placeholder="Detail the reasons why emergency support is needed..." required></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Support Amount (৳) <span class="req">*</span></label>
+            <input type="number" id="emg-amount" class="form-control" placeholder="Estimated required amount" min="1" required>
+          </div>
+          
+          <div class="form-group" style="margin-bottom:20px;">
+            <label>Document (JPG allowed) <span class="req">*</span></label>
+            <input type="file" id="emg-doc" class="form-control" accept=".jpg,.jpeg">
+          </div>
+          
+          <button type="submit" class="btn btn-primary" id="emg-submit-btn" style="width:100%;">
+            <i class="fa-solid fa-paper-plane"></i> Submit Application
+          </button>
+          <div id="emg-form-error" class="form-error-msg" style="display:none; margin-top:12px;"></div>
+          <div id="emg-form-success" style="display:none; margin-top:12px; color:#22c55e; font-weight:600; text-align:center;">Application submitted successfully!</div>
+        </form>
+      </div>
+    </div>
+
+    <!-- General Welfare Form -->
+    <div id="fund-sub-welfare" style="display:none;">
+      <div class="fin-mgmt-card" style="display:block;">
+        <h3 style="margin-top:0; margin-bottom:20px;"><i class="fa-solid fa-hand-holding-heart" style="color:var(--primary);"></i> Submit General Welfare Application</h3>
+        
+        <form id="welSupportForm" onsubmit="submitWelSupport(event)">
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Case Name <span class="req">*</span></label>
+            <input type="text" id="wel-case-name" class="form-control" placeholder="Case Name" required>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Street <span class="req">*</span></label>
+              <input type="text" id="wel-street" class="form-control" placeholder="Street / House" required>
+            </div>
+            <div class="form-group" style="margin-bottom:16px;">
+              <label>Area <span class="req">*</span></label>
+              <input type="text" id="wel-area" class="form-control" placeholder="Area" required>
+            </div>
+          </div>
+          
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>City <span class="req">*</span></label>
+            <input type="text" id="wel-city" class="form-control" placeholder="City" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Reason <span class="req">*</span></label>
+            <textarea id="wel-reason" class="form-control" rows="4" placeholder="Detail the reasons why welfare support is needed..." required></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom:16px;">
+            <label>Support Amount (৳) <span class="req">*</span></label>
+            <input type="number" id="wel-amount" class="form-control" placeholder="Estimated required amount" min="1" required>
+          </div>
+          
+          <div class="form-group" style="margin-bottom:20px;">
+            <label>Document (All type of files allowed) <span class="req">*</span></label>
+            <input type="file" id="wel-doc" class="form-control">
+          </div>
+          
+          <button type="submit" class="btn btn-primary" id="wel-submit-btn" style="width:100%;">
+            <i class="fa-solid fa-paper-plane"></i> Submit Application
+          </button>
+          <div id="wel-form-error" class="form-error-msg" style="display:none; margin-top:12px;"></div>
+          <div id="wel-form-success" style="display:none; margin-top:12px; color:#22c55e; font-weight:600; text-align:center;">Application submitted successfully!</div>
+        </form>
+      </div>
+    </div>
+
     <!-- Application Status Tab -->
-    <div id="edu-sub-status" class="hidden">
+    <div id="fund-sub-status" class="hidden">
       <div id="edu-status-list" style="display:flex; flex-direction:column; gap:16px;">
         <!-- Injected via JS -->
       </div>
