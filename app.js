@@ -1166,6 +1166,23 @@ async function confirmClaim() {
   }
 }
 
+function getCharitySidebarHTML(path = "") {
+  const s = (HL.currentUser.sectors || "").toLowerCase();
+  let html = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
+  
+  if (s.includes("food")) {
+    html += `<a href="food-support.html" class="app-sidebar-link ${path.includes('food-support.html') ? 'active' : ''}" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
+  }
+  if (s.includes("medical")) {
+    html += `<a href="medical-welfare.html" class="app-sidebar-link ${path.includes('medical-welfare.html') ? 'active' : ''}" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
+  }
+  
+  html += `<a href="financial-support.html" class="app-sidebar-link ${path.includes('financial-support.html') ? 'active' : ''}" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
+  html += `<a href="request-fund.html" class="app-sidebar-link ${path.includes('request-fund.html') ? 'active' : ''}" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-hand"></i></span><span class="asbl-text">Request Fund</span></a>`;
+  
+  return html;
+}
+
 async function initFoodSupportPage() {
   const grid = document.getElementById("foodGrid");
   if (!grid) return;
@@ -1196,11 +1213,7 @@ async function initFoodSupportPage() {
   } else if (HL.currentUser && HL.currentUser.accountType === "charity") {
     const navEl = document.querySelector(".app-sidebar-nav");
     if (navEl) {
-      navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
-      navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
-      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
-      navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
-      navEl.innerHTML += `<a href="request-fund.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-hand"></i></span><span class="asbl-text">Request Fund</span></a>`;
+      navEl.innerHTML = getCharitySidebarHTML(window.location.pathname);
     }
   }
 
@@ -1367,10 +1380,13 @@ async function initDashboardPage() {
     let dest = "index.html";
     if (HL.currentUser.accountType === "charity") {
       const s = (HL.currentUser.sectors || "").toLowerCase();
-      dest =
-        s.includes("medical") && !s.includes("food")
-          ? "medical-welfare.html"
-          : "food-support.html";
+      if (s.includes("food")) {
+        dest = "food-support.html";
+      } else if (s.includes("medical")) {
+        dest = "medical-welfare.html";
+      } else {
+        dest = "financial-support.html";
+      }
     }
     window.location.href = dest;
     return;
@@ -2636,11 +2652,7 @@ async function initMedicalPage() {
   if (HL.currentUser.accountType === "charity") {
     const navEl = document.querySelector(".app-sidebar-nav");
     if (navEl) {
-      navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
-      navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link" id="sbl-food"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
-      navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link" id="sbl-med"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
-      navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link" id="sbl-fin"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
-      navEl.innerHTML += `<a href="request-fund.html" class="app-sidebar-link" id="sbl-edu"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-hand"></i></span><span class="asbl-text">Request Fund</span></a>`;
+      navEl.innerHTML = getCharitySidebarHTML(window.location.pathname);
     }
   } else if (HL.currentUser.accountType === "admin") {
     const navEl = document.querySelector(".app-sidebar-nav");
@@ -2778,11 +2790,7 @@ function buildFinSidebar() {
   const path = window.location.pathname;
 
   if (isCharity) {
-    navEl.innerHTML = '<div class="app-sidebar-section-label">Charity Dashboard</div>';
-    navEl.innerHTML += `<a href="food-support.html" class="app-sidebar-link ${path.includes('food-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-bowl-food"></i></span><span class="asbl-text">Food Support</span></a>`;
-    navEl.innerHTML += `<a href="medical-welfare.html" class="app-sidebar-link ${path.includes('medical-welfare.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-notes-medical"></i></span><span class="asbl-text">Medical & Welfare</span></a>`;
-    navEl.innerHTML += `<a href="financial-support.html" class="app-sidebar-link ${path.includes('financial-support.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-dollar"></i></span><span class="asbl-text">Campaign Donation</span></a>`;
-    navEl.innerHTML += `<a href="request-fund.html" class="app-sidebar-link ${path.includes('request-fund.html') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-hand-holding-hand"></i></span><span class="asbl-text">Request Fund</span></a>`;
+    navEl.innerHTML = getCharitySidebarHTML(window.location.pathname);
   } else if (isAdmin) {
     navEl.innerHTML = '<div class="app-sidebar-section-label">Navigation</div>';
     navEl.innerHTML += `<a href="admin/dashboard.php" class="app-sidebar-link ${path.includes('dashboard.php') ? 'active' : ''}"><span class="asbl-icon"><i class="fa-solid fa-shield-halved"></i></span><span class="asbl-text">Admin Dashboard</span></a>`;
