@@ -200,6 +200,27 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
+    if ($action === "delete_case") {
+        $caseId = (int)($data["caseId"] ?? 0);
+        $userId = (int)$_SESSION["user"]["id"];
+        if (!$caseId) {
+            echo json_encode(["ok" => false, "msg" => "Case ID required."]);
+            exit;
+        }
+
+        $stmt = $conn->prepare("DELETE FROM welfare_cases WHERE id = ? AND reported_by = ?");
+        $stmt->bind_param("ii", $caseId, $userId);
+        $stmt->execute();
+        
+        if ($stmt->affected_rows > 0) {
+            echo json_encode(["ok" => true, "msg" => "Case deleted successfully."]);
+        } else {
+            echo json_encode(["ok" => false, "msg" => "Failed to delete case or you don't have permission."]);
+        }
+        $stmt->close();
+        exit;
+    }
+
     echo json_encode(["ok" => false, "msg" => "Unknown action."]);
     exit;
 }

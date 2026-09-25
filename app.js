@@ -103,6 +103,32 @@ function showToast(msg, type = "success") {
   }, 3200);
 }
 
+function showAlertModal(message, title="Success") {
+  let modalEl = document.getElementById("alertModalOverlay");
+  if (!modalEl) {
+    modalEl = document.createElement("div");
+    modalEl.id = "alertModalOverlay";
+    modalEl.className = "modal-overlay";
+    document.body.appendChild(modalEl);
+  }
+  
+  modalEl.innerHTML = `
+    <div class="modal" style="max-width: 400px; text-align: center; padding: 24px; background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius);">
+      <h3 style="margin-top: 0; color: var(--primary);"><i class="fa-solid fa-circle-check"></i> ${title}</h3>
+      <p style="margin: 16px 0 24px; color: var(--text);">${message}</p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button class="btn btn-primary" onclick="document.getElementById('alertModalOverlay').classList.remove('show')" style="width: 100%;">OK</button>
+      </div>
+    </div>
+  `;
+  
+  modalEl.classList.add("show");
+  modalEl.onclick = (e) => {
+    if (e.target === modalEl) modalEl.classList.remove("show");
+  };
+}
+window.showAlertModal = showAlertModal;
+
 function showConfirmModal(message, onConfirm) {
   let modalEl = document.getElementById("confirmModalOverlay");
   if (!modalEl) {
@@ -2130,14 +2156,18 @@ function caseCardHTML(c) {
       footerRight = `<span style="font-size:.75rem;color:var(--muted)"><i class="fa-solid fa-building-ngo"></i> Handled by ${c.handledByName}</span>`;
     }
   } else if (isReporter) {
+    const deleteBtn = `<button class="btn btn-danger btn-sm" onclick="deleteWelfareCase(${c.id})" style="padding:0.25rem 0.5rem;font-size:0.8rem;" title="Delete Case"><i class="fa-solid fa-trash"></i></button>`;
     if (c.handledBy) {
       footerRight = `
         <div style="display:flex;gap:8px;align-items:center;">
-          <span style="font-size:.75rem;color:var(--muted)"><i class="fa-solid fa-user"></i> My Report</span>
           <button class="btn btn-outline btn-sm" onclick="openMwChat(${c.id}, ${c.handledBy}, '${(c.handledByName || "Charity").replace(/'/g, "\\'")}')" style="padding:0.25rem 0.5rem;font-size:0.8rem;"><i class="fa-solid fa-comments"></i> Chat</button>
+          ${deleteBtn}
         </div>`;
     } else {
-      footerRight = `<span style="font-size:.75rem;color:var(--muted)"><i class="fa-solid fa-user"></i> My Report</span>`;
+      footerRight = `
+        <div style="display:flex;gap:8px;align-items:center;">
+          ${deleteBtn}
+        </div>`;
     }
   } else if (!HL.currentUser) {
     footerRight = `<a href="auth.html" class="btn btn-outline btn-sm">Log in to Help</a>`;
@@ -2368,8 +2398,6 @@ function openCaseDetailModal(caseId) {
         <div class="case-detail-item"><div class="label">Last Updated</div><div class="value">${c.handledAt ? formatDateTime(c.handledAt) : "—"}</div></div>
       </div>
     </div>
-    <div class="modal-actions">
-      <button class="btn btn-ghost" onclick="closeCaseModal()">Close</button>
     </div>`;
   modal.classList.add("show");
 }
@@ -2510,6 +2538,24 @@ async function updateCaseStatus(caseId, newStatus) {
   }
   showToast('Case status updated to "' + newStatus + '"!', "success");
 }
+
+window.deleteWelfareCase = function(caseId) {
+  showConfirmModal("Are you sure you want to permanently delete this reported case?", async () => {
+    const res = await apiPost("welfare_cases.php", { action: "delete_case", caseId });
+    if (!res.ok) {
+      showToast(res.msg || "Failed to delete case.", "error");
+      return;
+    }
+    HL.welfareCases = HL.welfareCases.filter(c => c.id !== caseId);
+    const myCases = HL.welfareCases.filter(x => Number(x.reportedBy) === Number(HL.currentUser.id));
+    renderMwUserGrid(myCases);
+    
+    // Also re-render guest dashboard if needed, though they shouldn't see it there if it's deleted
+    renderWelfareCases(HL.welfareCases);
+    
+    showToast("Case deleted successfully!", "success");
+  });
+};
 
 let mwChatCaseId = null;
 let mwChatReceiverId = null;
@@ -3600,7 +3646,7 @@ async function submitEduSupport(e) {
       body: formData
     }).then(r => r.json());
     if (res && res.ok) {
-      succEl.style.display = 'block';
+      showAlertModal("Education Support application submitted successfully!");
       document.getElementById('eduSupportForm').reset();
       toggleEduCategory('');
     } else {
@@ -3642,7 +3688,7 @@ async function submitEmgSupport(e) {
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
   try {
     const res = await fetch('api/education_support.php', { method: 'POST', body: formData }).then(r => r.json());
-    if (res && res.ok) { succEl.style.display = 'block'; document.getElementById('emgSupportForm').reset(); }
+    if (res && res.ok) { showAlertModal("Emergency Relief application submitted successfully!"); document.getElementById('emgSupportForm').reset(); }
     else throw new Error(res.error || "Submission failed");
   } catch(err) { errEl.textContent = err.message; errEl.style.display = 'block'; } 
   finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Application'; }
@@ -3669,13 +3715,22 @@ async function submitWelSupport(e) {
   formData.append('support_amount', document.getElementById('wel-amount').value);
   
   const fileInput = document.getElementById('wel-doc');
-  if (fileInput && fileInput.files[0]) formData.append('document', fileInput.files[0]);
+  if (fileInput && fileInput.files[0]) {
+    const file = fileInput.files[0];
+    const validTypes = ['image/jpeg', 'image/jpg', 'application/pdf'];
+    if (!validTypes.includes(file.type) && !file.name.toLowerCase().endsWith('.jpg') && !file.name.toLowerCase().endsWith('.jpeg') && !file.name.toLowerCase().endsWith('.pdf')) {
+      errEl.textContent = "Only .jpg and .pdf files are allowed.";
+      errEl.style.display = 'block';
+      return;
+    }
+    formData.append('document', file);
+  }
   else { errEl.textContent = "Please upload the required document."; errEl.style.display = 'block'; return; }
   
   btn.disabled = true; btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
   try {
     const res = await fetch('api/education_support.php', { method: 'POST', body: formData }).then(r => r.json());
-    if (res && res.ok) { succEl.style.display = 'block'; document.getElementById('welSupportForm').reset(); }
+    if (res && res.ok) { showAlertModal("General Welfare application submitted successfully!"); document.getElementById('welSupportForm').reset(); }
     else throw new Error(res.error || "Submission failed");
   } catch(err) { errEl.textContent = err.message; errEl.style.display = 'block'; } 
   finally { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Application'; }
