@@ -260,19 +260,12 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
         
         let details = '';
         if (req.fund_type === 'emergency') {
-          details = `<div><strong>Category:</strong> ${req.group_category}</div>
-                     <div><strong>Location:</strong> ${req.street}, ${req.area}, ${req.city}</div>`;
+          details = `<div><strong>Category:</strong> ${req.group_category || 'N/A'}</div>
+                     <div><strong>Location:</strong> ${req.location_street || ''}, ${req.location_area || ''}, ${req.location_city || ''}</div>`;
         } else if (req.fund_type === 'welfare') {
-          details = `<div><strong>Case Name:</strong> ${req.case_name}</div>
-                     <div><strong>Location:</strong> ${req.street}, ${req.area}, ${req.city}</div>`;
+          details = `<div><strong>Location:</strong> ${req.location_street || ''}, ${req.location_area || ''}, ${req.location_city || ''}</div>`;
         } else {
-          if (req.category === 'individual') {
-            details = `<div><strong>Name:</strong> ${req.individual_name}</div>
-                       <div><strong>NID/Birth Cert:</strong> ${req.nid_number}</div>`;
-          } else if (req.category === 'group') {
-            details = `<div><strong>Org:</strong> ${req.organization_name}</div>
-                       <div><strong>Type:</strong> <span style="text-transform:capitalize">${req.group_category.replace('_', ' ')}</span></div>`;
-          }
+          details = `<div><strong>Category:</strong> <span style="text-transform:capitalize">${(req.group_category || 'Educational').replace('_', ' ')}</span></div>`;
         }
         
         let docLink = '';
@@ -294,7 +287,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
             </div>
 
             <div id="action-btns-${req.id}" style="display:flex; gap:10px; margin-top:16px;">
-              <button class="btn btn-primary btn-sm" style="flex:1" onclick="processApprove(${req.id}, ${req.support_amount})">Approve & Pay</button>
+              <button class="btn btn-primary btn-sm" style="flex:1" onclick="processApprove(${req.id}, ${req.amount})">Approve & Pay</button>
               <button class="btn btn-ghost btn-sm" onclick="showRejectForm(${req.id})">Reject</button>
             </div>
           `;
@@ -314,11 +307,11 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
               ${statusBadge}
             </div>
             <div style="font-size:0.9rem; margin-bottom:8px;">
-              <span style="display:inline-block; padding:2px 8px; background:rgba(255,255,255,0.05); border-radius:4px; text-transform:capitalize;">${req.category} Request</span>
+              <span style="display:inline-block; padding:2px 8px; background:rgba(255,255,255,0.05); border-radius:4px; text-transform:capitalize;">${req.fund_type} Request</span>
             </div>
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:0.85rem; color:var(--text-muted); margin-bottom:12px;">
               ${details}
-              <div><strong>Amount Requested:</strong> <span style="color:var(--primary); font-weight:700;">৳${parseFloat(req.support_amount).toLocaleString()}</span></div>
+              <div><strong>Amount Requested:</strong> <span style="color:var(--primary); font-weight:700;">৳${parseFloat(req.amount).toLocaleString()}</span></div>
               <div><strong>Date:</strong> ${new Date(req.created_at).toLocaleDateString('en-GB')}</div>
               ${docLink}
             </div>
