@@ -3099,6 +3099,17 @@ function selectAmount(amt) {
 }
 window.selectAmount = selectAmount;
 
+// Card type selection helper
+function selectCardType(type) {
+  ['visa','mastercard','nexus'].forEach(t => {
+    const el = document.getElementById('card-type-' + t);
+    if (el) el.classList.toggle('active', t === type);
+  });
+  const radio = document.querySelector(`input[name="card_type"][value="${type}"]`);
+  if (radio) radio.checked = true;
+}
+window.selectCardType = selectCardType;
+
 async function submitDonation() {
   const amt  = parseFloat(document.getElementById('donate-amount')?.value || 0);
   const msg  = document.getElementById('donate-message')?.value.trim() || '';
@@ -3120,6 +3131,9 @@ async function submitDonation() {
       if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Please enter a valid 16-digit card number.'; }
       return;
     }
+    const cardTypeEl = document.querySelector('input[name="card_type"]:checked');
+    const cardType   = cardTypeEl ? cardTypeEl.value : 'card';
+    provider = cardType; // visa | mastercard | nexus
     maskedAccount = '**** **** **** ' + cardNum.slice(-4);
   } else {
     provider = document.querySelector('input[name="mfs_provider"]:checked').value;
@@ -3139,7 +3153,10 @@ async function submitDonation() {
 
   // Generate fake transaction ID
   let prefix = 'CRD';
-  if (provider === 'bkash') prefix = 'BKX';
+  if (provider === 'visa')       prefix = 'VSA';
+  else if (provider === 'mastercard') prefix = 'MSC';
+  else if (provider === 'nexus') prefix = 'NXS';
+  else if (provider === 'bkash') prefix = 'BKX';
   else if (provider === 'nagad') prefix = 'NGD';
   else if (provider === 'rocket') prefix = 'RKT';
   const txnId = prefix + new Date().toISOString().replace(/[-T:.Z]/g, '').slice(0, 14);
@@ -3159,7 +3176,18 @@ async function submitDonation() {
   }
 
   closeDonateModal();
-  showToast(`Donation Successful! Txn ID: ${txnId}`, 'success');
+
+  // Show payment success modal
+  const methodLabels = {
+    visa: 'Visa Card', mastercard: 'Mastercard', nexus: 'Nexus Card',
+    bkash: 'bKash', nagad: 'Nagad', rocket: 'Rocket'
+  };
+  showPaySuccessModal({
+    amount:  amt,
+    method:  methodLabels[provider] || provider,
+    txnId:   txnId,
+    account: maskedAccount
+  });
 
   // Update card live if not a system fund
   if (!finSystemFund) {
@@ -3174,6 +3202,26 @@ async function submitDonation() {
   }
 }
 window.submitDonation = submitDonation;
+
+// ── Payment Success Modal ───────────────────────────────────
+function showPaySuccessModal({ amount, method, txnId, account }) {
+  const overlay = document.getElementById('paySuccessModal');
+  if (!overlay) return;
+  const now = new Date();
+  const dateStr = now.toLocaleString('en-BD', { dateStyle: 'medium', timeStyle: 'short' });
+  const setText = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  setText('psr-amount', '৳' + Number(amount).toLocaleString('en-BD', { minimumFractionDigits: 2 }));
+  setText('psr-method', method + (account ? '  (' + account + ')' : ''));
+  setText('psr-txnid',  txnId);
+  setText('psr-date',   dateStr);
+  overlay.classList.add('show');
+}
+function closePaySuccessModal() {
+  const overlay = document.getElementById('paySuccessModal');
+  if (overlay) overlay.classList.remove('show');
+}
+window.showPaySuccessModal  = showPaySuccessModal;
+window.closePaySuccessModal = closePaySuccessModal;
 
 // ── Donation History ───────────────────────────────────────
 async function loadDonationHistory() {
