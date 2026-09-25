@@ -3586,6 +3586,10 @@ async function submitEduSupport(e) {
   const fileInput = cat === 'individual' ? document.getElementById('edu-ind-doc') : document.getElementById('edu-grp-doc');
   if (fileInput && fileInput.files[0]) {
     formData.append('document', fileInput.files[0]);
+  } else {
+    errEl.textContent = "Please upload the required document in PDF format.";
+    errEl.style.display = 'block';
+    return;
   }
   
   btn.disabled = true;
@@ -3654,6 +3658,11 @@ async function loadEduApplications() {
             </div>`;
           }
           
+          let docHtml = '';
+          if (app.document_url) {
+            docHtml = `<div><strong>Document:</strong> <a href="${app.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-arrow-down"></i> View PDF</a></div>`;
+          }
+          
           return `
             <div class="fin-mgmt-card" style="display:block;">
               <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
@@ -3666,6 +3675,7 @@ async function loadEduApplications() {
                 ${detailsHtml}
                 <div><strong>Requested Amount:</strong> ৳${parseFloat(app.support_amount).toLocaleString()}</div>
                 <div><strong>Applied on:</strong> ${new Date(app.created_at).toLocaleDateString('en-GB')}</div>
+                ${docHtml}
               </div>
               <div style="font-size:0.9rem; color:var(--text); background:rgba(255,255,255,0.03); padding:12px; border-radius:8px;">
                 <strong>Reason:</strong> ${app.reason}

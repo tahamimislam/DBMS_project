@@ -269,7 +269,7 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
         
         let docLink = '';
         if (req.document_url) {
-          docLink = `<div><strong>Document:</strong> <a href="../${req.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-arrow-down"></i> View/Download</a></div>`;
+          docLink = `<div><strong>Document:</strong> <a href="../${req.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-pdf"></i> View PDF</a></div>`;
         }
 
         let actions = '';
