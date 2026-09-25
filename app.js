@@ -3003,8 +3003,6 @@ function renderPublicFinCampaigns(camps) {
     let donateBtn = '';
     if (!isLoggedIn) {
       donateBtn = `<a href="auth.html" class="btn btn-primary btn-sm">Log in to Donate</a>`;
-    } else if (c.i_donated) {
-      donateBtn = `<button class="btn btn-outline btn-sm" disabled><i class="fa-solid fa-check"></i> Donated</button>`;
     } else if (isExpired) {
       donateBtn = `<button class="btn btn-ghost btn-sm" disabled>Expired</button>`;
     } else {
@@ -3203,7 +3201,6 @@ async function submitDonation() {
     if (camp) {
       camp.raised_amount = res.raised_amount;
       camp.donor_count   = res.donor_count;
-      camp.i_donated     = true;
       camp.progress      = camp.goal_amount > 0 ? Math.min(100, Math.round((res.raised_amount / camp.goal_amount) * 100 * 10) / 10) : 0;
     }
     renderPublicFinCampaigns(HL.finCampaigns);
