@@ -3082,11 +3082,22 @@ function openDonateModal(campaignId) {
   }
   const errEl = document.getElementById('donate-error');
   if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
-  const amtEl = document.getElementById('donate-amount');
-  if (amtEl) amtEl.value = '';
-  const msgEl = document.getElementById('donate-message');
-  if (msgEl) msgEl.value = '';
+
+  // Clear ALL fields explicitly every time
+  const clearIds = ['donate-amount','donate-message','card-name','card-number','card-expiry','card-cvv','mfs-number','mfs-pin'];
+  clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
+
+  // Reset payment method to card
+  const cardRadio = document.querySelector('input[name="payment_method"][value="card"]');
+  if (cardRadio) cardRadio.checked = true;
+  const mfsOptions = document.getElementById('mfs-options');
+  const cardDetails = document.getElementById('payment-card-details');
+  const mfsDetails = document.getElementById('payment-mfs-details');
+  if (mfsOptions) mfsOptions.style.display = 'none';
+  if (cardDetails) cardDetails.style.display = 'block';
+  if (mfsDetails) mfsDetails.style.display = 'none';
+
   document.getElementById('donateModal').classList.add('show');
 }
 window.openDonateModal = openDonateModal;

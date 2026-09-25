@@ -494,7 +494,7 @@
     </div>
     <div class="form-group">
       <label for="donate-amount">Amount (৳) <span class="req">*</span></label>
-      <input type="number" id="donate-amount" class="form-control" placeholder="Enter amount" min="1" step="1">
+      <input type="number" id="donate-amount" class="form-control" placeholder="Enter amount" min="1" step="1" autocomplete="off">
     </div>
     <div class="form-group">
       <label for="donate-message">Message <span style="font-size:0.8rem;color:var(--muted)">(Optional)</span></label>
@@ -548,26 +548,26 @@
           </label>
         </div>
         <label>Cardholder Name</label>
-        <input type="text" id="card-name" class="form-control" placeholder="John Doe" style="margin-bottom:10px;">
+        <input type="text" id="card-name" class="form-control" placeholder="John Doe" style="margin-bottom:10px;" autocomplete="off" autocorrect="off" autocapitalize="off">
         <label>Card Number</label>
-        <input type="text" id="card-number" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" style="margin-bottom:10px;">
+        <input type="text" id="card-number" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" style="margin-bottom:10px;" autocomplete="off" inputmode="numeric">
         <div style="display:flex; gap:10px;">
           <div style="flex:1;">
             <label>Expiry Date</label>
-            <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY" maxlength="5">
+            <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY" maxlength="5" autocomplete="off" inputmode="numeric">
           </div>
           <div style="flex:1;">
             <label>CVV</label>
-            <input type="password" id="card-cvv" class="form-control" placeholder="***" maxlength="4">
+            <input type="password" id="card-cvv" class="form-control" placeholder="***" maxlength="4" autocomplete="new-password" inputmode="numeric">
           </div>
         </div>
       </div>
 
       <div id="payment-mfs-details" style="display:none; padding:15px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid var(--border);">
         <label id="mfs-number-label">Nagad Number</label>
-        <input type="text" id="mfs-number" class="form-control" placeholder="01XXXXXXXXX" maxlength="11" style="margin-bottom:10px;">
+        <input type="text" id="mfs-number" class="form-control" placeholder="01XXXXXXXXX" maxlength="11" style="margin-bottom:10px;" autocomplete="off" inputmode="numeric">
         <label>PIN / OTP (Simulation Only)</label>
-        <input type="password" id="mfs-pin" class="form-control" placeholder="****" maxlength="6">
+        <input type="password" id="mfs-pin" class="form-control" placeholder="****" maxlength="6" autocomplete="new-password" inputmode="numeric">
       </div>
     </div>
     <div id="donate-error" class="form-error-msg" style="display:none"></div>
