@@ -12,7 +12,7 @@ if ($method === 'GET') {
     
     $charity_id = (int)$_GET['charity_id'];
     
-    $sql = "SELECT * FROM education_support_applications WHERE charity_id = ? ORDER BY created_at DESC";
+    $sql = "SELECT * FROM fund_requests WHERE charity_id = ? ORDER BY created_at DESC";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $charity_id);
     $stmt->execute();
@@ -49,9 +49,11 @@ if ($method === 'POST') {
         exit;
     }
     
-    $sql = "INSERT INTO education_support_applications (charity_id, category, individual_name, nid_number, organization_name, group_category, reason, support_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $fund_type = $data['fund_type'] ?? 'educational';
+
+    $sql = "INSERT INTO fund_requests (charity_id, fund_type, category, individual_name, nid_number, organization_name, group_category, reason, support_amount) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
-    $stmt->bind_param("issssssd", $charity_id, $category, $individual_name, $nid_number, $organization_name, $group_category, $reason, $support_amount);
+    $stmt->bind_param("isssssssd", $charity_id, $fund_type, $category, $individual_name, $nid_number, $organization_name, $group_category, $reason, $support_amount);
     
     if ($stmt->execute()) {
         echo json_encode(['ok' => true]);

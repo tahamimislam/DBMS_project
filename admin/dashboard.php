@@ -159,6 +159,10 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         <span class="asbl-icon"><i class="fa-solid fa-chart-pie"></i></span>
         <span class="asbl-text">Dashboard</span>
       </a>
+      <a href="fund_requests.php" class="app-sidebar-link">
+        <span class="asbl-icon"><i class="fa-solid fa-hand-holding-hand"></i></span>
+        <span class="asbl-text">Fund Requests</span>
+      </a>
     </nav>
     <div class="app-sidebar-spacer"></div>
     <div class="app-sidebar-account">
