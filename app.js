@@ -2910,7 +2910,7 @@ function renderCampaignGrid(camps, listId, emptyId, isActive) {
         <i class="fa-solid fa-trash"></i>
       </button>` : `<div style="position:absolute; top:12px; right:12px; background:var(--bg-secondary); color:var(--text-muted); padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:700; z-index:10;">ARCHIVED</div>`}
       ${c.image_url 
-        ? `<div class="fin-campaign-img" style="height:180px; background:var(--bg-secondary);"><img src="${c.image_url}" style="width:100%; height:100%; object-fit:contain;" alt="Campaign Image"></div>` 
+        ? `<div class="fin-campaign-img" style="height:180px; background:var(--bg-secondary);"><img src="${c.image_url}" style="width:100%; height:100%; object-fit:cover;" alt="Campaign Image"></div>` 
         : `<div class="fin-campaign-img" style="background:var(--border); display:flex; align-items:center; justify-content:center; font-size:3rem; color:var(--text-muted); height:180px;"><i class="fa-solid fa-hand-holding-dollar"></i></div>`
       }
       <div class="fin-campaign-body" style="flex:1;">
@@ -2992,7 +2992,7 @@ function renderPublicFinCampaigns(camps) {
     return `
     <div class="fin-campaign-card" id="fin-card-${c.id}">
       <div class="fin-campaign-img" style="background:var(--bg-secondary);">
-        ${c.image_url ? `<img src="${c.image_url}" alt="${c.title}" style="width:100%; height:100%; object-fit:contain;">` : `<i class="fa-solid fa-hand-holding-heart"></i>`}
+        ${c.image_url ? `<img src="${c.image_url}" alt="${c.title}" style="width:100%; height:100%; object-fit:cover;">` : `<i class="fa-solid fa-hand-holding-heart"></i>`}
       </div>
       <div class="fin-campaign-body">
         <div class="fin-campaign-title">${c.title}</div>
