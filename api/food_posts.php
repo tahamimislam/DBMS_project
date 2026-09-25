@@ -155,4 +155,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     exit;
 }
 
+// ─── DELETE: Remove a food post ───────────────────────────
+if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
+    if (!isset($_SESSION['user'])) {
+        echo json_encode(['ok' => false, 'msg' => 'Not logged in.']);
+        exit;
+    }
+    
+    // Read JSON body or query param
+    parse_str(file_get_contents("php://input"), $del_vars);
+    $data = json_decode(file_get_contents('php://input'), true);
+    $id = isset($_GET['id']) ? (int)$_GET['id'] : (isset($data['id']) ? (int)$data['id'] : 0);
+
+    if (!$id) {
+        echo json_encode(['ok' => false, 'msg' => 'Invalid ID.']);
+        exit;
+    }
+
+    $userId = $_SESSION['user']['id'];
+
+    $stmt = $conn->prepare("DELETE FROM food_posts WHERE id = ? AND posted_by = ?");
+    $stmt->bind_param("ii", $id, $userId);
+    $stmt->execute();
+
+    if ($stmt->affected_rows > 0) {
+        echo json_encode(['ok' => true]);
+    } else {
+        echo json_encode(['ok' => false, 'msg' => 'Could not delete post. Not found or unauthorized.']);
+    }
+    $stmt->close();
+    exit;
+}
+
 echo json_encode(['ok' => false, 'msg' => 'Method not allowed.']);

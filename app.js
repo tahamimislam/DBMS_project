@@ -103,6 +103,37 @@ function showToast(msg, type = "success") {
   }, 3200);
 }
 
+function showConfirmModal(message, onConfirm) {
+  let modalEl = document.getElementById("confirmModalOverlay");
+  if (!modalEl) {
+    modalEl = document.createElement("div");
+    modalEl.id = "confirmModalOverlay";
+    modalEl.className = "modal-overlay";
+    document.body.appendChild(modalEl);
+  }
+  
+  modalEl.innerHTML = `
+    <div class="modal" style="max-width: 400px; text-align: center; padding: 24px; background: var(--card); border: 1.5px solid var(--border); border-radius: var(--radius);">
+      <h3 style="margin-top: 0; color: var(--text);">Confirmation</h3>
+      <p style="margin: 16px 0 24px; color: var(--text);">${message}</p>
+      <div style="display: flex; gap: 12px; justify-content: center;">
+        <button class="btn btn-outline" onclick="document.getElementById('confirmModalOverlay').classList.remove('show')" style="flex: 1;">Cancel</button>
+        <button class="btn btn-primary" id="confirmModalBtn" style="flex: 1; background: #ff4757; color: white; border: none;">Confirm</button>
+      </div>
+    </div>
+  `;
+  
+  modalEl.classList.add("show");
+  modalEl.onclick = (e) => {
+    if (e.target === modalEl) modalEl.classList.remove("show");
+  };
+  
+  document.getElementById("confirmModalBtn").onclick = () => {
+    modalEl.classList.remove("show");
+    onConfirm();
+  };
+}
+
 function formatDate(d) {
   if (!d) return "";
   return new Date(d + "T00:00:00").toLocaleDateString("en-US", {
@@ -1312,9 +1343,24 @@ function miniCard(p) {
     </div>
     <div class="food-card-footer">
       <span class="food-status ${claimed ? "claimed" : "available"}"><span class="status-dot"></span>${claimed ? "Claimed" : "Available"}</span>
-      ${claimed ? `<a href="restaurant-profile.html?id=${p.claimedBy}&post=${p.id}" class="btn btn-secondary btn-sm" id="view-claimant-${p.id}"><i class="fa-solid fa-user"></i> View Charity</a>` : ""}
+      <div style="display:flex; gap:8px;">
+        ${claimed ? `<a href="restaurant-profile.html?id=${p.claimedBy}&post=${p.id}" class="btn btn-secondary btn-sm" id="view-claimant-${p.id}"><i class="fa-solid fa-user"></i></a>` : ""}
+        <button onclick="deleteFoodPost(${p.id})" class="btn btn-secondary btn-sm" style="color: #ff4757; border-color: #ff4757;"><i class="fa-solid fa-trash"></i></button>
+      </div>
     </div>
   </div>`;
+}
+
+function deleteFoodPost(id) {
+  showConfirmModal("Are you sure you want to delete this food post?", async () => {
+    const res = await fetch(`api/food_posts.php?id=${id}`, { method: 'DELETE' }).then(r => r.json());
+    if (res.ok) {
+      showToast("Post deleted successfully", "success");
+      loadMyPosts();
+    } else {
+      showToast(res.msg || "Error deleting post", "error");
+    }
+  });
 }
 
 async function submitPost(e) {

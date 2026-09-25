@@ -65,11 +65,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form method="POST">
       <div class="form-group">
         <label>Email Address</label>
-        <input type="email" name="email" required placeholder="admin@charity.com">
+        <input type="email" name="email" required autocomplete="off" placeholder="admin@charity.com">
       </div>
       <div class="form-group">
         <label>Password</label>
-        <input type="password" name="password" required placeholder="••••••••">
+        <input type="password" name="password" required autocomplete="new-password" placeholder="••••••••">
       </div>
       <button type="submit">Login to Dashboard</button>
     </form>

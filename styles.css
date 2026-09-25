@@ -2428,6 +2428,12 @@ html.dark-theme,
 html.dark-theme body {
   background-color: #000000 !important;
   background: #000000 !important;
+  color-scheme: dark;
+}
+html.dark-theme input,
+html.dark-theme textarea,
+html.dark-theme select {
+  color-scheme: dark;
 }
 html.dark-theme .page-top,
 html.dark-theme .hero,
