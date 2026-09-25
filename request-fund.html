@@ -234,11 +234,6 @@
 
   <!-- ═══ EDUCATION SUPPORT DASHBOARD ═══════════════════════════════════ -->
   <div id="edu-section" class="fin-section">
-    <div class="page-header" style="margin-bottom:24px;">
-      <h1><i class="fa-solid fa-graduation-cap"></i> Education Support</h1>
-      <p style="color:var(--text-muted); margin-top:4px;">Apply for educational support or check your application status.</p>
-    </div>
-
     <!-- Request Fund Tabs -->
     <div class="mw-tabs" style="margin-bottom:24px; display:flex; overflow-x:auto;">
       <button class="mw-tab active" id="tab-edu" onclick="showFundTab('education')" style="white-space:nowrap;">Education Support</button>
@@ -249,6 +244,10 @@
 
     <!-- Apply for Support Form -->
     <div id="fund-sub-education">
+      <div class="page-header" style="margin-bottom:24px;">
+        <h1><i class="fa-solid fa-graduation-cap"></i> Education Support</h1>
+        <p style="color:var(--text-muted); margin-top:4px;">Apply for educational support funding.</p>
+      </div>
       <div class="fin-mgmt-card" style="display:block;">
         <h3 style="margin-top:0; margin-bottom:20px;"><i class="fa-solid fa-graduation-cap" style="color:var(--primary);"></i> Submit Education Support Application</h3>
         
@@ -322,6 +321,10 @@
 
     <!-- Emergency Relief Form -->
     <div id="fund-sub-emergency" style="display:none;">
+      <div class="page-header" style="margin-bottom:24px;">
+        <h1><i class="fa-solid fa-house-chimney-crack"></i> Emergency Relief Support</h1>
+        <p style="color:var(--text-muted); margin-top:4px;">Apply for emergency relief funding.</p>
+      </div>
       <div class="fin-mgmt-card" style="display:block;">
         <h3 style="margin-top:0; margin-bottom:20px;"><i class="fa-solid fa-house-chimney-crack" style="color:var(--primary);"></i> Submit Emergency Relief Application</h3>
         
@@ -379,6 +382,10 @@
 
     <!-- General Welfare Form -->
     <div id="fund-sub-welfare" style="display:none;">
+      <div class="page-header" style="margin-bottom:24px;">
+        <h1><i class="fa-solid fa-hand-holding-heart"></i> General Welfare Support</h1>
+        <p style="color:var(--text-muted); margin-top:4px;">Apply for general welfare assistance.</p>
+      </div>
       <div class="fin-mgmt-card" style="display:block;">
         <h3 style="margin-top:0; margin-bottom:20px;"><i class="fa-solid fa-hand-holding-heart" style="color:var(--primary);"></i> Submit General Welfare Application</h3>
         
@@ -430,6 +437,10 @@
 
     <!-- Application Status Tab -->
     <div id="fund-sub-status" class="hidden">
+      <div class="page-header" style="margin-bottom:24px;">
+        <h1><i class="fa-solid fa-list-check"></i> Application Status</h1>
+        <p style="color:var(--text-muted); margin-top:4px;">Track the progress of your submitted fund requests.</p>
+      </div>
       <div id="edu-status-list" style="display:flex; flex-direction:column; gap:16px;">
         <!-- Injected via JS -->
       </div>
