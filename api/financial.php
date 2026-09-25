@@ -282,11 +282,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             echo json_encode(['ok'=>false,'msg'=>'Not allowed.']);
             exit;
         }
-        $stmt = $conn->prepare("DELETE FROM financial_campaigns WHERE id = ? AND charity_id = ?");
+        $stmt = $conn->prepare("UPDATE financial_campaigns SET status = 'archived' WHERE id = ? AND charity_id = ?");
         $stmt->bind_param("ii", $campaignId, $userId);
         $stmt->execute();
         echo json_encode($stmt->affected_rows > 0
-            ? ['ok'=>true,'msg'=>'Campaign deleted.']
+            ? ['ok'=>true,'msg'=>'Campaign archived and moved to history.']
             : ['ok'=>false,'msg'=>'Campaign not found.']);
         exit;
     }

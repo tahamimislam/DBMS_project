@@ -234,37 +234,26 @@
 
   <!-- ═══ CHARITY DASHBOARD ═══════════════════════════════════ -->
   <div id="fin-section-charity" class="fin-section hidden">
-    <div class="page-header" style="margin-bottom:8px">
-      <div class="page-header-row">
-        <div>
-          <h1><i class="fa-solid fa-hand-holding-dollar"></i> Financial Campaigns</h1>
-          <p>Create and manage fundraising campaigns for your organization.</p>
-        </div>
-        <button class="btn btn-primary" onclick="toggleCreateForm(true)" id="create-campaign-btn">
-          <i class="fa-solid fa-plus"></i> New Campaign
-        </button>
-      </div>
+    <!-- Charity Tabs -->
+    <div class="mw-tabs" style="margin-bottom:24px; display:flex; overflow-x:auto;">
+      <button class="mw-tab" id="tab-charity-new" onclick="showCharitySubTab('new')" style="white-space:nowrap;">
+        <i class="fa-solid fa-plus"></i> New Campaign
+      </button>
+      <button class="mw-tab active" id="tab-charity-ongoing" onclick="showCharitySubTab('ongoing')" style="white-space:nowrap;">
+        <i class="fa-solid fa-list-check"></i> On going Campaign
+      </button>
+      <button class="mw-tab" id="tab-charity-history" onclick="showCharitySubTab('history')" style="white-space:nowrap;">
+        <i class="fa-solid fa-clock-rotate-left"></i> Campaign History
+      </button>
     </div>
 
-    <!-- Stats -->
-    <div class="fin-stat-row" id="charity-stats-row">
-      <div class="fin-stat-card">
-        <div class="fin-stat-num" id="cs-total">0</div>
-        <div class="fin-stat-lbl">Total Campaigns</div>
-      </div>
-      <div class="fin-stat-card">
-        <div class="fin-stat-num" id="cs-raised">৳0</div>
-        <div class="fin-stat-lbl">Total Raised</div>
-      </div>
-      <div class="fin-stat-card">
-        <div class="fin-stat-num" id="cs-donors">0</div>
-        <div class="fin-stat-lbl">Total Donors</div>
-      </div>
-    </div>
+    <!-- Stats removed as requested -->
 
-    <!-- Create Campaign Form -->
-    <div id="create-campaign-form" class="post-card mw-form-card hidden" style="margin-bottom:28px">
-      <h3><i class="fa-solid fa-bullhorn"></i> Create New Campaign</h3>
+    <!-- 1. New Campaign Form (Hidden by default) -->
+    <div id="charity-sub-new" class="hidden">
+
+      <div id="create-campaign-form" class="post-card mw-form-card" style="margin-bottom:28px">
+        <h3><i class="fa-solid fa-bullhorn"></i> Create New Campaign</h3>
       <form id="campaignForm" onsubmit="submitCreateCampaign(event)">
         <div class="form-row">
           <div class="form-group">
@@ -303,77 +292,35 @@
           <input type="file" id="fc-image" class="form-control" accept="image/*">
         </div>
         <div id="create-campaign-error" class="form-error-msg" style="display:none"></div>
-        <div class="form-actions-row">
-          <button type="submit" class="btn btn-primary" id="submit-campaign-btn">
-            <i class="fa-solid fa-paper-plane"></i> Create Campaign
-          </button>
-          <button type="button" class="btn btn-ghost" onclick="toggleCreateForm(false)">
-            <i class="fa-solid fa-xmark"></i> Cancel
-          </button>
-        </div>
-      </form>
-    </div>
-
-    <!-- My Campaigns List -->
-    <div class="subheading-label subheading-label-lg" style="margin-bottom:16px">
-      <i class="fa-solid fa-list"></i> My Campaigns
-    </div>
-    <div id="my-campaigns-list"></div>
-    <div id="my-campaigns-empty" class="empty-state hidden">
-      <div class="empty-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
-      <h3>No campaigns yet</h3>
-      <p>Click "New Campaign" to create your first fundraising campaign.</p>
-    </div>
-
-    <!-- My Donation Posts -->
-    <div style="display:flex; justify-content:space-between; align-items:center; margin:40px 0 16px;">
-      <div class="subheading-label subheading-label-lg" style="margin:0;">
-        <i class="fa-solid fa-signs-post"></i> My Donation Posts
+          <div class="form-actions-row">
+            <button type="submit" class="btn btn-primary" id="submit-campaign-btn">
+              <i class="fa-solid fa-paper-plane"></i> Create Campaign
+            </button>
+          </div>
+        </form>
       </div>
-      <button class="btn btn-outline btn-sm" onclick="togglePostForm(true)">
-        <i class="fa-solid fa-plus"></i> New Post
-      </button>
     </div>
 
-    <div id="create-post-form" class="post-card mw-form-card hidden" style="margin-bottom:28px">
-      <h3><i class="fa-solid fa-pen"></i> Write a Post</h3>
-      <form id="donationPostForm" onsubmit="submitCreatePost(event)">
-        <div class="form-group">
-          <label for="dp-title">Post Title <span class="req">*</span></label>
-          <input type="text" id="dp-title" class="form-control" placeholder="e.g. Update on Flood Relief" required>
-        </div>
-        <div class="form-group">
-          <label for="dp-campaign">Link to Campaign <span class="req">*</span></label>
-          <select id="dp-campaign" class="form-control" required>
-            <option value="">Select a campaign to link...</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label for="dp-content">Content <span class="req">*</span></label>
-          <textarea id="dp-content" class="form-control" rows="4" placeholder="Share news, updates, or appeals..." required></textarea>
-        </div>
-        <div class="form-group">
-          <label for="dp-image">Image <span style="font-size:0.8rem;color:var(--muted)">(Optional)</span></label>
-          <input type="file" id="dp-image" class="form-control" accept="image/*">
-        </div>
-        <div id="create-post-error" class="form-error-msg" style="display:none"></div>
-        <div class="form-actions-row">
-          <button type="submit" class="btn btn-primary" id="submit-post-btn">
-            <i class="fa-solid fa-paper-plane"></i> Publish Post
-          </button>
-          <button type="button" class="btn btn-ghost" onclick="togglePostForm(false)">
-            <i class="fa-solid fa-xmark"></i> Cancel
-          </button>
-        </div>
-      </form>
+    <!-- 2. On Going Campaigns Tab -->
+    <div id="charity-sub-ongoing">
+      <div id="my-campaigns-list" class="fin-campaign-grid"></div>
+      <div id="my-campaigns-empty" class="empty-state hidden">
+        <div class="empty-icon"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+        <h3>No active campaigns</h3>
+        <p>Click "New Campaign" to create your first fundraising campaign.</p>
+      </div>
     </div>
 
-    <div id="my-posts-list"></div>
-    <div id="my-posts-empty" class="empty-state hidden">
-      <div class="empty-icon"><i class="fa-solid fa-signs-post"></i></div>
-      <h3>No posts yet</h3>
-      <p>Click "New Post" to share updates with donors.</p>
+    <!-- 3. Campaign History Tab -->
+    <div id="charity-sub-history" class="hidden">
+      <div id="my-history-list" class="fin-campaign-grid"></div>
+      <div id="my-history-empty" class="empty-state hidden">
+        <div class="empty-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
+        <h3>No history yet</h3>
+        <p>Archived or deleted campaigns will appear here.</p>
+      </div>
     </div>
+
   </div>
 
   <!-- ═══ USER VIEW ════════════════════════════════════════════ -->
@@ -385,9 +332,6 @@
       </button>
       <button class="mw-tab" id="tab-charity" onclick="switchFinTab('charity', this)" style="white-space:nowrap;">
         <i class="fa-solid fa-building-ngo"></i> Charity Campaigns
-      </button>
-      <button class="mw-tab" id="tab-posts" onclick="switchFinTab('posts', this)" style="white-space:nowrap;">
-        <i class="fa-solid fa-signs-post"></i> Donation Posts
       </button>
       <button class="mw-tab" id="tab-history" onclick="switchFinTab('history', this)" style="white-space:nowrap;">
         <i class="fa-solid fa-clock-rotate-left"></i> My Donations

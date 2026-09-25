@@ -2866,34 +2866,54 @@ function buildFinSidebar() {
   }
 }
 
+// ── Charity Dashboard Tabs ───────────────────────────────────
+function showCharitySubTab(tab) {
+  document.querySelectorAll('#fin-section-charity .mw-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-charity-' + tab)?.classList.add('active');
+
+  const newEl = document.getElementById('charity-sub-new');
+  const ongoingEl = document.getElementById('charity-sub-ongoing');
+  const historyEl = document.getElementById('charity-sub-history');
+
+  if (newEl) newEl.classList.add('hidden');
+  if (ongoingEl) ongoingEl.classList.add('hidden');
+  if (historyEl) historyEl.classList.add('hidden');
+
+  if (tab === 'new') {
+    if (newEl) newEl.classList.remove('hidden');
+  } else if (tab === 'ongoing') {
+    if (ongoingEl) ongoingEl.classList.remove('hidden');
+  } else if (tab === 'history') {
+    if (historyEl) historyEl.classList.remove('hidden');
+  }
+}
+window.showCharitySubTab = showCharitySubTab;
+
 // ── Charity: Load My Campaigns ─────────────────────────────
 async function loadMyCampaigns() {
   const res = await apiGet('financial.php?action=my_campaigns');
   if (!res.ok) return;
   const camps = res.campaigns || [];
+  
+  const activeCamps = camps.filter(c => c.status === 'active');
+  const historyCamps = camps.filter(c => c.status !== 'active');
 
-  // Update stats
-  const totalRaised = camps.reduce((s, c) => s + c.raised_amount, 0);
-  const totalDonors = camps.reduce((s, c) => s + c.donor_count, 0);
-  const setEl = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
-  setEl('cs-total', camps.length);
-  setEl('cs-raised', '৳' + totalRaised.toLocaleString());
-  setEl('cs-donors', totalDonors);
+  // Stats removed per user request
 
-  // Populate campaign dropdown
+  // Populate campaign dropdown for Donation Posts (if active)
   const dpCamp = document.getElementById('dp-campaign');
   if (dpCamp) {
     dpCamp.innerHTML = '<option value="">Select a campaign to link...</option>' + 
-      camps.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+      activeCamps.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
   }
 
-  renderMyCampaigns(camps);
-  loadMyDonationPosts();
+  renderCampaignGrid(activeCamps, 'my-campaigns-list', 'my-campaigns-empty', true);
+  renderCampaignGrid(historyCamps, 'my-history-list', 'my-history-empty', false);
 }
 
-function renderMyCampaigns(camps) {
-  const list  = document.getElementById('my-campaigns-list');
-  const empty = document.getElementById('my-campaigns-empty');
+function renderCampaignGrid(camps, listId, emptyId, isActive) {
+  const list  = document.getElementById(listId);
+  const empty = document.getElementById(emptyId);
   if (!list) return;
   if (!camps.length) {
     list.innerHTML = '';
@@ -2903,33 +2923,42 @@ function renderMyCampaigns(camps) {
   empty && empty.classList.add('hidden');
 
   list.innerHTML = camps.map(c => `
-    <div class="fin-mgmt-card" id="fin-mgmt-${c.id}">
-      <div class="fin-mgmt-info">
-        <div class="fin-mgmt-title">${c.title}</div>
-        <div class="fin-mgmt-meta">
-          <i class="fa-regular fa-calendar"></i> Deadline: ${new Date(c.deadline + 'T00:00:00').toLocaleDateString('en-BD')}
-          &nbsp;|&nbsp; <i class="fa-solid fa-users"></i> ${c.donor_count} donor${c.donor_count !== 1 ? 's' : ''}
-          &nbsp;|&nbsp; <span style="color:${c.status==='active'?'var(--primary)':'var(--text-muted)'}">${c.status}</span>
+    <div class="fin-campaign-card" style="display:flex; flex-direction:column; height:100%; position:relative; ${!isActive ? 'opacity:0.7;' : ''}" id="fin-mgmt-${c.id}">
+      ${isActive ? `
+      <button class="btn btn-sm" onclick="deleteFinCampaign(${c.id})"
+        style="position:absolute; top:12px; right:12px; background:rgba(220,53,69,0.9); color:white; border:none; border-radius:50%; width:32px; height:32px; display:flex; align-items:center; justify-content:center; z-index:10; cursor:pointer;" title="Delete/Archive Campaign">
+        <i class="fa-solid fa-trash"></i>
+      </button>` : `<div style="position:absolute; top:12px; right:12px; background:var(--bg-secondary); color:var(--text-muted); padding:4px 8px; border-radius:12px; font-size:0.7rem; font-weight:700; z-index:10;">ARCHIVED</div>`}
+      ${c.image_url 
+        ? `<div class="fin-campaign-img" style="height:180px; background:var(--bg-secondary);"><img src="${c.image_url}" style="width:100%; height:100%; object-fit:contain;" alt="Campaign Image"></div>` 
+        : `<div class="fin-campaign-img" style="background:var(--border); display:flex; align-items:center; justify-content:center; font-size:3rem; color:var(--text-muted); height:180px;"><i class="fa-solid fa-hand-holding-dollar"></i></div>`
+      }
+      <div class="fin-campaign-body" style="flex:1;">
+        <div class="fin-campaign-title" style="margin-bottom:8px;">${c.title}</div>
+        <div class="fin-campaign-charity" style="margin-bottom:12px;">
+          <i class="fa-solid fa-building-ngo"></i> ${HL.currentUser.fullName || 'Charity'}
         </div>
-        <div class="fin-mgmt-progress">
-          <div class="fin-progress-bar-bg">
+        <div class="fin-campaign-desc" style="white-space:pre-wrap; margin-bottom:16px;">${c.description || ''}</div>
+        
+        <div class="fin-mgmt-progress" style="margin-bottom:16px;">
+          <div class="fin-progress-bar-bg" style="border:1px solid rgba(255,255,255,0.1); border-radius:8px; overflow:hidden;">
             <div class="fin-progress-bar-fill" style="width:${c.progress}%"></div>
           </div>
-          <div class="fin-progress-labels">
-            <span class="fin-raised">৳${c.raised_amount.toLocaleString()} raised</span>
-            <span class="fin-goal">of ৳${c.goal_amount.toLocaleString()} (${c.progress}%)</span>
+          <div class="fin-progress-labels" style="margin-top:8px;">
+            <span class="fin-raised">৳${c.raised_amount.toLocaleString()}</span>
+            <span class="fin-goal">of ৳${c.goal_amount.toLocaleString()}</span>
           </div>
         </div>
-      </div>
-      <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
-        <div class="fin-mgmt-raised">৳${c.raised_amount.toLocaleString()}</div>
-        <button class="btn btn-outline btn-sm" onclick="openDonorsModal(${c.id}, '${c.title.replace(/'/g,"\\'")}')">
-          <i class="fa-solid fa-users"></i> Donors
-        </button>
-        <button class="btn btn-sm" onclick="deleteFinCampaign(${c.id})"
-          style="background:rgba(220,53,69,.1);color:var(--danger);border:1px solid rgba(220,53,69,.3)">
-          <i class="fa-solid fa-trash"></i>
-        </button>
+
+        <div class="fin-campaign-footer" style="margin-top:auto; padding-top:16px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+          <div style="font-size:0.8rem; color:var(--text-muted);">
+            <i class="fa-solid fa-users"></i> ${c.donor_count} donor${c.donor_count !== 1 ? 's' : ''} | 
+            <i class="fa-regular fa-calendar"></i> ${new Date(c.deadline + 'T00:00:00').toLocaleDateString('en-US')}
+          </div>
+          <button class="btn btn-outline btn-sm" onclick="openDonorsModal(${c.id}, '${c.title.replace(/'/g,"\\'")}')" style="display:flex; align-items:center; gap:6px;">
+            <i class="fa-solid fa-users"></i> Donors
+          </button>
+        </div>
       </div>
     </div>
   `).join('');
@@ -2984,8 +3013,8 @@ function renderPublicFinCampaigns(camps) {
 
     return `
     <div class="fin-campaign-card" id="fin-card-${c.id}">
-      <div class="fin-campaign-img">
-        ${c.image_url ? `<img src="${c.image_url}" alt="${c.title}">` : `<i class="fa-solid fa-hand-holding-heart"></i>`}
+      <div class="fin-campaign-img" style="background:var(--bg-secondary);">
+        ${c.image_url ? `<img src="${c.image_url}" alt="${c.title}" style="width:100%; height:100%; object-fit:contain;">` : `<i class="fa-solid fa-hand-holding-heart"></i>`}
       </div>
       <div class="fin-campaign-body">
         <div class="fin-campaign-title">${c.title}</div>
@@ -3295,7 +3324,7 @@ async function submitCreateCampaign(e) {
   }
 
   document.getElementById('campaignForm')?.reset();
-  toggleCreateForm(false);
+  showCharitySubTab('ongoing');
   showToast('Campaign created successfully!', 'success');
   await loadMyCampaigns();
 }
