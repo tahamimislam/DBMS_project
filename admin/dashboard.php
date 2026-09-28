@@ -57,10 +57,21 @@ if (!empty($_GET['method'])) {
     $params[] = $_GET['method'];
     $types .= "s";
 }
+if (!empty($_GET['category'])) {
+    $whereClause .= " AND fc.category = ?";
+    $params[] = $_GET['category'];
+    $types .= "s";
+}
 if (!empty($_GET['campaign'])) {
-    $whereClause .= " AND d.campaign_id = ?";
-    $params[] = $_GET['campaign'];
-    $types .= "i";
+    if (is_numeric($_GET['campaign'])) {
+        $whereClause .= " AND d.campaign_id = ?";
+        $params[] = $_GET['campaign'];
+        $types .= "i";
+    } else {
+        $whereClause .= " AND d.system_fund = ?";
+        $params[] = $_GET['campaign'];
+        $types .= "s";
+    }
 }
 if (!empty($_GET['status'])) {
     $whereClause .= " AND d.payment_status = ?";
@@ -127,6 +138,7 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     .filters { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
     .filters select, .filters input { padding: 8px 14px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: inherit; }
     .filters select:focus, .filters input:focus { outline: none; border-color: var(--primary); }
+    html.dark-theme .filters select option, html.dark-theme .filters select optgroup { background: #121212; color: #fff; }
 
     /* Profile dropdown */
     .profile-wrapper { position: relative; }
@@ -398,7 +410,8 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
       <div class="admin-card">
         <div class="admin-card-title"><i class="fa-solid fa-money-bill-transfer"></i> Donation Transactions</div>
         
-        <form class="filters" method="GET">
+        <form class="filters" method="GET" action="dashboard.php">
+          <input type="hidden" name="tab" value="transactions">
           <select name="method">
             <option value="">All Payment Methods</option>
             <option value="card" <?= ($_GET['method'] ?? '') === 'card' ? 'selected' : '' ?>>Card</option>
@@ -407,11 +420,28 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
             <option value="rocket" <?= ($_GET['method'] ?? '') === 'rocket' ? 'selected' : '' ?>>Rocket</option>
           </select>
           
+          <select name="category">
+            <option value="">All Categories</option>
+            <option value="Medical" <?= ($_GET['category'] ?? '') === 'Medical' ? 'selected' : '' ?>>Medical Treatment</option>
+            <option value="Education" <?= ($_GET['category'] ?? '') === 'Education' ? 'selected' : '' ?>>Education Support</option>
+            <option value="Disaster Relief" <?= ($_GET['category'] ?? '') === 'Disaster Relief' ? 'selected' : '' ?>>Disaster Relief</option>
+            <option value="Orphanage" <?= ($_GET['category'] ?? '') === 'Orphanage' ? 'selected' : '' ?>>Orphanage & Children</option>
+            <option value="Food & Hunger" <?= ($_GET['category'] ?? '') === 'Food & Hunger' ? 'selected' : '' ?>>Food & Hunger</option>
+            <option value="Other" <?= ($_GET['category'] ?? '') === 'Other' ? 'selected' : '' ?>>Other</option>
+          </select>
+          
           <select name="campaign">
-            <option value="">All Campaigns</option>
-            <?php foreach ($campaigns as $camp): ?>
-            <option value="<?= $camp['id'] ?>" <?= ($_GET['campaign'] ?? '') == $camp['id'] ? 'selected' : '' ?>><?= htmlspecialchars($camp['title']) ?></option>
-            <?php endforeach; ?>
+            <option value="">All Funds & Campaigns</option>
+            <optgroup label="System Funds">
+              <option value="Emergency Relief" <?= ($_GET['campaign'] ?? '') === 'Emergency Relief' ? 'selected' : '' ?>>Emergency Relief</option>
+              <option value="General Welfare" <?= ($_GET['campaign'] ?? '') === 'General Welfare' ? 'selected' : '' ?>>General Welfare</option>
+              <option value="Meritorious Student" <?= ($_GET['campaign'] ?? '') === 'Meritorious Student' ? 'selected' : '' ?>>Meritorious Student</option>
+            </optgroup>
+            <optgroup label="Charity Campaigns">
+              <?php foreach ($campaigns as $camp): ?>
+              <option value="<?= $camp['id'] ?>" <?= ($_GET['campaign'] ?? '') == $camp['id'] ? 'selected' : '' ?>><?= htmlspecialchars($camp['title']) ?></option>
+              <?php endforeach; ?>
+            </optgroup>
           </select>
           
           <select name="status">
@@ -424,7 +454,7 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
           <input type="date" name="date" value="<?= htmlspecialchars($_GET['date'] ?? '') ?>">
           
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-filter"></i> Filter</button>
-          <a href="dashboard.php" class="btn btn-ghost" style="border:1px solid var(--border);">Reset</a>
+          <a href="dashboard.php?tab=transactions" class="btn btn-ghost" style="border:1px solid var(--border);">Reset</a>
         </form>
 
         <table>
@@ -509,7 +539,15 @@ $donations = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
       updateThemeIcon();
     }
 
-    document.addEventListener('DOMContentLoaded', updateThemeIcon);
+    document.addEventListener('DOMContentLoaded', function() {
+      updateThemeIcon();
+      var urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('tab') === 'transactions' || urlParams.has('method') || urlParams.has('status') || urlParams.has('campaign') || urlParams.has('date')) {
+        switchAdminTab('transactions');
+      } else if (urlParams.get('tab') === 'campaigns') {
+        switchAdminTab('campaigns');
+      }
+    });
 
     // Profile dropdown
     function toggleProfileMenu(e) {

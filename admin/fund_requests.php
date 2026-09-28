@@ -269,19 +269,20 @@ if (!isset($_SESSION['user']) || $_SESSION['user']['accountType'] !== 'admin') {
         else if (req.status === 'approved') statusBadge = '<span class="badge badge-success">Approved</span>';
         else if (req.status === 'rejected') statusBadge = '<span class="badge badge-failed">Rejected</span>';
         
-        let details = '';
-        if (req.fund_type === 'emergency') {
-          details = `<div><strong>Category:</strong> ${req.group_category || 'N/A'}</div>
-                     <div><strong>Location:</strong> ${req.location_street || ''}, ${req.location_area || ''}, ${req.location_city || ''}</div>`;
-        } else if (req.fund_type === 'welfare') {
-          details = `<div><strong>Location:</strong> ${req.location_street || ''}, ${req.location_area || ''}, ${req.location_city || ''}</div>`;
-        } else {
-          details = `<div><strong>Category:</strong> <span style="text-transform:capitalize">${(req.group_category || 'Educational').replace('_', ' ')}</span></div>`;
-        }
+        let cat = 'N/A';
+        if (req.fund_type === 'emergency') cat = req.group_category || 'N/A';
+        else if (req.fund_type === 'welfare') cat = 'General';
+        else cat = (req.group_category || 'Educational').replace('_', ' ');
+
+        let locArray = [req.location_street, req.location_area, req.location_city].filter(Boolean);
+        let loc = locArray.length > 0 ? locArray.join(', ') : 'N/A';
+
+        let details = `<div><strong>Category:</strong> <span style="text-transform:capitalize">${cat}</span></div>
+                       <div><strong>Location:</strong> ${loc}</div>`;
         
         let docLink = '';
         if (req.document_url) {
-          docLink = `<div><strong>Document:</strong> <a href="../${req.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-pdf"></i> View PDF</a></div>`;
+          docLink = `<div><strong>Document:</strong> <a href="../${req.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-arrow-down"></i> View</a></div>`;
         }
 
         let actions = '';

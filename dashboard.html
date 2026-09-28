@@ -113,7 +113,17 @@
         </div>
         <div class="form-group">
           <label for="pf-qty">Quantity <span class="req">*</span></label>
-          <input type="text" id="pf-qty" class="form-control" placeholder="e.g. 50 plates, 30 servings, 10 kg" required>
+          <div style="display: flex; gap: 10px;">
+            <input type="number" id="pf-qty-num" class="form-control" placeholder="e.g. 50" min="1" required style="flex: 1;" oninput="document.getElementById('pf-qty').value = this.value ? (this.value + ' ' + document.getElementById('pf-qty-unit').value) : '';">
+            <select id="pf-qty-unit" class="form-control" style="width: auto;" onchange="document.getElementById('pf-qty-num').dispatchEvent(new Event('input'));">
+              <option value="plates">Plates</option>
+              <option value="servings">Servings</option>
+              <option value="kg">KG</option>
+              <option value="items">Items</option>
+              <option value="liters">Liters</option>
+            </select>
+          </div>
+          <input type="hidden" id="pf-qty">
         </div>
         <div class="form-row">
           <div class="form-group">

@@ -3080,10 +3080,8 @@ function openSystemDonateModal(fundName) {
   
   const errEl = document.getElementById('donate-error');
   if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
-  const amtEl = document.getElementById('donate-amount');
-  if (amtEl) amtEl.value = '';
-  const msgEl = document.getElementById('donate-message');
-  if (msgEl) msgEl.value = '';
+  const clearIds = ['donate-amount','donate-message','pmt-name','pmt-num','pmt-exp','pmt-sec','mfs-number','mfs-pin'];
+  clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
   document.getElementById('donateModal').classList.add('show');
 }
@@ -3105,7 +3103,7 @@ function openDonateModal(campaignId) {
   if (errEl) { errEl.style.display = 'none'; errEl.textContent = ''; }
 
   // Clear ALL fields explicitly every time
-  const clearIds = ['donate-amount','donate-message','card-name','card-number','card-expiry','card-cvv','mfs-number','mfs-pin'];
+  const clearIds = ['donate-amount','donate-message','pmt-name','pmt-num','pmt-exp','pmt-sec','mfs-number','mfs-pin'];
   clearIds.forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
   document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('selected'));
 
@@ -3164,7 +3162,7 @@ async function submitDonation() {
   let maskedAccount = '';
 
   if (methodType === 'card') {
-    const cardNum = document.getElementById('card-number').value.replace(/\s+/g, '');
+    const cardNum = document.getElementById('pmt-num').value.replace(/\s+/g, '');
     if (cardNum.length < 16) {
       if (errEl) { errEl.style.display = 'block'; errEl.textContent = 'Please enter a valid 16-digit card number.'; }
       return;
@@ -3789,7 +3787,7 @@ async function loadEduApplications() {
           
           let docHtml = '';
           if (app.document_url) {
-            docHtml = `<div><strong>Document:</strong> <a href="${app.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-arrow-down"></i> View PDF</a></div>`;
+            docHtml = `<div><strong>Document:</strong> <a href="${app.document_url}" target="_blank" style="color:var(--primary); text-decoration:none;"><i class="fa-solid fa-file-arrow-down"></i> View</a></div>`;
           }
           const titleStr = app.fund_type === 'emergency' ? 'Emergency Relief' : app.fund_type === 'welfare' ? 'General Welfare' : 'Education';
           
@@ -3803,7 +3801,7 @@ async function loadEduApplications() {
               </div>
               <div style="font-size:0.9rem; color:var(--text-muted); line-height:1.6; margin-bottom:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px;">
                 ${detailsHtml}
-                <div><strong>Requested Amount:</strong> ৳${parseFloat(app.support_amount).toLocaleString()}</div>
+                <div><strong>Requested Amount:</strong> ৳${parseFloat(app.amount).toLocaleString()}</div>
                 <div><strong>Applied on:</strong> ${new Date(app.created_at).toLocaleDateString('en-GB')}</div>
                 ${docHtml}
               </div>

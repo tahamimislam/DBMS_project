@@ -16,7 +16,7 @@
       margin-top: 20px;
     }
     .fin-campaign-card {
-      background: var(--bg-card);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       overflow: hidden;
@@ -56,7 +56,7 @@
 
     /* Charity management card */
     .fin-mgmt-card {
-      background: var(--bg-card);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 20px 24px;
@@ -105,7 +105,7 @@
     }
     .donate-modal-overlay.show { display: flex; }
     .donate-modal {
-      background: var(--bg-card);
+      background: var(--card);
       border: 1px solid var(--border);
       border-radius: 20px;
       padding: 32px;
@@ -123,7 +123,7 @@
     .amount-btn { padding: 8px 18px; border: 1.5px solid var(--primary); border-radius: 99px; background: transparent; color: var(--primary); font-weight: 600; cursor: pointer; transition: all 0.15s; font-size: 0.9rem; }
     .amount-btn:hover, .amount-btn.selected { background: var(--primary); color: #fff; }
     .fin-stat-row { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:16px; margin-bottom:28px; }
-    .fin-stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+    .fin-stat-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
     .fin-stat-num { font-size:1.8rem; font-weight:800; color:var(--primary); }
     .fin-stat-lbl { font-size:0.82rem; color:var(--text-muted); margin-top:2px; }
 
@@ -135,7 +135,7 @@
     }
     .pay-success-overlay.show { display: flex; }
     .pay-success-modal {
-      background: #1C2027; border: 1px solid var(--border);
+      background: var(--card); border: 1px solid var(--border);
       border-radius: 24px; padding: 40px 36px; width: 100%;
       max-width: 420px; margin: 20px;
       text-align: center;
@@ -468,7 +468,7 @@
 
 <!-- ═══ DONATE MODAL ═══════════════════════════════════════════ -->
 <div class="donate-modal-overlay" id="donateModal">
-  <div class="donate-modal" style="background-color: #1C2027;">
+  <div class="donate-modal">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px">
       <h3 id="donate-modal-title">Make a Donation</h3>
       <button class="btn btn-ghost" onclick="closeDonateModal()" style="padding:4px 8px;font-size:1.1rem"><i class="fa-solid fa-xmark"></i></button>
@@ -522,32 +522,32 @@
       <div id="payment-card-details" style="display:block; padding:15px; background:rgba(255,255,255,0.02); border-radius:8px; border:1px solid var(--border);">
         <!-- Card Type Selector -->
         <label style="display:block; margin-bottom:8px; font-size:0.85rem; font-weight:600;">Card Network <span style="color:var(--primary)">*</span></label>
-        <div class="card-type-selector">
-          <label class="card-type-btn active" id="card-type-visa" onclick="selectCardType('visa')">
+        <div style="display:flex; gap:20px; justify-content:center; margin-bottom:15px;">
+          <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
             <input type="radio" name="card_type" value="visa" checked>
-            <img src="assets/visa.jpg" alt="Visa">
+            <img src="assets/visa.jpg" alt="Visa" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
           </label>
-          <label class="card-type-btn" id="card-type-mastercard" onclick="selectCardType('mastercard')">
+          <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
             <input type="radio" name="card_type" value="mastercard">
-            <img src="assets/mastercard.jpg" alt="Mastercard">
+            <img src="assets/mastercard.jpg" alt="Mastercard" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
           </label>
-          <label class="card-type-btn" id="card-type-nexus" onclick="selectCardType('nexus')">
+          <label style="cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:5px;">
             <input type="radio" name="card_type" value="nexus">
-            <img src="assets/nexuspay.jpg" alt="NexusPay">
+            <img src="assets/nexuspay.jpg" alt="NexusPay" style="width:50px; height:50px; object-fit:contain; border-radius:8px; background:#fff; padding:2px;">
           </label>
         </div>
-        <label>Cardholder Name</label>
-        <input type="text" id="card-name" class="form-control" placeholder="John Doe" style="margin-bottom:10px;" autocomplete="off" autocorrect="off" autocapitalize="off">
-        <label>Card Number</label>
-        <input type="text" id="card-number" class="form-control" placeholder="0000 0000 0000 0000" maxlength="19" style="margin-bottom:10px;" autocomplete="off" inputmode="numeric">
+        <label>Account Name</label>
+        <input type="text" id="pmt-name" class="form-control" placeholder="John Doe" style="margin-bottom:10px;" autocomplete="off" autocorrect="off" autocapitalize="off">
+        <label>Account No.</label>
+        <input type="text" id="pmt-num" class="form-control" placeholder="XXXX XXXX XXXX XXXX" maxlength="19" style="margin-bottom:10px;" autocomplete="new-password" inputmode="numeric">
         <div style="display:flex; gap:10px;">
           <div style="flex:1;">
-            <label>Expiry Date</label>
-            <input type="text" id="card-expiry" class="form-control" placeholder="MM/YY" maxlength="5" autocomplete="off" inputmode="numeric">
+            <label>Valid Thru</label>
+            <input type="text" id="pmt-exp" class="form-control" placeholder="MM/YY" maxlength="5" autocomplete="new-password" inputmode="numeric">
           </div>
           <div style="flex:1;">
-            <label>CVV</label>
-            <input type="text" id="card-cvv" class="form-control" placeholder="***" maxlength="4" autocomplete="off" inputmode="numeric" style="-webkit-text-security: disc;">
+            <label>Security Code</label>
+            <input type="text" id="pmt-sec" class="form-control" placeholder="***" maxlength="4" autocomplete="new-password" inputmode="numeric" style="-webkit-text-security: disc;">
           </div>
         </div>
       </div>
@@ -587,7 +587,7 @@
       <i class="fa-solid fa-check"></i>
     </div>
     <h2>Payment Successful!</h2>
-    <p class="success-sub">Thank you for your generous contribution 🎉</p>
+    <p class="success-sub">Thank you for your generous contribution</p>
     <div class="pay-success-receipt">
       <div class="receipt-row">
         <span class="receipt-label"><i class="fa-solid fa-bangladeshi-taka-sign"></i> Amount</span>
