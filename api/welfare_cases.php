@@ -209,6 +209,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
+    // ── Action: delete_case ───────────────────────────────
     if ($action === "delete_case") {
         $caseId = (int)($data["caseId"] ?? 0);
         $userId = (int)$_SESSION["user"]["id"];

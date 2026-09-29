@@ -24,6 +24,7 @@ $userId = $_SESSION['user']['id'] ?? null;
 // ─── GET ────────────────────────────────────────────────────
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
+    // ── Action: campaigns ──────────────────────────────────
     if ($action === "campaigns") {
         $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
         $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
@@ -73,6 +74,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         exit;
     }
 
+    // ── Action: my_campaigns ───────────────────────────────
     if ($action === "my_campaigns") {
         if (!$userId) { echo json_encode(['ok'=>false,'msg'=>'Not logged in']); exit; }
         
@@ -109,6 +111,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         exit;
     }
 
+    // ── Action: my_donations ───────────────────────────────
     if ($action === "my_donations") {
         if (!$userId) { echo json_encode(['ok'=>false,'msg'=>'Not logged in']); exit; }
         
@@ -139,6 +142,7 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         exit;
     }
 
+    // ── Action: campaign_donors ────────────────────────────
     if ($action === "campaign_donors") {
         $cid = (int)($_GET['campaign_id'] ?? 0);
         if (!$cid) { echo json_encode(['ok'=>false,'msg'=>'Campaign ID required']); exit; }
@@ -179,6 +183,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $userRow = $stmt->get_result()->fetch_assoc();
     $accountType = $userRow['account_type'] ?? '';
 
+    // ── Action: create_campaign ────────────────────────────
     if ($action === "create_campaign") {
         if ($accountType !== 'charity') {
             echo json_encode(['ok'=>false,'msg'=>'Only charity organizations can create campaigns.']);
@@ -222,6 +227,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
+    // ── Action: donate_system ──────────────────────────────
     if ($action === "donate_system") {
         $fundType = trim($_POST['fund_type'] ?? '');
         $amount   = (float)($_POST['amount'] ?? 0);
@@ -249,6 +255,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
+    // ── Action: donate ─────────────────────────────────────
     if ($action === "donate") {
         $campaignId = (int)($_POST['campaign_id'] ?? 0);
         $amount     = (float)($_POST['amount'] ?? 0);
@@ -303,6 +310,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit;
     }
 
+    // ── Action: delete_campaign ────────────────────────────
     if ($action === "delete_campaign") {
         $campaignId = (int)($_POST['id'] ?? 0);
         if ($accountType !== 'charity' || !$campaignId) {
