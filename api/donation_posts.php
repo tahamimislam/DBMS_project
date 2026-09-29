@@ -14,6 +14,10 @@ $action = $_GET['action'] ?? ($_POST['action'] ?? '');
 $userId = $_SESSION['user']['id'] ?? null;
 
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
+    $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+    $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+    $offset = ($page - 1) * $limit;
+
     if ($action === "public_posts") {
         $sql = "
             SELECT p.id, p.title, p.content, p.image_url, p.created_at,
@@ -24,9 +28,13 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             JOIN users u ON p.charity_id = u.id
             WHERE p.status = 'active'
             ORDER BY p.created_at DESC
+            LIMIT ? OFFSET ?
         ";
-        $result = $conn->query($sql);
-        echo json_encode(['ok'=>true, 'posts'=>$result->fetch_all(MYSQLI_ASSOC)]);
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("ii", $limit, $offset);
+        $stmt->execute();
+        $posts = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        echo json_encode(['ok'=>true, 'posts'=>$posts, 'page' => $page, 'limit' => $limit]);
         exit;
     }
 
@@ -39,12 +47,13 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             JOIN financial_campaigns c ON p.campaign_id = c.id
             WHERE p.charity_id = ? AND p.status = 'active'
             ORDER BY p.created_at DESC
+            LIMIT ? OFFSET ?
         ";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $userId);
+        $stmt->bind_param("iii", $userId, $limit, $offset);
         $stmt->execute();
         $posts = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        echo json_encode(['ok'=>true, 'posts'=>$posts]);
+        echo json_encode(['ok'=>true, 'posts'=>$posts, 'page' => $page, 'limit' => $limit]);
         exit;
     }
 

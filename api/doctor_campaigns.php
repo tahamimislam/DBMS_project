@@ -73,6 +73,10 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     // If the request is from a doctor, fetch only their campaigns with participant counts.
     // If from a user/charity, fetch all active campaigns.
     
+    $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+    $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+    $offset = ($page - 1) * $limit;
+
     if ($user['accountType'] === 'doctor') {
         $stmt = $conn->prepare("
             SELECT dc.*, 
@@ -80,8 +84,9 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             FROM doctor_campaigns dc
             WHERE dc.doctor_id = ?
             ORDER BY dc.created_at DESC
+            LIMIT ? OFFSET ?
         ");
-        $stmt->bind_param('i', $user['id']);
+        $stmt->bind_param('iii', $user['id'], $limit, $offset);
     } else {
         $stmt = $conn->prepare("
             SELECT dc.*, u.full_name as doctor_name, u.specialization, u.profile_picture as doctor_profile_picture,
@@ -90,8 +95,9 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             FROM doctor_campaigns dc
             JOIN users u ON dc.doctor_id = u.id
             ORDER BY dc.campaign_date ASC
+            LIMIT ? OFFSET ?
         ");
-        $stmt->bind_param('i', $user['id']);
+        $stmt->bind_param('iii', $user['id'], $limit, $offset);
     }
     
     $stmt->execute();
@@ -102,7 +108,7 @@ else if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     $stmt->close();
     
-    echo json_encode(['ok' => true, 'campaigns' => $campaigns]);
+    echo json_encode(['ok' => true, 'campaigns' => $campaigns, 'page' => $page, 'limit' => $limit]);
 } else if ($_SERVER['REQUEST_METHOD'] === 'DELETE') {
     if ($user['accountType'] !== 'doctor') {
         echo json_encode(['ok' => false, 'msg' => 'Only doctors can delete campaigns.']);

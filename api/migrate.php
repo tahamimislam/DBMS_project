@@ -80,27 +80,6 @@ $conn->query("
 ");
 
 // 6. Create VIEWs for reporting
-$conn->query("
-    CREATE OR REPLACE VIEW v_active_campaign_summary AS
-        SELECT
-            fc.id                                  AS campaign_id,
-            fc.title,
-            fc.goal_amount,
-            fc.deadline,
-            fc.status,
-            u.full_name                            AS charity_name,
-            COALESCE(SUM(d.amount), 0)             AS total_raised,
-            COUNT(d.id)                            AS donor_count,
-            ROUND(
-                COALESCE(SUM(d.amount), 0)
-                / NULLIF(fc.goal_amount, 0) * 100, 1
-            )                                      AS progress_pct
-        FROM financial_campaigns fc
-        JOIN  users u    ON fc.charity_id = u.id
-        LEFT JOIN donations d ON fc.id = d.campaign_id
-                              AND d.payment_status = 'SUCCESS'
-        GROUP BY fc.id, fc.title, fc.goal_amount, fc.deadline, fc.status, u.full_name
-");
 
 $conn->query("
     CREATE OR REPLACE VIEW v_charity_welfare_workload AS
@@ -126,9 +105,18 @@ if ($checkIndex && $checkIndex->num_rows == 0) {
     ");
 }
 
+// 8. Add other indexes (check if exists first)
+$checkIndexUsers = $conn->query("SHOW INDEX FROM users WHERE Key_name = 'idx_users_account_type'");
+if ($checkIndexUsers && $checkIndexUsers->num_rows == 0) {
+    $conn->query("CREATE INDEX idx_users_account_type ON users(account_type)");
+}
+
+$checkIndexWelfare = $conn->query("SHOW INDEX FROM welfare_cases WHERE Key_name = 'idx_welfare_cases_status'");
+if ($checkIndexWelfare && $checkIndexWelfare->num_rows == 0) {
+    $conn->query("CREATE INDEX idx_welfare_cases_status ON welfare_cases(status)");
+}
+
 echo "Migration completed: Views and Indexes created and fund_requests table ready.\n";
 
 $conn->close();
 ?>
-$conn->query("CREATE INDEX idx_users_account_type ON users(account_type)");
-$conn->query("CREATE INDEX idx_welfare_cases_status ON welfare_cases(status)");

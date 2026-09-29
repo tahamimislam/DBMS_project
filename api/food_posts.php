@@ -9,6 +9,10 @@ require 'db.php';
 
 // ─── GET: Return all food posts ───────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+    $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+    $offset = ($page - 1) * $limit;
+
     $sql = "
         SELECT
             fp.id,
@@ -34,9 +38,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         LEFT JOIN users u1 ON fp.posted_by  = u1.id
         LEFT JOIN users u2 ON fp.claimed_by = u2.id
         ORDER BY fp.created_at DESC
+        LIMIT ? OFFSET ?
     ";
 
-    $result = $conn->query($sql);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $limit, $offset);
+    $stmt->execute();
+    $result = $stmt->get_result();
     $posts  = [];
 
     while ($row = $result->fetch_assoc()) {
@@ -62,8 +70,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             'createdAt'     => $row['created_at']
         ];
     }
+    $stmt->close();
 
-    echo json_encode(['ok' => true, 'posts' => $posts]);
+    echo json_encode(['ok' => true, 'posts' => $posts, 'page' => $page, 'limit' => $limit]);
     exit;
 }
 

@@ -209,26 +209,6 @@ CREATE TABLE IF NOT EXISTS fund_requests (
 -- VIEWS
 -- ============================================================
 
--- ── View: Active Campaign Summary (used in admin & charity dashboards)
-CREATE OR REPLACE VIEW v_active_campaign_summary AS
-    SELECT
-        fc.id                                  AS campaign_id,
-        fc.title,
-        fc.goal_amount,
-        fc.deadline,
-        fc.status,
-        u.full_name                            AS charity_name,
-        COALESCE(SUM(d.amount), 0)             AS total_raised,
-        COUNT(d.id)                            AS donor_count,
-        ROUND(
-            COALESCE(SUM(d.amount), 0)
-            / NULLIF(fc.goal_amount, 0) * 100, 1
-        )                                      AS progress_pct
-    FROM financial_campaigns fc
-    JOIN  users u    ON fc.charity_id = u.id
-    LEFT JOIN donations d ON fc.id = d.campaign_id
-                          AND d.payment_status = 'SUCCESS'
-    GROUP BY fc.id, fc.title, fc.goal_amount, fc.deadline, fc.status, u.full_name;
 
 -- ── View: Charity Welfare Workload (used in medical-welfare section)
 CREATE OR REPLACE VIEW v_charity_welfare_workload AS
@@ -248,11 +228,6 @@ CREATE OR REPLACE VIEW v_charity_welfare_workload AS
 -- AGGREGATION WITH HAVING (examples used by application)
 -- ============================================================
 
--- Campaigns that have received at least 1 successful donation
--- (Used internally to identify "active" campaigns with real traction)
--- SELECT campaign_id, charity_name, total_raised, donor_count
--- FROM v_active_campaign_summary
--- HAVING donor_count > 0;
 
 -- Charities handling more than 0 welfare cases (HAVING example)
 -- SELECT charity_id, charity_name, total_cases, completed_cases

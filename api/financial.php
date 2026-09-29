@@ -25,6 +25,10 @@ $userId = $_SESSION['user']['id'] ?? null;
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
 
     if ($action === "campaigns") {
+        $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+        $offset = ($page - 1) * $limit;
+
         $sql = "
             SELECT
                 fc.id,
@@ -48,10 +52,11 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             WHERE fc.status = 'active'
             GROUP BY fc.id
             ORDER BY fc.created_at DESC
+            LIMIT ? OFFSET ?
         ";
         $stmt = $conn->prepare($sql);
         $uid = $userId ?? 0;
-        $stmt->bind_param("i", $uid);
+        $stmt->bind_param("iii", $uid, $limit, $offset);
         $stmt->execute();
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
@@ -64,12 +69,17 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 ? min(100, round(($r['raised_amount'] / $r['goal_amount']) * 100, 1))
                 : 0;
         }
-        echo json_encode(['ok' => true, 'campaigns' => $rows]);
+        echo json_encode(['ok' => true, 'campaigns' => $rows, 'page' => $page, 'limit' => $limit]);
         exit;
     }
 
     if ($action === "my_campaigns") {
         if (!$userId) { echo json_encode(['ok'=>false,'msg'=>'Not logged in']); exit; }
+        
+        $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+        $offset = ($page - 1) * $limit;
+
         $sql = "
             SELECT
                 fc.id, fc.title, fc.description, fc.goal_amount,
@@ -81,9 +91,10 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             WHERE fc.charity_id = ?
             GROUP BY fc.id
             ORDER BY fc.created_at DESC
+            LIMIT ? OFFSET ?
         ";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $userId);
+        $stmt->bind_param("iii", $userId, $limit, $offset);
         $stmt->execute();
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         foreach ($rows as &$r) {
@@ -94,12 +105,17 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
                 ? min(100, round(($r['raised_amount'] / $r['goal_amount']) * 100, 1))
                 : 0;
         }
-        echo json_encode(['ok' => true, 'campaigns' => $rows]);
+        echo json_encode(['ok' => true, 'campaigns' => $rows, 'page' => $page, 'limit' => $limit]);
         exit;
     }
 
     if ($action === "my_donations") {
         if (!$userId) { echo json_encode(['ok'=>false,'msg'=>'Not logged in']); exit; }
+        
+        $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+        $offset = ($page - 1) * $limit;
+
         $sql = "
             SELECT
                 d.id, d.amount, d.message, d.created_at,
@@ -110,32 +126,39 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             LEFT JOIN users u ON fc.charity_id = u.id
             WHERE d.user_id = ?
             ORDER BY d.created_at DESC
+            LIMIT ? OFFSET ?
         ";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $userId);
+        $stmt->bind_param("iii", $userId, $limit, $offset);
         $stmt->execute();
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
         foreach ($rows as &$r) {
             $r['amount'] = (float)$r['amount'];
         }
-        echo json_encode(['ok' => true, 'donations' => $rows]);
+        echo json_encode(['ok' => true, 'donations' => $rows, 'page' => $page, 'limit' => $limit]);
         exit;
     }
 
     if ($action === "campaign_donors") {
         $cid = (int)($_GET['campaign_id'] ?? 0);
         if (!$cid) { echo json_encode(['ok'=>false,'msg'=>'Campaign ID required']); exit; }
+        
+        $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+        $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+        $offset = ($page - 1) * $limit;
+
         $sql = "
             SELECT u.full_name, d.amount, d.message, d.created_at
             FROM donations d JOIN users u ON d.user_id = u.id
             WHERE d.campaign_id = ?
             ORDER BY d.created_at DESC
+            LIMIT ? OFFSET ?
         ";
         $stmt = $conn->prepare($sql);
-        $stmt->bind_param("i", $cid);
+        $stmt->bind_param("iii", $cid, $limit, $offset);
         $stmt->execute();
         $rows = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
-        echo json_encode(['ok' => true, 'donors' => $rows]);
+        echo json_encode(['ok' => true, 'donors' => $rows, 'page' => $page, 'limit' => $limit]);
         exit;
     }
 
@@ -250,11 +273,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             $stmt = $conn->prepare("INSERT INTO donations (campaign_id, user_id, amount, message, payment_method, transaction_id, masked_account, payment_status) VALUES (?,?,?,?,?,?,?,'SUCCESS')");
             $stmt->bind_param("iidssss", $campaignId, $userId, $amount, $message, $pm, $txId, $masked);
-            $stmt->execute();
+            if (!$stmt->execute()) {
+                throw new Exception("Donation insert failed.");
+            }
 
             $stmt = $conn->prepare("UPDATE financial_campaigns SET collected_amount = collected_amount + ? WHERE id = ?");
             $stmt->bind_param("di", $amount, $campaignId);
-            $stmt->execute();
+            if (!$stmt->execute()) {
+                throw new Exception("Campaign update failed.");
+            }
 
             $conn->commit();
 

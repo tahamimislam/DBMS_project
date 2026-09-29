@@ -68,7 +68,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $accountType = $_SESSION['user']['accountType'] ?? $_SESSION['user']['account_type'] ?? '';
     if ($accountType === 'doctor') {
-        $conn->query("DELETE FROM doctor_qualifications WHERE user_id = $currentUserId");
+        $delStmt = $conn->prepare("DELETE FROM doctor_qualifications WHERE user_id = ?");
+        $delStmt->bind_param("i", $currentUserId);
+        $delStmt->execute();
+        $delStmt->close();
         if (!empty($qualification)) {
             $quals = explode(',', $qualification);
             $stmtQ = $conn->prepare("INSERT IGNORE INTO doctor_qualifications (user_id, qualification) VALUES (?, ?)");
@@ -82,7 +85,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmtQ->close();
         }
     } else if ($accountType === 'charity') {
-        $conn->query("DELETE FROM charity_sectors WHERE charity_id = $currentUserId");
+        $delStmt = $conn->prepare("DELETE FROM charity_sectors WHERE charity_id = ?");
+        $delStmt->bind_param("i", $currentUserId);
+        $delStmt->execute();
+        $delStmt->close();
         if (!empty($sectorsArr)) {
             $stmtC = $conn->prepare("INSERT IGNORE INTO charity_sectors (charity_id, sector_id) SELECT ?, id FROM sectors WHERE name = ?");
             foreach ($sectorsArr as $s) {

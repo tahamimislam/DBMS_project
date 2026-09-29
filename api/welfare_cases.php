@@ -9,6 +9,10 @@ require "db.php";
 
 // ─── GET: Return all welfare cases ────────────────────────
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
+    $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+    $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
+    $offset = ($page - 1) * $limit;
+
     $sql = "
         SELECT
             wc.id,
@@ -35,9 +39,13 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
         LEFT JOIN welfare_case_rejections wcr ON wc.id = wcr.case_id
         GROUP BY wc.id
         ORDER BY wc.created_at DESC
+        LIMIT ? OFFSET ?
     ";
 
-    $result = $conn->query($sql);
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("ii", $limit, $offset);
+    $stmt->execute();
+    $result = $stmt->get_result();
     $cases  = [];
 
     while ($row = $result->fetch_assoc()) {
@@ -62,8 +70,9 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
             "createdAt"       => $row["created_at"]
         ];
     }
+    $stmt->close();
 
-    echo json_encode(["ok" => true, "cases" => $cases]);
+    echo json_encode(["ok" => true, "cases" => $cases, "page" => $page, "limit" => $limit]);
     exit;
 }
 

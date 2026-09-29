@@ -25,6 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         exit;
     }
 
+    $page  = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+    $limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 50; // default 50 for messages
+    $offset = ($page - 1) * $limit;
+
     if ($caseId) {
         $stmt = $conn->prepare("
             SELECT m.id, m.sender_id, m.receiver_id, m.message, m.sent_at,
@@ -34,8 +38,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             WHERE m.welfare_case_id = ?
               AND (m.sender_id = ? OR m.receiver_id = ?)
             ORDER BY m.sent_at ASC
+            LIMIT ? OFFSET ?
         ");
-        $stmt->bind_param('iii', $caseId, $currentUserId, $currentUserId);
+        $stmt->bind_param('iiiii', $caseId, $currentUserId, $currentUserId, $limit, $offset);
     } else {
         $stmt = $conn->prepare("
             SELECT m.id, m.sender_id, m.receiver_id, m.message, m.sent_at,
@@ -45,8 +50,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
             WHERE m.post_id = ?
               AND (m.sender_id = ? OR m.receiver_id = ?)
             ORDER BY m.sent_at ASC
+            LIMIT ? OFFSET ?
         ");
-        $stmt->bind_param('iii', $postId, $currentUserId, $currentUserId);
+        $stmt->bind_param('iiiii', $postId, $currentUserId, $currentUserId, $limit, $offset);
     }
     
     $stmt->execute();
@@ -65,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     }
     $stmt->close();
 
-    echo json_encode(['ok' => true, 'messages' => $msgs]);
+    echo json_encode(['ok' => true, 'messages' => $msgs, 'page' => $page, 'limit' => $limit]);
     exit;
 }
 
